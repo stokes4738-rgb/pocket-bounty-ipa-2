@@ -503,32 +503,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Platform revenue endpoints (admin only)
-  app.get('/api/admin/platform-revenue', isAuthenticated, async (req: any, res) => {
+  // Creator dashboard endpoints (creator only)
+  app.get('/api/creator/stats', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       
-      // Check if user is admin (you can set this field in the database for specific users)
+      // Check if user is creator/admin
       if (!user?.email?.includes('admin') && !user?.email?.includes('creator')) {
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const revenue = await storage.getPlatformRevenue();
-      const totalRevenue = await storage.getTotalPlatformRevenue();
-      
-      res.json({ 
+      // Get comprehensive app statistics
+      const [
         revenue,
         totalRevenue,
-        summary: {
-          totalEarned: totalRevenue,
+        allUsers,
+        allBounties,
+        allTransactions,
+        recentActivity
+      ] = await Promise.all([
+        storage.getPlatformRevenue(),
+        storage.getTotalPlatformRevenue(),
+        storage.getAllUsers(),
+        storage.getAllBounties(),
+        storage.getAllTransactions(),
+        storage.getRecentActivity(50)
+      ]);
+
+      // Calculate user statistics
+      const activeUsers = allUsers.filter(u => 
+        new Date(u.lastLogin || u.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      ).length;
+
+      const totalUserBalance = allUsers.reduce((sum, u) => sum + parseFloat(u.balance || '0'), 0);
+
+      // Calculate bounty statistics
+      const activeBounties = allBounties.filter(b => b.status === 'active').length;
+      const completedBounties = allBounties.filter(b => b.status === 'completed').length;
+      const totalBountyValue = allBounties.reduce((sum, b) => sum + parseFloat(b.reward || '0'), 0);
+
+      // Calculate transaction statistics
+      const deposits = allTransactions.filter(t => t.type === 'earning');
+      const withdrawals = allTransactions.filter(t => t.type === 'spending');
+      const totalVolume = allTransactions.reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
+
+      // Growth metrics (comparing last 30 days vs previous 30 days)
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+
+      const newUsersLast30 = allUsers.filter(u => new Date(u.createdAt) > thirtyDaysAgo).length;
+      const newUsersPrevious30 = allUsers.filter(u => 
+        new Date(u.createdAt) > sixtyDaysAgo && new Date(u.createdAt) <= thirtyDaysAgo
+      ).length;
+
+      const userGrowthRate = newUsersPrevious30 > 0 
+        ? ((newUsersLast30 - newUsersPrevious30) / newUsersPrevious30 * 100).toFixed(1)
+        : newUsersLast30 > 0 ? '100' : '0';
+
+      res.json({ 
+        revenue: {
+          data: revenue,
+          total: totalRevenue,
           transactionCount: revenue.length,
           avgPerTransaction: revenue.length > 0 ? (parseFloat(totalRevenue) / revenue.length).toFixed(2) : "0.00"
-        }
+        },
+        users: {
+          total: allUsers.length,
+          active: activeUsers,
+          totalBalance: totalUserBalance.toFixed(2),
+          newLast30Days: newUsersLast30,
+          growthRate: userGrowthRate
+        },
+        bounties: {
+          total: allBounties.length,
+          active: activeBounties,
+          completed: completedBounties,
+          totalValue: totalBountyValue.toFixed(2),
+          completionRate: allBounties.length > 0 ? ((completedBounties / allBounties.length) * 100).toFixed(1) : '0'
+        },
+        transactions: {
+          total: allTransactions.length,
+          totalVolume: totalVolume.toFixed(2),
+          deposits: deposits.length,
+          withdrawals: withdrawals.length,
+          avgTransactionSize: allTransactions.length > 0 ? (totalVolume / allTransactions.length).toFixed(2) : '0'
+        },
+        activity: recentActivity
       });
     } catch (error) {
-      console.error("Error fetching platform revenue:", error);
-      res.status(500).json({ message: "Failed to fetch platform revenue" });
+      console.error("Error fetching creator stats:", error);
+      res.status(500).json({ message: "Failed to fetch creator stats" });
     }
   });
 

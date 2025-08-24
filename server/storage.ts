@@ -99,6 +99,12 @@ export interface IStorage {
   
   // Fee calculation utility
   calculatePlatformFee(amount: string): { fee: string; netAmount: string; grossAmount: string };
+  
+  // Creator dashboard operations
+  getAllUsers(): Promise<User[]>;
+  getAllBounties(): Promise<Bounty[]>;
+  getAllTransactions(): Promise<Transaction[]>;
+  getRecentActivity(limit?: number): Promise<Activity[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -543,6 +549,27 @@ export class DatabaseStorage implements IStorage {
       netAmount: netAmount.toFixed(2),
       grossAmount: grossAmount.toFixed(2)
     };
+  }
+
+  // Creator dashboard operations
+  async getAllUsers(): Promise<User[]> {
+    return db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async getAllBounties(): Promise<Bounty[]> {
+    return db.select().from(bounties).orderBy(desc(bounties.createdAt));
+  }
+
+  async getAllTransactions(): Promise<Transaction[]> {
+    return db.select().from(transactions).orderBy(desc(transactions.createdAt));
+  }
+
+  async getRecentActivity(limit: number = 50): Promise<Activity[]> {
+    return db
+      .select()
+      .from(activities)
+      .orderBy(desc(activities.createdAt))
+      .limit(limit);
   }
 }
 

@@ -10,7 +10,7 @@ import Activity from "./Activity";
 import Settings from "./Settings";
 import FlappyGame from "./FlappyGame";
 import Account from "./Account";
-import AdminDashboard from "./AdminDashboard";
+import CreatorDashboard from "./CreatorDashboard";
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState("board");
@@ -38,7 +38,7 @@ export default function Home() {
       case "account":
         return <Account />;
       case "admin":
-        return <AdminDashboard />;
+        return <CreatorDashboard />;
       default:
         return <Board />;
     }
