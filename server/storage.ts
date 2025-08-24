@@ -108,7 +108,7 @@ export interface IStorage {
   getRecentActivity(limit?: number): Promise<Activity[]>;
   
   // Profile update operations  
-  updateUserProfile(userId: string, profileData: { handle?: string; bio?: string; skills?: string; experience?: string }): Promise<void>;
+  updateUserProfile(userId: string, profileData: { firstName?: string; lastName?: string; handle?: string; bio?: string; skills?: string; experience?: string }): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -596,7 +596,7 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
   }
 
-  async updateUserProfile(userId: string, profileData: { handle?: string; bio?: string; skills?: string; experience?: string }): Promise<void> {
+  async updateUserProfile(userId: string, profileData: { firstName?: string; lastName?: string; handle?: string; bio?: string; skills?: string; experience?: string }): Promise<void> {
     const updateData: any = { 
       updatedAt: new Date(),
       ...profileData

@@ -317,9 +317,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { handle, bio, skills, experience } = req.body;
+      const { firstName, lastName, handle, bio, skills, experience } = req.body;
       
       await storage.updateUserProfile(userId, {
+        firstName,
+        lastName,
         handle,
         bio,
         skills,

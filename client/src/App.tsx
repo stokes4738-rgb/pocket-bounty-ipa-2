@@ -13,6 +13,7 @@ const Login = lazy(() => import("@/pages/Login"));
 const CreateAccount = lazy(() => import("@/pages/CreateAccount"));
 const Home = lazy(() => import("@/pages/Home"));
 const Profile = lazy(() => import("@/pages/Profile"));
+const Account = lazy(() => import("@/pages/Account"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 function Router() {
@@ -51,6 +52,7 @@ function Router() {
           <>
             <Route path="/" component={Home} />
             <Route path="/profile" component={Profile} />
+            <Route path="/account" component={Account} />
           </>
         )}
         <Route component={NotFound} />
