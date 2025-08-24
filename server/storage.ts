@@ -73,6 +73,7 @@ export interface IStorage {
   getUserFriends(userId: string): Promise<(Friendship & { friend: User })[]>;
   getFriendRequests(userId: string): Promise<(Friendship & { requester: User })[]>;
   updateFriendshipStatus(id: string, status: string): Promise<void>;
+  searchUsers(searchTerm: string, excludeUserId: string): Promise<User[]>;
   
   // Review operations
   createReview(review: InsertReview): Promise<Review>;
@@ -394,6 +395,26 @@ export class DatabaseStorage implements IStorage {
       .update(friendships)
       .set({ status, updatedAt: new Date() })
       .where(eq(friendships.id, id));
+  }
+
+  async searchUsers(searchTerm: string, excludeUserId: string): Promise<User[]> {
+    const term = `%${searchTerm.toLowerCase()}%`;
+    
+    return db
+      .select()
+      .from(users)
+      .where(
+        and(
+          or(
+            sql`LOWER(${users.firstName}) LIKE ${term}`,
+            sql`LOWER(${users.lastName}) LIKE ${term}`,
+            sql`LOWER(${users.handle}) LIKE ${term}`,
+            sql`LOWER(${users.email}) LIKE ${term}`
+          ),
+          sql`${users.id} != ${excludeUserId}`
+        )
+      )
+      .limit(20);
   }
 
   // Review operations

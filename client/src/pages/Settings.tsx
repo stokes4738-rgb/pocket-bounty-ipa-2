@@ -30,25 +30,25 @@ export default function Settings() {
   };
 
   const handleEditProfile = () => {
-    toast({
-      title: "Edit Profile",
-      description: "Profile editing feature coming soon!",
-    });
+    window.location.href = "/profile";
   };
 
   const handlePaymentMethods = () => {
-    toast({
-      title: "Payment Methods",
-      description: "Payment management feature coming soon!",
-    });
+    window.location.href = "/account";
   };
 
   const handlePrivacyPolicy = () => {
-    window.open("https://example.com/privacy", "_blank");
+    toast({
+      title: "Privacy Policy",
+      description: "Please contact support for privacy policy information.",
+    });
   };
 
   const handleTermsOfService = () => {
-    window.open("https://example.com/terms", "_blank");
+    toast({
+      title: "Terms of Service",
+      description: "Please contact support for terms of service information.",
+    });
   };
 
   const handleNotificationChange = (key: keyof typeof notifications) => {

@@ -206,6 +206,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User search route
+  app.get('/api/users/search', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const searchTerm = req.query.searchTerm as string || '';
+      
+      if (searchTerm.length === 0) {
+        return res.json([]);
+      }
+      
+      const users = await storage.searchUsers(searchTerm, userId);
+      res.json(users);
+    } catch (error) {
+      console.error("Error searching users:", error);
+      res.status(500).json({ message: "Failed to search users" });
+    }
+  });
+
   // Friend routes
   app.get('/api/friends', isAuthenticated, async (req: any, res) => {
     try {

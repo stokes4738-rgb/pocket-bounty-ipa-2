@@ -4,16 +4,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search } from "lucide-react";
+import { Search, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 import type { Friendship, User } from "@shared/schema";
 
 export default function Friends() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [userSearchTerm, setUserSearchTerm] = useState("");
+  const [showUserSearch, setShowUserSearch] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user: currentUser } = useAuth();
 
   const { data: friends = [], isLoading: friendsLoading } = useQuery<(Friendship & { friend: User })[]>({
     queryKey: ["/api/friends"],
@@ -69,11 +73,48 @@ export default function Friends() {
     return user.handle || user.email || "Unknown User";
   };
 
+  const { data: searchResults = [], isLoading: searchLoading } = useQuery<User[]>({
+    queryKey: [`/api/users/search?searchTerm=${userSearchTerm}`],
+    enabled: userSearchTerm.length > 0 && showUserSearch,
+  });
+
+  const sendFriendRequestMutation = useMutation({
+    mutationFn: async (recipientId: string) => {
+      return apiRequest("POST", "/api/friends/request", { addresseeId: recipientId });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Friend request sent!",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/friends"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users/search"] });
+    },
+    onError: (error: any) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send friend request",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleFindFriends = () => {
-    toast({
-      title: "Find Friends",
-      description: "Friend discovery feature coming soon! Connect via social media for now.",
-    });
+    setShowUserSearch(!showUserSearch);
+    if (!showUserSearch) {
+      setUserSearchTerm("");
+    }
   };
 
   const filteredFriends = friends.filter((friendship) => {
@@ -114,9 +155,72 @@ export default function Friends() {
           onClick={handleFindFriends}
           data-testid="button-find-friends"
         >
-          Find Friends
+          {showUserSearch ? "Close Search" : "Find Friends"}
         </Button>
       </div>
+
+      {/* User Search */}
+      {showUserSearch && (
+        <Card className="theme-transition">
+          <CardContent className="p-3.5">
+            <h3 className="text-sm font-semibold mb-3">Find New Friends</h3>
+            <div className="relative mb-3">
+              <Input 
+                placeholder="Search users by name or handle..." 
+                value={userSearchTerm}
+                onChange={(e) => setUserSearchTerm(e.target.value)}
+                className="pl-10"
+                data-testid="input-search-users"
+              />
+              <UserPlus className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            </div>
+            
+            {userSearchTerm.length > 0 && (
+              <div className="space-y-2">
+                {searchLoading ? (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <div className="text-sm">Searching...</div>
+                  </div>
+                ) : searchResults.length === 0 ? (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <div className="text-sm">No users found</div>
+                  </div>
+                ) : (
+                  searchResults
+                    .filter((u: any) => u.id !== currentUser?.id)
+                    .map((user: any) => (
+                      <div 
+                        key={user.id} 
+                        className="flex gap-2.5 items-center p-2 border rounded-lg"
+                        data-testid={`search-result-${user.id}`}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center font-bold text-sm">
+                          {getInitials(user)}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">
+                            {getDisplayName(user)}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {user.handle} • Level {user.level || 1}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => sendFriendRequestMutation.mutate(user.id)}
+                          disabled={sendFriendRequestMutation.isPending}
+                          data-testid={`button-add-friend-${user.id}`}
+                        >
+                          Add Friend
+                        </Button>
+                      </div>
+                    ))
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Friend Requests */}
       {friendRequests.length > 0 && (
@@ -230,6 +334,7 @@ export default function Friends() {
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={() => window.location.href = `/messages?userId=${friendship.friend.id}`}
                     data-testid={`button-message-${friendship.id}`}
                   >
                     Message
