@@ -14,6 +14,7 @@ import type { Bounty } from "@shared/schema";
 
 export default function Board() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [favoritedBounties, setFavoritedBounties] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -60,6 +61,27 @@ export default function Board() {
       });
     },
   });
+
+  const handleFavorite = (bountyId: string) => {
+    const isFavorited = favoritedBounties.has(bountyId);
+    const newFavorites = new Set(favoritedBounties);
+    
+    if (isFavorited) {
+      newFavorites.delete(bountyId);
+      toast({
+        title: "Removed from Favorites",
+        description: "Bounty removed from your favorites.",
+      });
+    } else {
+      newFavorites.add(bountyId);
+      toast({
+        title: "Added to Favorites",
+        description: "Bounty saved to your favorites!",
+      });
+    }
+    
+    setFavoritedBounties(newFavorites);
+  };
 
   if (isLoading) {
     return (
@@ -166,9 +188,12 @@ export default function Board() {
                   <Button
                     variant="outline"
                     size="icon"
+                    onClick={() => handleFavorite(bounty.id)}
                     data-testid={`button-favorite-${bounty.id}`}
                   >
-                    <Heart className="h-4 w-4" />
+                    <Heart 
+                      className={`h-4 w-4 ${favoritedBounties.has(bounty.id) ? 'fill-red-500 text-red-500' : ''}`} 
+                    />
                   </Button>
                 </div>
               </CardContent>

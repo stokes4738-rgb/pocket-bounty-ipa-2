@@ -8,17 +8,18 @@ import { Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
+import type { Friendship, User } from "@shared/schema";
 
 export default function Friends() {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: friends = [], isLoading: friendsLoading } = useQuery({
+  const { data: friends = [], isLoading: friendsLoading } = useQuery<(Friendship & { friend: User })[]>({
     queryKey: ["/api/friends"],
   });
 
-  const { data: friendRequests = [], isLoading: requestsLoading } = useQuery({
+  const { data: friendRequests = [], isLoading: requestsLoading } = useQuery<(Friendship & { requester: User })[]>({
     queryKey: ["/api/friends/requests"],
   });
 
@@ -68,7 +69,14 @@ export default function Friends() {
     return user.handle || user.email || "Unknown User";
   };
 
-  const filteredFriends = friends.filter((friendship: any) => {
+  const handleFindFriends = () => {
+    toast({
+      title: "Find Friends",
+      description: "Friend discovery feature coming soon! Connect via social media for now.",
+    });
+  };
+
+  const filteredFriends = friends.filter((friendship) => {
     const name = getDisplayName(friendship.friend).toLowerCase();
     return name.includes(searchTerm.toLowerCase());
   });
@@ -103,6 +111,7 @@ export default function Friends() {
         <Button 
           className="bg-pocket-red hover:bg-pocket-red-dark text-white"
           size="sm"
+          onClick={handleFindFriends}
           data-testid="button-find-friends"
         >
           Find Friends

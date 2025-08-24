@@ -29,6 +29,28 @@ export default function Settings() {
     window.location.href = "/api/logout";
   };
 
+  const handleEditProfile = () => {
+    toast({
+      title: "Edit Profile",
+      description: "Profile editing feature coming soon!",
+    });
+  };
+
+  const handlePaymentMethods = () => {
+    toast({
+      title: "Payment Methods",
+      description: "Payment management feature coming soon!",
+    });
+  };
+
+  const handlePrivacyPolicy = () => {
+    window.open("https://example.com/privacy", "_blank");
+  };
+
+  const handleTermsOfService = () => {
+    window.open("https://example.com/terms", "_blank");
+  };
+
   const handleNotificationChange = (key: keyof typeof notifications) => {
     setNotifications(prev => ({
       ...prev,
@@ -161,6 +183,7 @@ export default function Settings() {
           <div className="space-y-2">
             <Button
               variant="ghost"
+              onClick={handleEditProfile}
               className="w-full justify-start text-left p-2 text-sm hover:bg-accent"
               data-testid="button-edit-profile"
             >
@@ -169,6 +192,7 @@ export default function Settings() {
             
             <Button
               variant="ghost"
+              onClick={handlePaymentMethods}
               className="w-full justify-start text-left p-2 text-sm hover:bg-accent"
               data-testid="button-payment-methods"
             >
@@ -177,6 +201,7 @@ export default function Settings() {
             
             <Button
               variant="ghost"
+              onClick={handlePrivacyPolicy}
               className="w-full justify-start text-left p-2 text-sm hover:bg-accent"
               data-testid="button-privacy-policy"
             >
@@ -185,6 +210,7 @@ export default function Settings() {
             
             <Button
               variant="ghost"
+              onClick={handleTermsOfService}
               className="w-full justify-start text-left p-2 text-sm hover:bg-accent"
               data-testid="button-terms-of-service"
             >
