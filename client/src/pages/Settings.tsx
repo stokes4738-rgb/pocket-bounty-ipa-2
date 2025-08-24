@@ -5,10 +5,13 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/hooks/use-toast";
+import Tutorial from "@/components/Tutorial";
+import { PlayCircle, HelpCircle } from "lucide-react";
 
 export default function Settings() {
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
+  const [showTutorial, setShowTutorial] = useState(false);
   
   // Local state for notification preferences
   const [notifications, setNotifications] = useState({
@@ -70,6 +73,21 @@ export default function Settings() {
     toast({
       title: "Settings Updated",
       description: "Your privacy settings have been saved.",
+    });
+  };
+
+  const handleTutorialReplay = () => {
+    setShowTutorial(true);
+  };
+
+  const handleTutorialClose = () => {
+    setShowTutorial(false);
+  };
+
+  const handleGetHelp = () => {
+    toast({
+      title: "Need Help? 🤔",
+      description: "Try the tutorial or contact support for assistance!",
     });
   };
 
@@ -176,6 +194,34 @@ export default function Settings() {
         </CardContent>
       </Card>
 
+      {/* Help & Support */}
+      <Card className="theme-transition">
+        <CardContent className="p-3.5">
+          <h3 className="text-sm font-semibold mb-3">Help & Support</h3>
+          <div className="space-y-2">
+            <Button
+              variant="ghost"
+              onClick={handleTutorialReplay}
+              className="w-full justify-start text-left p-2 text-sm hover:bg-accent"
+              data-testid="button-replay-tutorial"
+            >
+              <PlayCircle className="h-4 w-4 mr-2" />
+              Replay Interactive Tutorial
+            </Button>
+            
+            <Button
+              variant="ghost"
+              onClick={handleGetHelp}
+              className="w-full justify-start text-left p-2 text-sm hover:bg-accent"
+              data-testid="button-get-help"
+            >
+              <HelpCircle className="h-4 w-4 mr-2" />
+              Get Help & Support
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Account */}
       <Card className="theme-transition">
         <CardContent className="p-3.5">
@@ -228,6 +274,15 @@ export default function Settings() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Tutorial Modal */}
+      {showTutorial && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-background rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-auto">
+            <Tutorial onClose={handleTutorialClose} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
