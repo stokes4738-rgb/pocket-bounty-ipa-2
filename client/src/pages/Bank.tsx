@@ -99,42 +99,6 @@ export default function Bank() {
       });
     },
   });
-  
-  const handleWithdrawal = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const amount = parseFloat(payoutAmount);
-    const balance = parseFloat(user?.balance || "0");
-    
-    if (!payoutMethod) {
-      toast({
-        title: "Error",
-        description: "Please select a payment method",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (amount < 5) {
-      toast({
-        title: "Error",
-        description: "Minimum withdrawal amount is $5.00",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (amount > balance) {
-      toast({
-        title: "Error",
-        description: "Insufficient balance for this withdrawal",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    withdrawalMutation.mutate({ amount: payoutAmount, method: payoutMethod });
-  };
 
   if (isLoading) {
     return (
