@@ -4,18 +4,21 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertBountySchema, insertMessageSchema, insertTransactionSchema, insertReviewSchema, insertPaymentMethodSchema, insertPaymentSchema, insertPlatformRevenueSchema } from "@shared/schema";
+import Stripe from "stripe";
 
 // Stripe setup with error handling for missing keys
-let stripe: any = null;
-try {
-  if (process.env.STRIPE_SECRET_KEY) {
-    const Stripe = require('stripe');
+let stripe: Stripe | null = null;
+if (process.env.STRIPE_SECRET_KEY) {
+  try {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: "2024-04-10",
     });
+    console.log("Stripe initialized successfully");
+  } catch (error) {
+    console.warn("Stripe initialization error:", error);
   }
-} catch (error) {
-  console.warn("Stripe not initialized - secret key not provided");
+} else {
+  console.log("Stripe not initialized - running in test mode (no STRIPE_SECRET_KEY)");
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
