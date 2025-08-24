@@ -17,15 +17,15 @@ interface GameState {
 
 const GRAVITY = 0.5;
 const FLAP_STRENGTH = -8;
-const PIPE_WIDTH = 30;
-const PIPE_GAP = 80;
+const PIPE_WIDTH = 40; // Made wider for larger canvas
+const PIPE_GAP = 100; // Made larger gap
 const PIPE_SPEED = 2;
 
 export default function FlappyGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>();
   const [gameState, setGameState] = useState<GameState>({
-    bird: { x: 50, y: 128, velocity: 0 },
+    bird: { x: 80, y: 175, velocity: 0 }, // Adjusted for larger canvas
     pipes: [],
     score: 0,
     gameStatus: "waiting",
@@ -33,6 +33,8 @@ export default function FlappyGame() {
   const [bestScore, setBestScore] = useState(() => {
     return parseInt(localStorage.getItem("flappy-best-score") || "0", 10);
   });
+  const [devMode, setDevMode] = useState(false);
+  const [cloudOffset, setCloudOffset] = useState(0);
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -69,7 +71,7 @@ export default function FlappyGame() {
 
   const resetGame = useCallback(() => {
     setGameState({
-      bird: { x: 50, y: 128, velocity: 0 },
+      bird: { x: 80, y: 175, velocity: 0 }, // Adjusted for larger canvas
       pipes: [],
       score: 0,
       gameStatus: "waiting",
@@ -122,14 +124,14 @@ export default function FlappyGame() {
         y: prev.bird.y + prev.bird.velocity,
       };
 
-      // Generate pipes
-      if (newState.pipes.length === 0 || newState.pipes[newState.pipes.length - 1].x < 300 - 150) {
-        const pipeHeight = Math.random() * (256 - PIPE_GAP - 40) + 20;
+      // Generate pipes (adjusted for larger canvas)
+      if (newState.pipes.length === 0 || newState.pipes[newState.pipes.length - 1].x < 400 - 200) {
+        const pipeHeight = Math.random() * (350 - PIPE_GAP - 60) + 30;
         newState.pipes.push({
-          x: 300,
+          x: 400,
           topHeight: pipeHeight,
           bottomY: pipeHeight + PIPE_GAP,
-          bottomHeight: 256 - pipeHeight - PIPE_GAP,
+          bottomHeight: 350 - pipeHeight - PIPE_GAP,
           scored: false,
         });
       }
@@ -147,8 +149,8 @@ export default function FlappyGame() {
         }
       });
 
-      // Collision detection
-      if (newState.bird.y < 0 || newState.bird.y > 256 - 20) {
+      // Collision detection (adjusted for larger canvas)
+      if (newState.bird.y < 0 || newState.bird.y > 350 - 20) {
         return { ...newState, gameStatus: "gameover" };
       }
 
@@ -177,37 +179,132 @@ export default function FlappyGame() {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw background
+    // Draw sky background
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, "#60a5fa");
-    gradient.addColorStop(1, "#2563eb");
+    gradient.addColorStop(0, "#87CEEB");
+    gradient.addColorStop(1, "#87CEFA");
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw pipes
-    ctx.fillStyle = "#22c55e";
+    // Draw animated clouds
+    ctx.fillStyle = "#ffffff";
+    const numClouds = 5;
+    for (let i = 0; i < numClouds; i++) {
+      const x = (i * 80 + cloudOffset) % (canvas.width + 60) - 30;
+      const y = 20 + (i % 3) * 25;
+      
+      // Cloud made of circles
+      ctx.beginPath();
+      ctx.arc(x, y, 12, 0, Math.PI * 2);
+      ctx.arc(x + 12, y, 16, 0, Math.PI * 2);
+      ctx.arc(x + 24, y, 12, 0, Math.PI * 2);
+      ctx.arc(x + 6, y - 8, 10, 0, Math.PI * 2);
+      ctx.arc(x + 18, y - 8, 10, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Draw Mario-style pipes
     gameState.pipes.forEach(pipe => {
-      // Top pipe
-      ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
-      // Bottom pipe
-      ctx.fillRect(pipe.x, pipe.bottomY, PIPE_WIDTH, pipe.bottomHeight);
+      // Pipe body (green)
+      ctx.fillStyle = "#228B22";
+      
+      // Top pipe body
+      ctx.fillRect(pipe.x + 2, 0, PIPE_WIDTH - 4, pipe.topHeight - 8);
+      // Top pipe cap
+      ctx.fillStyle = "#32CD32";
+      ctx.fillRect(pipe.x, pipe.topHeight - 8, PIPE_WIDTH, 8);
+      
+      // Pipe highlight
+      ctx.fillStyle = "#90EE90";
+      ctx.fillRect(pipe.x + 3, 0, 3, pipe.topHeight - 8);
+      ctx.fillRect(pipe.x + 1, pipe.topHeight - 8, 3, 8);
+      
+      // Bottom pipe body
+      ctx.fillStyle = "#228B22";
+      ctx.fillRect(pipe.x + 2, pipe.bottomY + 8, PIPE_WIDTH - 4, pipe.bottomHeight - 8);
+      // Bottom pipe cap
+      ctx.fillStyle = "#32CD32";
+      ctx.fillRect(pipe.x, pipe.bottomY, PIPE_WIDTH, 8);
+      
+      // Pipe highlight
+      ctx.fillStyle = "#90EE90";
+      ctx.fillRect(pipe.x + 3, pipe.bottomY + 8, 3, pipe.bottomHeight - 8);
+      ctx.fillRect(pipe.x + 1, pipe.bottomY, 3, 8);
     });
 
-    // Draw bird
-    ctx.fillStyle = "#fbbf24";
-    ctx.fillRect(gameState.bird.x, gameState.bird.y, 20, 20);
-
-    // Draw score
+    // Draw cartoon bird
+    const birdX = gameState.bird.x;
+    const birdY = gameState.bird.y;
+    
+    // Bird body (yellow circle)
+    ctx.fillStyle = "#FFD700";
+    ctx.beginPath();
+    ctx.arc(birdX + 10, birdY + 10, 10, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Bird wing (orange)
+    ctx.fillStyle = "#FF8C00";
+    ctx.beginPath();
+    ctx.ellipse(birdX + 6, birdY + 8, 6, 4, Math.PI / 6, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Bird beak (orange)
+    ctx.fillStyle = "#FF4500";
+    ctx.beginPath();
+    ctx.moveTo(birdX + 18, birdY + 10);
+    ctx.lineTo(birdX + 22, birdY + 8);
+    ctx.lineTo(birdX + 18, birdY + 12);
+    ctx.fill();
+    
+    // Bird eye (white circle with black pupil)
     ctx.fillStyle = "#ffffff";
-    ctx.font = "20px Inter, sans-serif";
+    ctx.beginPath();
+    ctx.arc(birdX + 12, birdY + 6, 3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = "#000000";
+    ctx.beginPath();
+    ctx.arc(birdX + 13, birdY + 6, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw score with shadow
+    ctx.fillStyle = "#000000";
+    ctx.font = "bold 24px Inter, sans-serif";
     ctx.textAlign = "center";
+    ctx.fillText(gameState.score.toString(), canvas.width / 2 + 2, 32);
+    
+    ctx.fillStyle = "#ffffff";
     ctx.fillText(gameState.score.toString(), canvas.width / 2, 30);
-  }, [gameState]);
+
+    // Dev mode overlays
+    if (devMode) {
+      // Bird hitbox
+      ctx.strokeStyle = "#ff0000";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(gameState.bird.x, gameState.bird.y, 20, 20);
+      
+      // Pipe hitboxes
+      ctx.strokeStyle = "#00ff00";
+      gameState.pipes.forEach(pipe => {
+        ctx.strokeRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
+        ctx.strokeRect(pipe.x, pipe.bottomY, PIPE_WIDTH, pipe.bottomHeight);
+      });
+      
+      // Debug info
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "12px monospace";
+      ctx.textAlign = "left";
+      ctx.fillText(`Bird Y: ${Math.round(gameState.bird.y)}`, 5, 20);
+      ctx.fillText(`Velocity: ${Math.round(gameState.bird.velocity * 10) / 10}`, 5, 35);
+      ctx.fillText(`Pipes: ${gameState.pipes.length}`, 5, 50);
+    }
+  }, [gameState, cloudOffset, devMode]);
 
   useEffect(() => {
     if (gameState.gameStatus === "playing") {
       const interval = setInterval(() => {
         gameLoop();
+        setCloudOffset(prev => (prev + 0.2) % 400); // Animate clouds
       }, 1000 / 60); // 60 FPS
 
       return () => clearInterval(interval);
@@ -248,15 +345,15 @@ export default function FlappyGame() {
         <p className="text-sm text-muted-foreground">Play to earn bonus points!</p>
       </div>
 
-      {/* Game Canvas */}
+      {/* Game Canvas - Made larger */}
       <Card className="theme-transition">
-        <CardContent className="p-3.5">
+        <CardContent className="p-2">
           <div className="relative w-full bg-gradient-to-b from-blue-400 to-blue-600 rounded-lg overflow-hidden">
             <canvas
               ref={canvasRef}
-              width={300}
-              height={256}
-              className="w-full h-64 cursor-pointer"
+              width={400}
+              height={350}
+              className="w-full h-80 cursor-pointer"
               onClick={handleCanvasClick}
               data-testid="canvas-flappy-game"
             />
@@ -309,6 +406,14 @@ export default function FlappyGame() {
               Reset
             </Button>
             <Button
+              variant={devMode ? "default" : "outline"}
+              onClick={() => setDevMode(!devMode)}
+              size="sm"
+              data-testid="button-dev-mode"
+            >
+              🛠️ Dev
+            </Button>
+            <Button
               onClick={gameState.gameStatus === "waiting" ? startGame : handleCanvasClick}
               className="bg-pocket-red hover:bg-pocket-red-dark text-white"
               data-testid="button-play-game"
@@ -318,6 +423,75 @@ export default function FlappyGame() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Dev Menu */}
+      {devMode && (
+        <Card className="theme-transition border-orange-500">
+          <CardContent className="p-3.5">
+            <h3 className="text-sm font-semibold mb-3 text-orange-500">🛠️ Developer Menu</h3>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="space-y-1">
+                <div><strong>Bird Position:</strong></div>
+                <div>X: {Math.round(gameState.bird.x)}</div>
+                <div>Y: {Math.round(gameState.bird.y)}</div>
+                <div>Velocity: {Math.round(gameState.bird.velocity * 10) / 10}</div>
+              </div>
+              <div className="space-y-1">
+                <div><strong>Game State:</strong></div>
+                <div>Status: {gameState.gameStatus}</div>
+                <div>Pipes: {gameState.pipes.length}</div>
+                <div>Cloud Offset: {Math.round(cloudOffset)}</div>
+              </div>
+            </div>
+            <div className="flex gap-2 mt-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setGameState(prev => ({
+                  ...prev,
+                  bird: { ...prev.bird, y: prev.bird.y - 50 }
+                }))}
+                data-testid="button-dev-bird-up"
+              >
+                ⬆️ Bird Up
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setGameState(prev => ({
+                  ...prev,
+                  bird: { ...prev.bird, y: prev.bird.y + 50 }
+                }))}
+                data-testid="button-dev-bird-down"
+              >
+                ⬇️ Bird Down
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setGameState(prev => ({
+                  ...prev,
+                  score: prev.score + 10
+                }))}
+                data-testid="button-dev-add-score"
+              >
+                +10 Score
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setGameState(prev => ({
+                  ...prev,
+                  pipes: []
+                }))}
+                data-testid="button-dev-clear-pipes"
+              >
+                Clear Pipes
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Leaderboard */}
       <Card className="theme-transition">
