@@ -19,7 +19,7 @@ const postBountySchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(255, "Title too long"),
   description: z.string().min(20, "Description must be at least 20 characters"),
   category: z.string().min(1, "Please select a category"),
-  reward: z.string().refine((val) => parseFloat(val) >= 5, "Minimum reward is $5"),
+  reward: z.string().refine((val) => parseFloat(val) >= 1, "Minimum reward is $1"),
   tags: z.string().optional(),
   duration: z.string().min(1, "Please select a duration"),
 });
@@ -250,10 +250,10 @@ export default function Post() {
                   disabled={postMutation.isPending || (user?.points || 0) < 5}
                   data-testid="button-post-bounty"
                 >
-                  {postMutation.isPending ? "Posting..." : "Post Bounty ($5 fee)"}
+                  {postMutation.isPending ? "Posting..." : "Post Bounty"}
                 </Button>
                 <div className="text-xs text-muted-foreground text-center">
-                  Your bounty will be visible to all users immediately
+                  Your bounty will be visible to all users immediately. No posting fees!
                 </div>
                 {(user?.points || 0) < 5 && (
                   <div className="text-xs text-destructive text-center">

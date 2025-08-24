@@ -57,47 +57,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const bountyData = insertBountySchema.parse({ ...req.body, authorId: userId });
       
-      // Calculate platform fee (5% of reward)
-      const feeInfo = storage.calculatePlatformFee(bountyData.reward.toString());
-      const totalCost = parseFloat(feeInfo.grossAmount) + parseFloat(feeInfo.fee);
+      // No posting fee - just the bounty reward amount
+      const bountyReward = parseFloat(bountyData.reward.toString());
       
-      // Check if user has enough balance
+      // Check if user has enough balance for the bounty reward only
       const user = await storage.getUser(userId);
-      if (!user || parseFloat(user.balance) < totalCost) {
+      if (!user || parseFloat(user.balance) < bountyReward) {
         return res.status(400).json({ 
-          message: `Insufficient balance. Need $${totalCost.toFixed(2)} (including $${feeInfo.fee} platform fee)` 
+          message: `Insufficient balance. Need $${bountyReward.toFixed(2)} for bounty reward` 
         });
       }
       
       const bounty = await storage.createBounty(bountyData);
       
-      // Deduct total cost from user balance
-      await storage.updateUserBalance(userId, `-${totalCost}`);
+      // Deduct only the bounty reward from user balance
+      await storage.updateUserBalance(userId, `-${bountyReward}`);
       
       // Deduct points for posting bounty
       await storage.updateUserPoints(userId, -5);
       
-      // Create transaction record with fee details
+      // Create transaction record without posting fee
       await storage.createTransaction({
         userId,
         type: "spending",
-        amount: totalCost.toString(),
-        description: `Posted bounty: ${bountyData.title} (includes $${feeInfo.fee} platform fee)`,
+        amount: bountyReward.toString(),
+        description: `Posted bounty: ${bountyData.title}`,
         status: "completed",
-      });
-      
-      // Create platform revenue record
-      await storage.createPlatformRevenue({
-        bountyId: bounty.id,
-        amount: feeInfo.fee,
-        source: "bounty_posting",
-        description: `Platform fee from bounty: ${bountyData.title}`,
       });
 
       res.status(201).json({
         ...bounty,
-        platformFee: feeInfo.fee,
-        totalCost: totalCost.toFixed(2)
+        totalCost: bountyReward.toFixed(2)
       });
     } catch (error) {
       console.error("Error creating bounty:", error);
