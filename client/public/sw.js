@@ -75,7 +75,7 @@ self.addEventListener('push', (event) => {
   const options = {
     body: event.data ? event.data.text() : 'New notification from Pocket Bounty',
     icon: '/icon-192.png',
-    badge: '/badge-72.png',
+    badge: '/icon-96.png',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
