@@ -4,30 +4,35 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Heart } from "lucide-react";
+import { Heart, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useBounties } from "@/hooks/useBounties";
+import { useDemo } from "@/contexts/DemoContext";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import DemoLockOverlay from "@/components/DemoLockOverlay";
 import type { Bounty } from "@shared/schema";
 
 export default function Board() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [favoritedBounties, setFavoritedBounties] = useState<Set<string>>(new Set());
+  const [showDemoLock, setShowDemoLock] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { isDemoMode } = useDemo();
   const queryClient = useQueryClient();
 
-  const { data: bounties = [], isLoading } = useQuery<Bounty[]>({
-    queryKey: ["/api/bounties", selectedCategory],
-    queryFn: ({ queryKey }) => {
-      const category = queryKey[1] === "all" ? undefined : queryKey[1];
-      const params = new URLSearchParams();
-      if (category) params.append("category", category as string);
-      return fetch(`/api/bounties?${params.toString()}`).then(res => res.json());
-    },
-  });
+  const { bounties, isLoading } = useBounties();
+
+  const handleApply = (bountyId: string) => {
+    if (isDemoMode) {
+      setShowDemoLock(true);
+      return;
+    }
+    applyMutation.mutate(bountyId);
+  };
 
   const applyMutation = useMutation({
     mutationFn: async (bountyId: string) => {
@@ -179,11 +184,14 @@ export default function Board() {
                 <div className="flex gap-2 mt-3">
                   <Button
                     className="bg-pocket-red hover:bg-pocket-red-dark text-white flex-1"
-                    onClick={() => applyMutation.mutate(bounty.id)}
+                    onClick={() => handleApply(bounty.id)}
                     disabled={applyMutation.isPending || bounty.authorId === user?.id}
                     data-testid={`button-apply-${bounty.id}`}
                   >
                     {bounty.authorId === user?.id ? "Your Bounty" : "Apply"}
+                    {isDemoMode && bounty.authorId !== user?.id && (
+                      <Lock className="h-3 w-3 ml-2" />
+                    )}
                   </Button>
                   <Button
                     variant="outline"
@@ -201,6 +209,13 @@ export default function Board() {
           ))
         )}
       </div>
+      
+      {showDemoLock && (
+        <DemoLockOverlay
+          action="Apply to bounties"
+          onClose={() => setShowDemoLock(false)}
+        />
+      )}
     </div>
   );
 }

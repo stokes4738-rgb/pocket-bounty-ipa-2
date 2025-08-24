@@ -9,9 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { usePaymentMethods } from "@/hooks/usePaymentMethods";
+import { useDemo } from "@/contexts/DemoContext";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
-import { CreditCard, Plus, Trash2, Star, DollarSign, History, Shield } from "lucide-react";
+import DemoLockOverlay from "@/components/DemoLockOverlay";
+import { CreditCard, Plus, Trash2, Star, DollarSign, History, Shield, Lock } from "lucide-react";
 
 // Stripe setup
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLIC_KEY ? 
@@ -291,14 +294,13 @@ function DepositForm({ paymentMethods }: { paymentMethods: PaymentMethodType[] }
 
 export default function Account() {
   const [showAddCard, setShowAddCard] = useState(false);
+  const [showDemoLock, setShowDemoLock] = useState(false);
   const { user } = useAuth();
+  const { isDemoMode } = useDemo();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: paymentMethods = [], refetch: refetchMethods } = useQuery<PaymentMethodType[]>({
-    queryKey: ["/api/payments/methods"],
-    retry: false,
-  });
+  const { paymentMethods, isLoading: methodsLoading } = usePaymentMethods();
 
   const { data: paymentHistory = [] } = useQuery<any[]>({
     queryKey: ["/api/payments/history"],

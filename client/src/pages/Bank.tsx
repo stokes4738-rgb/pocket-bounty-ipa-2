@@ -7,24 +7,56 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import { useTransactions } from "@/hooks/useTransactions";
+import { useDemo } from "@/contexts/DemoContext";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import DemoLockOverlay from "@/components/DemoLockOverlay";
 import type { Transaction } from "@shared/schema";
 
 export default function Bank() {
   const { user } = useAuth();
+  const { isDemoMode } = useDemo();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
   const [payoutAmount, setPayoutAmount] = useState("");
   const [payoutMethod, setPayoutMethod] = useState("");
+  const [showDemoLock, setShowDemoLock] = useState(false);
   
-  const { data: transactions = [], isLoading } = useQuery<Transaction[]>({
-    queryKey: ["/api/user/transactions"],
-  });
+  const { transactions, isLoading } = useTransactions();
   
+  const handleWithdrawal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isDemoMode) {
+      setShowDemoLock(true);
+      return;
+    }
+    
+    const amount = parseFloat(payoutAmount);
+    if (amount < 5) {
+      toast({
+        title: "Invalid Amount",
+        description: "Minimum withdrawal amount is $5.00",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!payoutMethod) {
+      toast({
+        title: "Select Method",
+        description: "Please select a payout method",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    withdrawalMutation.mutate({ amount: payoutAmount, method: payoutMethod });
+  };
+
   const withdrawalMutation = useMutation({
     mutationFn: async (data: { amount: string; method: string }) => {
       return apiRequest("POST", "/api/payments/withdraw", data);
@@ -268,6 +300,13 @@ export default function Bank() {
           </form>
         </CardContent>
       </Card>
+      
+      {showDemoLock && (
+        <DemoLockOverlay
+          action="Withdraw money"
+          onClose={() => setShowDemoLock(false)}
+        />
+      )}
     </div>
   );
 }

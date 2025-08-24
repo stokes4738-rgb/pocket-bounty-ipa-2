@@ -6,6 +6,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { useAuth } from "@/hooks/useAuth";
+import { DemoProvider } from "@/contexts/DemoContext";
+import DemoIndicator from "@/components/DemoIndicator";
 
 // Lazy load pages for better performance
 const Landing = lazy(() => import("@/pages/Landing"));
@@ -64,12 +66,15 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
+      <DemoProvider>
+        <ThemeProvider>
+          <TooltipProvider>
+            <Toaster />
+            <DemoIndicator />
+            <Router />
+          </TooltipProvider>
+        </ThemeProvider>
+      </DemoProvider>
     </QueryClientProvider>
   );
 }

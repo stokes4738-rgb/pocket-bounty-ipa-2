@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useDemo } from "@/contexts/DemoContext";
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -270,14 +271,25 @@ const tutorialSteps = [
         </div>
         <div className="space-y-3 pt-4">
           <Button 
-            className="w-full bg-pocket-red hover:bg-pocket-red/90 text-white"
+            className="w-full bg-green-600 hover:bg-green-700 text-white mb-2"
+            onClick={() => {
+              setDemoMode(true);
+              window.location.href = "/api/login";
+            }}
+            data-testid="button-tutorial-demo"
+          >
+            Try Full Demo Mode
+          </Button>
+          <Button 
+            variant="outline"
+            className="w-full"
             onClick={() => window.location.href = "/api/login"}
             data-testid="button-tutorial-signup"
           >
-            Sign Up Now - Get $10 Bonus!
+            Sign Up for Real Account
           </Button>
           <p className="text-xs text-center text-muted-foreground">
-            Free to join • Start earning immediately • Secure & trusted
+            Demo mode: Explore with sample data • Real mode: Start earning immediately
           </p>
         </div>
       </div>
@@ -287,6 +299,7 @@ const tutorialSteps = [
 
 export default function Tutorial({ onClose }: TutorialProps) {
   const [currentStep, setCurrentStep] = useState(0);
+  const { setDemoMode } = useDemo();
   const currentStepData = tutorialSteps[currentStep];
   const progress = ((currentStep + 1) / tutorialSteps.length) * 100;
 
