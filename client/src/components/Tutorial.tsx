@@ -244,6 +244,44 @@ const tutorialSteps = [
   },
   {
     id: 7,
+    title: "Add to Home Screen! 📱",
+    description: "Turn Pocket Bounty into a native app on your phone",
+    content: (
+      <div className="space-y-4">
+        <div className="text-center">
+          <div className="text-6xl mb-4">📱</div>
+          <p className="text-muted-foreground mb-4">
+            Add Pocket Bounty to your home screen for instant access to weird bounties!
+          </p>
+        </div>
+        <div className="space-y-3">
+          <div className="p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
+            <h4 className="font-semibold mb-2">📱 On iPhone:</h4>
+            <ol className="text-sm space-y-1 text-muted-foreground">
+              <li>1. Tap the Share button (⬆️) in Safari</li>
+              <li>2. Scroll down and tap "Add to Home Screen"</li>
+              <li>3. Tap "Add" and boom! 🎉</li>
+            </ol>
+          </div>
+          <div className="p-4 border rounded-lg bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20">
+            <h4 className="font-semibold mb-2">🤖 On Android:</h4>
+            <ol className="text-sm space-y-1 text-muted-foreground">
+              <li>1. Tap the menu (⋮) in Chrome</li>
+              <li>2. Select "Add to Home Screen"</li>
+              <li>3. Confirm and you're set! ⚡</li>
+            </ol>
+          </div>
+        </div>
+        <div className="bg-pocket-gold/10 border border-pocket-gold/20 p-3 rounded-lg">
+          <p className="text-sm text-center font-medium">
+            💡 With the app on your home screen, you'll never miss a weird bounty again!
+          </p>
+        </div>
+      </div>
+    )
+  },
+  {
+    id: 8,
     title: "Ready to Get Started?",
     description: "Join thousands of users earning money on Pocket Bounty",
     content: (

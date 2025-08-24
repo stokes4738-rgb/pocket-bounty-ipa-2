@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { DemoProvider } from "@/contexts/DemoContext";
 import DemoIndicator from "@/components/DemoIndicator";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 
 // Lazy load pages for better performance
 const Landing = lazy(() => import("@/pages/Landing"));
@@ -71,6 +72,11 @@ function App() {
           <TooltipProvider>
             <Toaster />
             <DemoIndicator />
+            <div className="fixed top-4 left-4 right-4 z-50 pointer-events-none">
+              <div className="pointer-events-auto">
+                <PWAInstallPrompt />
+              </div>
+            </div>
             <Router />
           </TooltipProvider>
         </ThemeProvider>
