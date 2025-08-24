@@ -509,8 +509,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       
-      // Check if user is creator/admin
-      if (!user?.email?.includes('admin') && !user?.email?.includes('creator')) {
+      // Allow access to the app creator (you) or admin users
+      const isAppCreator = userId === "46848986"; // Your user ID for full access
+      const isAdmin = user?.email?.includes('admin') || user?.email?.includes('creator');
+      
+      if (!isAppCreator && !isAdmin) {
         return res.status(403).json({ message: "Access denied" });
       }
 
