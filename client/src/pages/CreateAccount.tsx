@@ -8,10 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus, Shield, DollarSign, Star, ArrowRight, Check } from "lucide-react";
+import Tutorial from "@/components/Tutorial";
 
 export default function CreateAccount() {
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const { toast } = useToast();
 
   const handleCreateAccount = () => {
@@ -31,6 +33,10 @@ export default function CreateAccount() {
 
   const handleExistingUser = () => {
     window.location.href = "/login";
+  };
+
+  const handleDemoTutorial = () => {
+    setShowTutorial(true);
   };
 
   return (
@@ -160,6 +166,21 @@ export default function CreateAccount() {
             >
               Sign In to Existing Account
             </Button>
+
+            {/* Demo Tutorial */}
+            <div className="pt-4 border-t">
+              <p className="text-xs text-muted-foreground text-center mb-3">
+                Want to see how it works first?
+              </p>
+              <Button 
+                variant="ghost" 
+                className="w-full text-sm"
+                onClick={handleDemoTutorial}
+                data-testid="button-demo-tutorial"
+              >
+                Take Interactive Tour
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -205,6 +226,10 @@ export default function CreateAccount() {
           </p>
         </div>
       </div>
+      
+      {showTutorial && (
+        <Tutorial onClose={() => setShowTutorial(false)} />
+      )}
     </div>
   );
 }

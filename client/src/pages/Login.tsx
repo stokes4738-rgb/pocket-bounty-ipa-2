@@ -7,9 +7,11 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { LogIn, Shield, Zap, Users } from "lucide-react";
+import Tutorial from "@/components/Tutorial";
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const { toast } = useToast();
 
   const handleLogin = () => {
@@ -19,10 +21,7 @@ export default function Login() {
   };
 
   const handleDemoLogin = () => {
-    toast({
-      title: "Demo Mode",
-      description: "Use the login button above for full access to all features",
-    });
+    setShowTutorial(true);
   };
 
   return (
@@ -152,6 +151,10 @@ export default function Login() {
           </p>
         </div>
       </div>
+      
+      {showTutorial && (
+        <Tutorial onClose={() => setShowTutorial(false)} />
+      )}
     </div>
   );
 }
