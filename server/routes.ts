@@ -569,6 +569,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/payments/withdraw', isAuthenticated, async (req: any, res) => {
+    if (!stripe) {
+      return res.status(503).json({ message: "Payment system not configured" });
+    }
+
+    try {
+      const userId = req.user.claims.sub;
+      const { amount, method } = req.body;
+
+      const user = await storage.getUser(userId);
+      if (!user?.stripeCustomerId) {
+        return res.status(400).json({ message: "Stripe customer not found" });
+      }
+
+      const withdrawalAmount = parseFloat(amount);
+      const userBalance = parseFloat(user.balance);
+
+      if (withdrawalAmount < 5) {
+        return res.status(400).json({ message: "Minimum withdrawal amount is $5.00" });
+      }
+
+      if (withdrawalAmount > userBalance) {
+        return res.status(400).json({ message: "Insufficient balance" });
+      }
+
+      // Create Stripe transfer for the withdrawal
+      let transferAmount = Math.round(withdrawalAmount * 100); // Convert to cents
+      let description = `Withdrawal: $${withdrawalAmount}`;
+      
+      // Apply fees for instant transfers
+      if (method === 'debit_card') {
+        const fee = Math.max(25, Math.round(withdrawalAmount * 0.015 * 100)); // 1.5% or $0.25 minimum
+        transferAmount -= fee;
+        description += ` (Instant transfer fee: $${(fee / 100).toFixed(2)})`;
+      }
+
+      const transfer = await stripe.transfers.create({
+        amount: transferAmount,
+        currency: 'usd',
+        destination: user.stripeCustomerId, // In production, this should be a connected account
+        description: description,
+      });
+
+      // Create withdrawal transaction record
+      const withdrawalTransaction = await storage.createTransaction({
+        userId,
+        type: "spending",
+        amount: amount,
+        description: `Withdrawal via ${method === 'debit_card' ? 'instant debit' : 'bank transfer'}`,
+        status: "pending",
+        metadata: {
+          stripeTransferId: transfer.id,
+          withdrawalMethod: method,
+        },
+      });
+
+      // Deduct amount from user balance
+      await storage.updateUserBalance(userId, `-${amount}`);
+
+      // Create activity record
+      await storage.createActivity({
+        userId,
+        type: "withdrawal",
+        description: `Requested withdrawal of $${amount}`,
+        metadata: { amount, method, transactionId: withdrawalTransaction.id },
+      });
+
+      res.json({
+        success: true,
+        transactionId: withdrawalTransaction.id,
+        transferId: transfer.id,
+        message: "Withdrawal request submitted successfully"
+      });
+    } catch (error: any) {
+      console.error("Error processing withdrawal:", error);
+      
+      // Handle Stripe-specific errors
+      if (error.type?.startsWith('Stripe')) {
+        let message = "Withdrawal failed";
+        
+        switch (error.code) {
+          case 'insufficient_funds':
+            message = "Insufficient funds in your account.";
+            break;
+          case 'account_invalid':
+            message = "Invalid payment account. Please contact support.";
+            break;
+          default:
+            message = error.message || "Withdrawal failed. Please try again.";
+        }
+        
+        return res.status(400).json({ message });
+      }
+      
+      res.status(500).json({ message: "Failed to process withdrawal" });
+    }
+  });
+
   // Test deposit endpoint (for development without Stripe)
   app.post('/api/test/deposit', isAuthenticated, async (req: any, res) => {
     try {
