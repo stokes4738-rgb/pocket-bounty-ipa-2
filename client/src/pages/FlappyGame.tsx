@@ -25,7 +25,7 @@ export default function FlappyGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>();
   const [gameState, setGameState] = useState<GameState>({
-    bird: { x: 80, y: 175, velocity: 0 }, // Adjusted for larger canvas
+    bird: { x: 80, y: 200, velocity: 0 }, // Adjusted for larger canvas
     pipes: [],
     score: 0,
     gameStatus: "waiting",
@@ -34,6 +34,8 @@ export default function FlappyGame() {
     return parseInt(localStorage.getItem("flappy-best-score") || "0", 10);
   });
   const [devMode, setDevMode] = useState(false);
+  const [godMode, setGodMode] = useState(false);
+  const [showDevButton, setShowDevButton] = useState(false);
   const [cloudOffset, setCloudOffset] = useState(0);
   
   const { user } = useAuth();
@@ -71,7 +73,7 @@ export default function FlappyGame() {
 
   const resetGame = useCallback(() => {
     setGameState({
-      bird: { x: 80, y: 175, velocity: 0 }, // Adjusted for larger canvas
+      bird: { x: 80, y: 200, velocity: 0 }, // Adjusted for larger canvas
       pipes: [],
       score: 0,
       gameStatus: "waiting",
@@ -125,13 +127,13 @@ export default function FlappyGame() {
       };
 
       // Generate pipes (adjusted for larger canvas)
-      if (newState.pipes.length === 0 || newState.pipes[newState.pipes.length - 1].x < 400 - 200) {
-        const pipeHeight = Math.random() * (350 - PIPE_GAP - 60) + 30;
+      if (newState.pipes.length === 0 || newState.pipes[newState.pipes.length - 1].x < 450 - 200) {
+        const pipeHeight = Math.random() * (400 - PIPE_GAP - 60) + 30;
         newState.pipes.push({
-          x: 400,
+          x: 450,
           topHeight: pipeHeight,
           bottomY: pipeHeight + PIPE_GAP,
-          bottomHeight: 350 - pipeHeight - PIPE_GAP,
+          bottomHeight: 400 - pipeHeight - PIPE_GAP,
           scored: false,
         });
       }
@@ -150,18 +152,26 @@ export default function FlappyGame() {
       });
 
       // Collision detection (adjusted for larger canvas)
-      if (newState.bird.y < 0 || newState.bird.y > 350 - 20) {
+      if (!godMode && (newState.bird.y < 0 || newState.bird.y > 400 - 20)) {
         return { ...newState, gameStatus: "gameover" };
       }
 
-      // Pipe collision
-      for (const pipe of newState.pipes) {
-        if (
-          newState.bird.x + 20 > pipe.x &&
-          newState.bird.x < pipe.x + PIPE_WIDTH &&
-          (newState.bird.y < pipe.topHeight || newState.bird.y + 20 > pipe.bottomY)
-        ) {
-          return { ...newState, gameStatus: "gameover" };
+      // Keep bird in bounds in god mode
+      if (godMode) {
+        if (newState.bird.y < 0) newState.bird.y = 0;
+        if (newState.bird.y > 400 - 20) newState.bird.y = 400 - 20;
+      }
+
+      // Pipe collision (skip in god mode)
+      if (!godMode) {
+        for (const pipe of newState.pipes) {
+          if (
+            newState.bird.x + 20 > pipe.x &&
+            newState.bird.x < pipe.x + PIPE_WIDTH &&
+            (newState.bird.y < pipe.topHeight || newState.bird.y + 20 > pipe.bottomY)
+          ) {
+            return { ...newState, gameStatus: "gameover" };
+          }
         }
       }
 
@@ -321,6 +331,23 @@ export default function FlappyGame() {
     }
   }, [gameState.gameStatus, gameOver]);
 
+  // Hidden dev mode activation (Ctrl+Shift+D)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+        e.preventDefault();
+        setShowDevButton(true);
+        toast({
+          title: "Dev Mode Unlocked!",
+          description: "Developer controls are now available.",
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toast]);
+
   const handleCanvasClick = () => {
     if (gameState.gameStatus === "waiting") {
       startGame();
@@ -351,9 +378,9 @@ export default function FlappyGame() {
           <div className="relative w-full bg-gradient-to-b from-blue-400 to-blue-600 rounded-lg overflow-hidden">
             <canvas
               ref={canvasRef}
-              width={400}
-              height={350}
-              className="w-full h-80 cursor-pointer"
+              width={450}
+              height={400}
+              className="w-full h-96 cursor-pointer"
               onClick={handleCanvasClick}
               data-testid="canvas-flappy-game"
             />
@@ -405,14 +432,27 @@ export default function FlappyGame() {
             >
               Reset
             </Button>
-            <Button
-              variant={devMode ? "default" : "outline"}
-              onClick={() => setDevMode(!devMode)}
-              size="sm"
-              data-testid="button-dev-mode"
-            >
-              🛠️ Dev
-            </Button>
+            {showDevButton && (
+              <Button
+                variant={devMode ? "default" : "outline"}
+                onClick={() => setDevMode(!devMode)}
+                size="sm"
+                data-testid="button-dev-mode"
+              >
+                🛠️ Dev
+              </Button>
+            )}
+            {devMode && (
+              <Button
+                variant={godMode ? "default" : "outline"}
+                onClick={() => setGodMode(!godMode)}
+                size="sm"
+                data-testid="button-god-mode"
+                className={godMode ? "bg-yellow-500 hover:bg-yellow-600 text-black" : ""}
+              >
+                ⚡ God
+              </Button>
+            )}
             <Button
               onClick={gameState.gameStatus === "waiting" ? startGame : handleCanvasClick}
               className="bg-pocket-red hover:bg-pocket-red-dark text-white"

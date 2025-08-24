@@ -11,7 +11,7 @@ export function BottomNavigation({ activeSection, onSectionChange }: BottomNavig
     { id: "board", icon: "📋", label: "Board" },
     { id: "post", icon: "➕", label: "Post" },
     { id: "messages", icon: "💬", label: "Messages" },
-    { id: "profile", icon: "👤", label: "Profile" },
+    { id: "account", icon: "💳", label: "Account" },
   ];
 
   return (

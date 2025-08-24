@@ -22,6 +22,7 @@ export function DrawerMenu({ isOpen, onClose, activeSection, onSectionChange }: 
     { id: "post", label: "➕ Post" },
     { id: "messages", label: "💬 Messages" },
     { id: "profile", label: "👤 Profile" },
+    { id: "account", label: "💳 Account" },
     { id: "friends", label: "👥 Friends" },
     { id: "activity", label: "🔔 Activity" },
     { id: "settings", label: "⚙️ Settings" },

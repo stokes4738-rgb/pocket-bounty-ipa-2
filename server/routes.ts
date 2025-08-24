@@ -3,7 +3,20 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertBountySchema, insertMessageSchema, insertTransactionSchema, insertReviewSchema } from "@shared/schema";
+import { insertBountySchema, insertMessageSchema, insertTransactionSchema, insertReviewSchema, insertPaymentMethodSchema, insertPaymentSchema } from "@shared/schema";
+
+// Stripe setup with error handling for missing keys
+let stripe: any = null;
+try {
+  if (process.env.STRIPE_SECRET_KEY) {
+    const Stripe = require('stripe');
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2024-04-10",
+    });
+  }
+} catch (error) {
+  console.warn("Stripe not initialized - secret key not provided");
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -246,6 +259,200 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching activities:", error);
       res.status(500).json({ message: "Failed to fetch activities" });
+    }
+  });
+
+  // Payment routes
+  app.get('/api/payments/methods', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const paymentMethods = await storage.getUserPaymentMethods(userId);
+      res.json(paymentMethods);
+    } catch (error) {
+      console.error("Error fetching payment methods:", error);
+      res.status(500).json({ message: "Failed to fetch payment methods" });
+    }
+  });
+
+  app.post('/api/payments/setup-intent', isAuthenticated, async (req: any, res) => {
+    if (!stripe) {
+      return res.status(503).json({ message: "Payment system not configured" });
+    }
+
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.email) {
+        return res.status(400).json({ message: "User email required" });
+      }
+
+      let customer;
+      if (user.stripeCustomerId) {
+        customer = await stripe.customers.retrieve(user.stripeCustomerId);
+      } else {
+        customer = await stripe.customers.create({
+          email: user.email,
+          name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email,
+        });
+        await storage.updateUserStripeInfo(userId, customer.id);
+      }
+
+      const setupIntent = await stripe.setupIntents.create({
+        customer: customer.id,
+        usage: 'off_session',
+      });
+
+      res.json({ clientSecret: setupIntent.client_secret });
+    } catch (error: any) {
+      console.error("Error creating setup intent:", error);
+      res.status(500).json({ message: "Failed to create setup intent" });
+    }
+  });
+
+  app.post('/api/payments/save-method', isAuthenticated, async (req: any, res) => {
+    if (!stripe) {
+      return res.status(503).json({ message: "Payment system not configured" });
+    }
+
+    try {
+      const userId = req.user.claims.sub;
+      const { paymentMethodId } = req.body;
+
+      if (!paymentMethodId) {
+        return res.status(400).json({ message: "Payment method ID required" });
+      }
+
+      // Retrieve payment method from Stripe
+      const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+      
+      // Save to our database
+      const savedMethod = await storage.createPaymentMethod({
+        userId,
+        stripePaymentMethodId: paymentMethodId,
+        type: paymentMethod.type,
+        last4: paymentMethod.card?.last4,
+        brand: paymentMethod.card?.brand,
+        expiryMonth: paymentMethod.card?.exp_month,
+        expiryYear: paymentMethod.card?.exp_year,
+        isDefault: false,
+      });
+
+      res.status(201).json(savedMethod);
+    } catch (error: any) {
+      console.error("Error saving payment method:", error);
+      res.status(500).json({ message: "Failed to save payment method" });
+    }
+  });
+
+  app.post('/api/payments/set-default', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { paymentMethodId } = req.body;
+
+      await storage.updatePaymentMethodDefault(userId, paymentMethodId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error setting default payment method:", error);
+      res.status(500).json({ message: "Failed to set default payment method" });
+    }
+  });
+
+  app.delete('/api/payments/methods/:id', isAuthenticated, async (req: any, res) => {
+    if (!stripe) {
+      return res.status(503).json({ message: "Payment system not configured" });
+    }
+
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+
+      // Get payment method from database
+      const paymentMethods = await storage.getUserPaymentMethods(userId);
+      const paymentMethod = paymentMethods.find(pm => pm.id === id);
+
+      if (!paymentMethod) {
+        return res.status(404).json({ message: "Payment method not found" });
+      }
+
+      // Detach from Stripe
+      await stripe.paymentMethods.detach(paymentMethod.stripePaymentMethodId);
+      
+      // Delete from database
+      await storage.deletePaymentMethod(id);
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error deleting payment method:", error);
+      res.status(500).json({ message: "Failed to delete payment method" });
+    }
+  });
+
+  app.post('/api/payments/deposit', isAuthenticated, async (req: any, res) => {
+    if (!stripe) {
+      return res.status(503).json({ message: "Payment system not configured" });
+    }
+
+    try {
+      const userId = req.user.claims.sub;
+      const { amount, paymentMethodId } = req.body;
+
+      if (!amount || !paymentMethodId) {
+        return res.status(400).json({ message: "Amount and payment method required" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user?.stripeCustomerId) {
+        return res.status(400).json({ message: "Stripe customer not found" });
+      }
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(parseFloat(amount) * 100), // Convert to cents
+        currency: 'usd',
+        customer: user.stripeCustomerId,
+        payment_method: paymentMethodId,
+        confirm: true,
+        return_url: `${req.protocol}://${req.get('host')}/account`,
+      });
+
+      // Save payment record
+      const payment = await storage.createPayment({
+        userId,
+        stripePaymentIntentId: paymentIntent.id,
+        amount: amount.toString(),
+        status: paymentIntent.status,
+        type: 'deposit',
+        description: `Account deposit of $${amount}`,
+      });
+
+      // If payment succeeded, update user balance
+      if (paymentIntent.status === 'succeeded') {
+        await storage.updateUserBalance(userId, amount.toString());
+        await storage.updatePaymentStatus(payment.id, 'succeeded');
+      }
+
+      res.json({ 
+        success: true,
+        paymentIntent: {
+          id: paymentIntent.id,
+          status: paymentIntent.status,
+          client_secret: paymentIntent.client_secret
+        }
+      });
+    } catch (error: any) {
+      console.error("Error processing deposit:", error);
+      res.status(500).json({ message: "Failed to process deposit" });
+    }
+  });
+
+  app.get('/api/payments/history', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const payments = await storage.getUserPayments(userId);
+      res.json(payments);
+    } catch (error) {
+      console.error("Error fetching payment history:", error);
+      res.status(500).json({ message: "Failed to fetch payment history" });
     }
   });
 

@@ -8,6 +8,8 @@ import {
   reviews,
   activities,
   bountyApplications,
+  paymentMethods,
+  payments,
   type User,
   type UpsertUser,
   type Bounty,
@@ -24,6 +26,10 @@ import {
   type Activity,
   type InsertActivity,
   type BountyApplication,
+  type PaymentMethod,
+  type InsertPaymentMethod,
+  type Payment,
+  type InsertPayment,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql } from "drizzle-orm";
@@ -72,6 +78,16 @@ export interface IStorage {
   // Activity operations
   createActivity(activity: InsertActivity): Promise<Activity>;
   getUserActivities(userId: string): Promise<Activity[]>;
+  
+  // Payment operations
+  createPaymentMethod(paymentMethod: InsertPaymentMethod): Promise<PaymentMethod>;
+  getUserPaymentMethods(userId: string): Promise<PaymentMethod[]>;
+  updatePaymentMethodDefault(userId: string, paymentMethodId: string): Promise<void>;
+  deletePaymentMethod(id: string): Promise<void>;
+  createPayment(payment: InsertPayment): Promise<Payment>;
+  getUserPayments(userId: string): Promise<Payment[]>;
+  updatePaymentStatus(id: string, status: string): Promise<void>;
+  updateUserStripeInfo(userId: string, stripeCustomerId?: string, stripeSubscriptionId?: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -420,6 +436,69 @@ export class DatabaseStorage implements IStorage {
       .where(eq(activities.userId, userId))
       .orderBy(desc(activities.createdAt))
       .limit(50);
+  }
+
+  // Payment operations
+  async createPaymentMethod(paymentMethod: InsertPaymentMethod): Promise<PaymentMethod> {
+    const [newPaymentMethod] = await db.insert(paymentMethods).values(paymentMethod).returning();
+    return newPaymentMethod;
+  }
+
+  async getUserPaymentMethods(userId: string): Promise<PaymentMethod[]> {
+    return db
+      .select()
+      .from(paymentMethods)
+      .where(eq(paymentMethods.userId, userId))
+      .orderBy(desc(paymentMethods.isDefault), desc(paymentMethods.createdAt));
+  }
+
+  async updatePaymentMethodDefault(userId: string, paymentMethodId: string): Promise<void> {
+    // First, unset all other payment methods as non-default
+    await db
+      .update(paymentMethods)
+      .set({ isDefault: false, updatedAt: new Date() })
+      .where(eq(paymentMethods.userId, userId));
+    
+    // Set the specified payment method as default
+    await db
+      .update(paymentMethods)
+      .set({ isDefault: true, updatedAt: new Date() })
+      .where(and(eq(paymentMethods.id, paymentMethodId), eq(paymentMethods.userId, userId)));
+  }
+
+  async deletePaymentMethod(id: string): Promise<void> {
+    await db.delete(paymentMethods).where(eq(paymentMethods.id, id));
+  }
+
+  async createPayment(payment: InsertPayment): Promise<Payment> {
+    const [newPayment] = await db.insert(payments).values(payment).returning();
+    return newPayment;
+  }
+
+  async getUserPayments(userId: string): Promise<Payment[]> {
+    return db
+      .select()
+      .from(payments)
+      .where(eq(payments.userId, userId))
+      .orderBy(desc(payments.createdAt));
+  }
+
+  async updatePaymentStatus(id: string, status: string): Promise<void> {
+    await db
+      .update(payments)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(payments.id, id));
+  }
+
+  async updateUserStripeInfo(userId: string, stripeCustomerId?: string, stripeSubscriptionId?: string): Promise<void> {
+    const updateData: any = { updatedAt: new Date() };
+    if (stripeCustomerId) updateData.stripeCustomerId = stripeCustomerId;
+    if (stripeSubscriptionId) updateData.stripeSubscriptionId = stripeSubscriptionId;
+    
+    await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, userId));
   }
 }
 

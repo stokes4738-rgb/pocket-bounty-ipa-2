@@ -9,6 +9,7 @@ import Friends from "./Friends";
 import Activity from "./Activity";
 import Settings from "./Settings";
 import FlappyGame from "./FlappyGame";
+import Account from "./Account";
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState("board");
@@ -33,6 +34,8 @@ export default function Home() {
         return <Settings />;
       case "flappy":
         return <FlappyGame />;
+      case "account":
+        return <Account />;
       default:
         return <Board />;
     }

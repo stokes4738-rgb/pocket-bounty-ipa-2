@@ -42,6 +42,8 @@ export const users = pgTable("users", {
   reviewCount: integer("review_count").default(0),
   isOnline: boolean("is_online").default(false),
   lastSeen: timestamp("last_seen").defaultNow(),
+  stripeCustomerId: varchar("stripe_customer_id"),
+  stripeSubscriptionId: varchar("stripe_subscription_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -127,6 +129,35 @@ export const activities = pgTable("activities", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const paymentMethods = pgTable("payment_methods", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  stripePaymentMethodId: varchar("stripe_payment_method_id").notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // card, bank_account
+  last4: varchar("last4", { length: 4 }),
+  brand: varchar("brand", { length: 50 }), // visa, mastercard, etc
+  expiryMonth: integer("expiry_month"),
+  expiryYear: integer("expiry_year"),
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const payments = pgTable("payments", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  stripePaymentIntentId: varchar("stripe_payment_intent_id").notNull(),
+  paymentMethodId: uuid("payment_method_id").references(() => paymentMethods.id),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("usd"),
+  status: varchar("status", { length: 50 }).notNull(), // pending, succeeded, failed
+  type: varchar("type", { length: 50 }).notNull(), // deposit, withdrawal, bounty_payout
+  description: text("description"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -171,6 +202,18 @@ export const insertActivitySchema = createInsertSchema(activities).omit({
   createdAt: true,
 });
 
+export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPaymentSchema = createInsertSchema(payments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -188,3 +231,7 @@ export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type Activity = typeof activities.$inferSelect;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
 export type BountyApplication = typeof bountyApplications.$inferSelect;
+export type PaymentMethod = typeof paymentMethods.$inferSelect;
+export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
+export type Payment = typeof payments.$inferSelect;
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
