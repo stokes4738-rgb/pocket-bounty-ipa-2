@@ -79,11 +79,25 @@ export default function Activity() {
         {activities.length === 0 ? (
           <Card className="theme-transition">
             <CardContent className="p-8 text-center">
-              <div className="text-4xl mb-4">🔔</div>
-              <h3 className="text-lg font-semibold mb-2">No activity yet</h3>
-              <p className="text-muted-foreground">
-                Start completing bounties and connecting with others to see your activity here!
-              </p>
+              <div className="text-4xl mb-4">🎯</div>
+              <h3 className="text-lg font-semibold mb-3">Ready to make moves?</h3>
+              <div className="max-w-md mx-auto space-y-4">
+                <p className="text-muted-foreground">
+                  Your activity feed will show all your accomplishments and interactions here.
+                </p>
+                <div className="bg-muted/30 rounded-lg p-4 text-left">
+                  <h4 className="font-medium text-sm mb-2">🌟 Activities you'll see:</h4>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• Bounties you complete and earn from</li>
+                    <li>• New friend connections</li>
+                    <li>• Messages and collaboration updates</li>
+                    <li>• Points and level achievements</li>
+                  </ul>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  🚀 Tip: Stay active to climb the leaderboards and unlock rewards
+                </p>
+              </div>
             </CardContent>
           </Card>
         ) : (

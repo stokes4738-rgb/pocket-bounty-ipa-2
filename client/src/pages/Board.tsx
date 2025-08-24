@@ -131,11 +131,27 @@ export default function Board() {
         {bounties.length === 0 ? (
           <Card className="theme-transition">
             <CardContent className="p-8 text-center">
-              <div className="text-4xl mb-4">📋</div>
-              <h3 className="text-lg font-semibold mb-2">No bounties available</h3>
-              <p className="text-muted-foreground">
-                Be the first to post a bounty in this category!
-              </p>
+              <div className="text-4xl mb-4">🚀</div>
+              <h3 className="text-lg font-semibold mb-3">Ready to get things done?</h3>
+              <div className="max-w-md mx-auto space-y-4">
+                <p className="text-muted-foreground">
+                  {selectedCategory === "all" 
+                    ? "No bounties posted yet. Be the pioneer who gets this community started!"
+                    : `No ${selectedCategory} bounties yet. Perfect opportunity to be first!`
+                  }
+                </p>
+                <div className="bg-muted/30 rounded-lg p-4 text-left">
+                  <h4 className="font-medium text-sm mb-2">💡 Great bounty ideas:</h4>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• "Design a logo for my coffee shop - $50"</li>
+                    <li>• "Write product descriptions (10 items) - $25"</li>
+                    <li>• "Test my website on mobile devices - $15"</li>
+                  </ul>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  💰 Tip: Start with small tasks ($5-25) to build trust quickly
+                </p>
+              </div>
             </CardContent>
           </Card>
         ) : (

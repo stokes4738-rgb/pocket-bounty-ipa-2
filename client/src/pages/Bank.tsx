@@ -159,9 +159,25 @@ export default function Bank() {
           <h3 className="text-sm font-semibold mb-3">Recent Transactions</h3>
           {transactions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <div className="text-2xl mb-2">💰</div>
-              <div className="text-sm">No transactions yet</div>
-              <div className="text-xs">Complete bounties to start earning!</div>
+              <div className="text-4xl mb-4">💎</div>
+              <h3 className="text-lg font-semibold mb-3 text-foreground">Your earning journey starts here!</h3>
+              <div className="max-w-md mx-auto space-y-4">
+                <p className="text-muted-foreground">
+                  All your earnings and withdrawals will be tracked here.
+                </p>
+                <div className="bg-muted/30 rounded-lg p-4 text-left">
+                  <h4 className="font-medium text-sm mb-2">💡 How to start earning:</h4>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• Browse bounties and find tasks you can complete</li>
+                    <li>• Apply with a clear message about your approach</li>
+                    <li>• Complete the work and submit for review</li>
+                    <li>• Get paid instantly when approved!</li>
+                  </ul>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  🎯 Goal: Complete your first bounty to see your first transaction here
+                </p>
+              </div>
             </div>
           ) : (
             <div className="space-y-3">

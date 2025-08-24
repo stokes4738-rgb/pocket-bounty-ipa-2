@@ -208,10 +208,24 @@ export default function Messages() {
           <Card className="theme-transition">
             <CardContent className="p-8 text-center">
               <div className="text-4xl mb-4">💬</div>
-              <h3 className="text-lg font-semibold mb-2">No messages yet</h3>
-              <p className="text-muted-foreground">
-                Start a conversation by applying to bounties or connecting with friends!
-              </p>
+              <h3 className="text-lg font-semibold mb-3">Let's start connecting!</h3>
+              <div className="max-w-md mx-auto space-y-4">
+                <p className="text-muted-foreground">
+                  Your conversations will appear here. Get the ball rolling!
+                </p>
+                <div className="bg-muted/30 rounded-lg p-4 text-left">
+                  <h4 className="font-medium text-sm mb-2">💡 Ways to start chatting:</h4>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• Apply to bounties you can complete</li>
+                    <li>• Connect with other users in Friends</li>
+                    <li>• Ask questions about posted tasks</li>
+                    <li>• Share your expertise with bounty posters</li>
+                  </ul>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  💫 Tip: Good communication builds trust and leads to more opportunities
+                </p>
+              </div>
             </CardContent>
           </Card>
         ) : (

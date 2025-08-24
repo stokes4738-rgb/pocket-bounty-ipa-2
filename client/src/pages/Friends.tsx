@@ -303,12 +303,29 @@ export default function Friends() {
               <h3 className="text-lg font-semibold mb-2">
                 {friends.length === 0 ? "No friends yet" : "No friends found"}
               </h3>
-              <p className="text-muted-foreground">
-                {friends.length === 0 
-                  ? "Connect with other users to build your network!"
-                  : "Try a different search term."
-                }
-              </p>
+              <div className="max-w-md mx-auto">
+                {friends.length === 0 ? (
+                  <div className="space-y-4">
+                    <p className="text-muted-foreground">
+                      Building your network opens doors to better opportunities!
+                    </p>
+                    <div className="bg-muted/30 rounded-lg p-4 text-left">
+                      <h4 className="font-medium text-sm mb-2">🤝 Networking benefits:</h4>
+                      <ul className="text-xs text-muted-foreground space-y-1">
+                        <li>• Get referrals for high-paying bounties</li>
+                        <li>• Find reliable partners for big projects</li>
+                        <li>• Learn from experienced earners</li>
+                        <li>• Build your reputation in the community</li>
+                      </ul>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      💡 Tip: Look for users who complete bounties similar to your skills
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">Try a different search term.</p>
+                )}
+              </div>
             </CardContent>
           </Card>
         ) : (
