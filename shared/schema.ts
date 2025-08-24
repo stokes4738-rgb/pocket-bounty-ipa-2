@@ -46,7 +46,11 @@ export const users = pgTable("users", {
   stripeSubscriptionId: varchar("stripe_subscription_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_users_email").on(table.email),
+  index("idx_users_created_at").on(table.createdAt),
+  index("idx_users_last_seen").on(table.lastSeen),
+]);
 
 export const bounties = pgTable("bounties", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -62,7 +66,13 @@ export const bounties = pgTable("bounties", {
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_bounties_status").on(table.status),
+  index("idx_bounties_author_id").on(table.authorId),
+  index("idx_bounties_claimed_by").on(table.claimedBy),
+  index("idx_bounties_created_at").on(table.createdAt),
+  index("idx_bounties_category").on(table.category),
+]);
 
 export const bountyApplications = pgTable("bounty_applications", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -82,7 +92,11 @@ export const transactions = pgTable("transactions", {
   status: varchar("status", { length: 50 }).default("pending"), // pending, completed, failed
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_transactions_user_id").on(table.userId),
+  index("idx_transactions_created_at").on(table.createdAt),
+  index("idx_transactions_type").on(table.type),
+]);
 
 export const messageThreads = pgTable("message_threads", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -99,7 +113,11 @@ export const messages = pgTable("messages", {
   content: text("content").notNull(),
   readAt: timestamp("read_at"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_messages_thread_id").on(table.threadId),
+  index("idx_messages_sender_id").on(table.senderId),
+  index("idx_messages_created_at").on(table.createdAt),
+]);
 
 export const friendships = pgTable("friendships", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -127,7 +145,10 @@ export const activities = pgTable("activities", {
   description: text("description").notNull(),
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_activities_user_id").on(table.userId),
+  index("idx_activities_created_at").on(table.createdAt),
+]);
 
 export const paymentMethods = pgTable("payment_methods", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -169,7 +190,10 @@ export const platformRevenue = pgTable("platform_revenue", {
   source: varchar("source", { length: 50 }).notNull(), // 'bounty_posting', 'bounty_completion', 'deposit'
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_platform_revenue_created_at").on(table.createdAt),
+  index("idx_platform_revenue_source").on(table.source),
+]);
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({

@@ -1,10 +1,25 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { apiRateLimiter } from "./middleware/rateLimiter";
+import compression from "compression";
+import helmet from "helmet";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+// Security and performance middleware
+app.use(helmet({
+  contentSecurityPolicy: false, // Disabled for development
+  crossOriginEmbedderPolicy: false
+}));
+app.use(compression());
+
+// Request parsing with size limits
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: false, limit: "10mb" }));
+
+// Apply rate limiting to API routes
+app.use("/api", apiRateLimiter);
 
 app.use((req, res, next) => {
   const start = Date.now();
