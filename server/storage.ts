@@ -124,22 +124,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBounties(filters?: { category?: string; search?: string }): Promise<Bounty[]> {
-    let query = db.select().from(bounties).where(eq(bounties.status, "active"));
+    let conditions = [eq(bounties.status, "active")];
     
     if (filters?.category) {
-      query = query.where(eq(bounties.category, filters.category));
+      conditions.push(eq(bounties.category, filters.category));
     }
     
     if (filters?.search) {
-      query = query.where(
+      conditions.push(
         or(
           sql`${bounties.title} ILIKE ${'%' + filters.search + '%'}`,
           sql`${bounties.description} ILIKE ${'%' + filters.search + '%'}`
-        )
+        )!
       );
     }
     
-    return query.orderBy(desc(bounties.createdAt));
+    return db
+      .select()
+      .from(bounties)
+      .where(and(...conditions))
+      .orderBy(desc(bounties.createdAt));
   }
 
   async getBounty(id: string): Promise<Bounty | undefined> {
@@ -305,7 +309,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserFriends(userId: string): Promise<(Friendship & { friend: User })[]> {
-    const friendships = await db
+    const userFriendships = await db
       .select({
         friendship: friendships,
         friend: users,
@@ -325,7 +329,7 @@ export class DatabaseStorage implements IStorage {
         )
       );
 
-    return friendships.map(row => ({
+    return userFriendships.map((row: any) => ({
       ...row.friendship,
       friend: row.friend!,
     }));

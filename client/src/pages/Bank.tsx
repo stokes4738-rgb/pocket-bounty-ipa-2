@@ -7,11 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import type { Transaction } from "@shared/schema";
 
 export default function Bank() {
   const { user } = useAuth();
   
-  const { data: transactions = [], isLoading } = useQuery({
+  const { data: transactions = [], isLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/user/transactions"],
   });
 
@@ -80,7 +81,7 @@ export default function Bank() {
             </div>
           ) : (
             <div className="space-y-3">
-              {transactions.slice(0, 5).map((transaction: any) => (
+              {transactions.slice(0, 5).map((transaction) => (
                 <div 
                   key={transaction.id} 
                   className="flex justify-between items-center"
@@ -91,7 +92,7 @@ export default function Bank() {
                       {transaction.description}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {formatDate(transaction.createdAt)}
+                      {formatDate(transaction.createdAt || new Date())}
                     </div>
                   </div>
                   <div className="text-right">
@@ -108,7 +109,7 @@ export default function Bank() {
                         : "bg-orange-500 text-white"
                       }
                     >
-                      {transaction.status.toUpperCase()}
+                      {(transaction.status || 'pending').toUpperCase()}
                     </Badge>
                   </div>
                 </div>

@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import type { Bounty } from "@shared/schema";
 
 export default function Board() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -17,7 +18,7 @@ export default function Board() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: bounties = [], isLoading } = useQuery({
+  const { data: bounties = [], isLoading } = useQuery<Bounty[]>({
     queryKey: ["/api/bounties", selectedCategory],
     queryFn: ({ queryKey }) => {
       const category = queryKey[1] === "all" ? undefined : queryKey[1];
