@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1, viewport-fit=cover" />
+<meta name="format-detection" content="telephone=no">
+<title>Pocket Bounty — Social</title>
+
+<!-- PWA essentials -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="theme-color" content="#cc1900">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<style>
+:root{
+  --red:#cc1900; --red-dark:#991200; --gold:#ffb84d;
+  --bg:#0e0e0f; --panel:#161618; --card:#1e1e22; --line:#2a2a2d;
+  --ink:#f2f2f2; --muted:#aaa;
+}
+.light{
+  --bg:#f6f6f7; --panel:#ffffff; --card:#ffffff; --line:#cccccc;
+  --ink:#111111; --muted:#666666;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:calc(66px + env(safe-area-inset-bottom));transition:background .2s,color .2s}
+h1{font-size:18px;margin:0;color:var(--gold)}
+a{color:var(--gold);text-decoration:none}
+header{position:sticky;top:0;z-index:20;background:rgba(14,14,15,.9);backdrop-filter:blur(6px) saturate(130%);border-bottom:1px solid var(--line)}
+header .bar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:14px 16px}
+#menuBtn{background:none;border:1px solid var(--line);padding:4px 8px;border-radius:8px;color:var(--ink);font-size:18px}
+.points-pill{display:inline-flex;align-items:center;gap:6px;background:#1f2412;border:1px solid #303922;color:#d2f29d;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.points-pill .ico{font-size:16px}
+main{padding:16px}
+section{display:none} /* JS will set one to block */
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#111113;color:var(--ink)}
+.light input,.light select,.light textarea{background:#f1f1f3;color:#111}
+button.primary{background:var(--red);color:#fff;border:none;padding:10px 14px;border-radius:10px;font-weight:700}
+button.primary:active{background:var(--red-dark)}
+button.ghost{background:#2b2b2e;color:var(--muted);border:1px solid var(--line);padding:8px 12px;border-radius:10px}
+.light button.ghost{background:#f2f2f2;color:#555}
+
+/* Stats */
+.statgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.stat h3{margin:0 0 6px;font-size:12px;color:var(--muted)}
+.stat .v{font-size:18px;font-weight:700;color:var(--gold)}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th,.tbl td{padding:10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.tbl th{font-size:12px;color:var(--muted);font-weight:600}
+.badge{font-size:11px;padding:3px 8px;border-radius:999px;background:#333;color:var(--ink);font-weight:700}
+.badge.paid{background:var(--gold);color:#2b1800}
+.badge.pending{background:#ff6f61;color:#200}
+.right{text-align:right}
+
+/* Board cards */
+.board{display:grid;gap:12px}
+.postcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;gap:12px;justify-content:space-between}
+.postleft h3{margin:0 0 6px}
+.meta{color:var(--muted);font-size:13px}
+.tag{display:inline-block;background:#2f2f32;color:#ddd;border:1px solid var(--line);padding:2px 8px;border-radius:999px;font-size:11px;margin-right:6px}
+.by{color:#b8b8b8}
+.actions{display:flex;gap:8px;align-items:center}
+.boost-pill{display:inline-flex;align-items:center;gap:4px;background:#2b2030;border:1px solid #4a334d;color:#ffbbf4;padding:2px 8px;border-radius:999px;font-size:11px}
+
+/* Drawer */
+#drawerBackdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(2px);display:none;z-index:25}
+#drawer{position:fixed;left:0;top:0;bottom:0;width:78%;max-width:320px;background:#141416;border-right:1px solid var(--line);transform:translateX(-100%);transition:transform .25s ease;z-index:26;display:flex;flex-direction:column}
+#drawer.open{transform:translateX(0)}
+#drawerHeader{display:flex;align-items:center;gap:10px;padding:14px;border-bottom:1px solid var(--line)}
+#drawerHeader .handle{color:#bbb}
+#drawer .nav{display:grid;padding:8px}
+#drawer .nav button{display:flex;align-items:center;gap:10px;background:none;border:1px solid transparent;color:#ddd;padding:10px 12px;border-radius:10px;text-align:left}
+#drawer .nav button:hover{border-color:#333}
+#drawerFooter{margin-top:auto;padding:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.light #drawer{background:#fff}
+.light #drawer .nav button{color:#222}
+
+/* Messages */
+.threadlist{display:grid;gap:10px}
+.thread{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+.thread .avatar{width:38px;height:38px;border-radius:999px;background:#2b2b2e;display:flex;align-items:center;justify-content:center;font-weight:700}
+.thread .name{font-weight:600}
+.chat{display:flex;flex-direction:column;gap:8px}
+.msg{max-width:80%;padding:10px 12px;border-radius:14px;border:1px solid var(--line)}
+.me{align-self:flex-end;background:#292b30}
+.them{align-self:flex-start;background:#1a1e27}
+.chatbar{display:flex;gap:8px;margin-top:8px}
+.chatbar input{flex:1}
+
+/* Profile */
+.profile-card{display:flex;gap:12px;align-items:center}
+.profile-card img{width:64px;height:64px;border-radius:999px;border:2px solid var(--line);object-fit:cover;background:#2b2b2e}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.kpi .n{font-size:18px;font-weight:800;color:var(--gold)}
+.rating{color:#ffdb70;font-weight:700}
+
+/* Friends */
+.friend{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+.friend .avatar{width:36px;height:36px;border-radius:999px;background:#2b2b2e;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+/* Activity */
+.feed{display:grid;gap:10px}
+.event{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+
+/* bottom tab bar */
+footer{
+  position:fixed;left:0;right:0;bottom:0;height:66px;
+  background:var(--panel);border-top:1px solid var(--line);
+  display:flex;justify-content:space-around;align-items:center;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+footer button{
+  flex:1;border:none;background:none;color:var(--muted);
+  font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px;padding-top:6px
+}
+footer button .ico{font-size:22px;line-height:1}
+footer button.active{color:var(--red);font-weight:700}
+
+/* install banner */
+#installHint{
+  position:fixed;left:12px;right:12px;bottom:calc(78px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,#232326,#1b1b1e);
+  color:#fff;border:1px solid #313136;border-radius:14px;padding:12px 12px;
+  display:none;z-index:30;box-shadow:0 10px 25px rgba(0,0,0,.35);
+}
+#installHint .rowx{display:flex;align-items:center;gap:10px}
+#installHint .ico{font-size:22px}
+#installHint .close{margin-left:auto;background:#2b2b2e;color:#bbb;border:1px solid #3a3a3d;border-radius:10px;padding:6px 10px}
+#a2hsBtn{display:none;margin-left:8px}
+
+/* --------- Tutorial (no blur, ring + card) --------- */
+#tourMask{ position:fixed; inset:0; background:transparent; display:none; z-index:9998; pointer-events:none; }
+.tour-ring{
+  position:relative; z-index:9999;
+  outline:3px solid #ffdb70;
+  border-radius:12px;
+  box-shadow:0 0 0 6px rgba(255,219,112,.28);
+  transition:outline-color .15s, box-shadow .15s;
+}
+#tourCard{
+  position:fixed; max-width:320px; background:var(--card); color:var(--ink);
+  border:1px solid var(--line); border-radius:12px; padding:12px;
+  z-index:10000; box-shadow:0 10px 30px rgba(0,0,0,.35); display:none;
+}
+#tourCard h3{margin:0 0 6px;font-size:14px;color:var(--gold)}
+#tourCard .tx{font-size:13px}
+#tourCard .row{margin-top:10px;display:flex;gap:8px;justify-content:flex-end}
+#tourCard button{font-size:12px}
+.tourPulse{ animation:pulse 1.2s ease-in-out infinite; }
+@keyframes pulse{
+  0%{box-shadow:0 0 0 6px rgba(255,219,112,.28)}
+  70%{box-shadow:0 0 0 16px rgba(255,219,112,0)}
+  100%{box-shadow:0 0 0 6px rgba(255,219,112,.28)}
+}
+
+/* Safari nudge so the tip sits above the browser bars */
+@supports (-webkit-touch-callout: none) {
+  #tourCard { will-change: top, left; }
+}
+
+/* Flappy helpers (optional) */
+#flappy .overlay {
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  color:#fff; text-shadow:0 2px 4px rgba(0,0,0,.6); font-weight:800; font-size:22px; pointer-events:none;
+}
+
+/* --- Secret DEV/MOD menu styles --- */
+#devScrim{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);display:none;z-index:10010}
+#devPanel{
+  position:fixed; left:50%; top:56px; transform:translateX(-50%);
+  width:min(560px,92vw); background:var(--card); color:var(--ink);
+  border:1px solid var(--line); border-radius:12px; padding:12px;
+  box-shadow:0 14px 40px rgba(0,0,0,.45); display:none; z-index:10011;
+}
+#devPanel h3{margin:0 0 10px; color:var(--gold)}
+#devPanel .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#devPanel label{font-size:11px;color:var(--muted)}
+#devPanel input[type="number"]{width:100%;padding:8px;border-radius:8px;border:1px solid var(--line);background:#111113;color:var(--ink)}
+#devPanel .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+#devBadge{
+  position:absolute; right:10px; top:10px; background:#3a2a00; color:#ffdb70;
+  border:1px solid #5a4300; border-radius:999px; padding:3px 8px; font-size:10px; font-weight:800; display:none;
+}
+.light #devPanel input[type="number"]{background:#f1f1f3;color:#111}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <button id="menuBtn" aria-label="Open menu">☰</button>
+    <h1>🪙 Pocket Bounty</h1>
+    <div class="points-pill" title="Your Points">
+      <span class="ico">⭐</span>
+      <span id="pointsCount">0</span>
+    </div>
+  </div>
+</header>
+
+<!-- Drawer + Backdrop -->
+<div id="drawerBackdrop"></div>
+<aside id="drawer" aria-hidden="true">
+  <div id="drawerHeader">
+    <div style="font-weight:700">Menu</div>
+    <div class="handle small" id="drawerHandle">@Dallas1221</div>
+  </div>
+  <div class="nav">
+    <button onclick="activate('bank');closeDrawer()">🏦 Bank</button>
+    <button onclick="activate('board');closeDrawer()">📋 Board</button>
+    <button onclick="activate('post');closeDrawer()">➕ Post</button>
+    <button onclick="activate('messages');closeDrawer()">💬 Messages</button>
+    <button onclick="activate('profile');closeDrawer()">👤 Profile</button>
+    <button onclick="activate('friends');closeDrawer()">👥 Friends</button>
+    <button onclick="activate('activity');closeDrawer()">🔔 Activity</button>
+    <button onclick="activate('settings');closeDrawer()">⚙️ Settings</button>
+    <button onclick="activate('flappy');closeDrawer()">🐤 Flappy</button><!-- NEW -->
+    <button onclick="startTutorial(true);closeDrawer()">❓ Tutorial</button>
+  </div>
+  <div id="drawerFooter">
+    <div class="points-pill"><span class="ico">⭐</span><span id="pointsCountDrawer">0</span></div>
+    <button class="ghost" onclick="addPoints(10,'Test credit from menu')">+10</button>
+  </div>
+</aside>
+
+<!-- INSTALL BANNER -->
+<div id="installHint">
+  <div class="rowx">
+    <div class="ico">📲</div>
+    <div id="installText" class="small">Install this app: tap <strong>Share</strong> → <strong>Add to Home Screen</strong>.</div>
+    <button id="a2hsBtn" class="primary" type="button">Install</button>
+    <button class="close" type="button" onclick="dismissInstall()">Dismiss</button>
+  </div>
+</div>
+
+<!-- Tutorial elements -->
+<div id="tourMask"></div>
+<div id="tourCard">
+  <h3 id="tourTitle">Pocket Bounty</h3>
+  <div class="tx" id="tourText">Welcome!</div>
+  <div class="row">
+    <button class="ghost" id="tourSkip">Skip</button>
+    <button class="ghost" id="tourBack">Back</button>
+    <button class="primary" id="tourNext">Next</button>
+  </div>
+</div>
+
+<main>
+
+  <!-- BANK -->
+  <section id="bank">
+    <div class="statgrid">
+      <div class="stat"><h3>Available Balance</h3><div id="statBalance" class="v">$0</div></div>
+      <div class="stat"><h3>Lifetime Earned</h3><div id="statLifetime" class="v">$0</div></div>
+      <div class="stat"><h3>Points</h3><div id="statPoints" class="v">0</div></div>
+    </div>
+
+    <div class="card row" style="align-items:end">
+      <div style="flex:1;min-width:140px">
+        <label>Search</label>
+        <input id="bankSearch" placeholder="title, category, note" oninput="renderBank()">
+      </div>
+      <div style="width:160px">
+        <label>Status</label>
+        <select id="bankStatus" onchange="renderBank()">
+          <option value="all">All</option>
+          <option value="paid" selected>Paid</option>
+          <option value="pending">Pending</option>
+        </select>
+      </div>
+      <div style="width:160px">
+        <label>Sort</label>
+        <select id="bankSort" onchange="renderBank()">
+          <option value="new">Newest</option>
+          <option value="amount">Highest $</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <table class="tbl" id="txnTable">
+        <thead><tr><th>Date</th><th>Task</th><th>Category</th><th>Amount</th><th>Status</th><th class="right"></th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="small" id="emptyBank" style="display:none;text-align:center;padding:12px">No transactions.</div>
+    </div>
+  </section>
+
+  <!-- BOARD -->
+  <section id="board">
+    <div class="card">
+      <h2 style="margin:0 0 8px;color:var(--gold)">Browse Example Posts</h2>
+      <div class="small">Tap <strong>Claim</strong> to add one to your Bank as pending, <strong>Use This</strong> to prefill your Post form, or <span class="boost-pill">Boost</span> to promote (costs 2 ⭐).</div>
+    </div>
+    <div class="board" id="boardList"></div>
+  </section>
+
+  <!-- POST -->
+  <section id="post">
+    <div class="card">
+      <h2 style="margin:0 0 10px;color:var(--gold)">Post a Bounty</h2>
+      <div class="row">
+        <div style="flex:1;min-width:200px">
+          <label>Title</label>
+          <input id="p_title" placeholder="Grab a McFlurry, photoshop my ex…">
+        </div>
+        <div style="width:150px">
+          <label>Reward ($)</label>
+          <input id="p_reward" type="number" min="0" step="1" value="10">
+        </div>
+        <div style="width:180px">
+          <label>Category</label>
+          <select id="p_cat">
+            <option>Errand</option><option>Photo/Edit</option><option>Gaming</option><option>Prank</option><option selected>Misc</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div style="flex:1">
+          <label>Where</label>
+          <input id="p_where" placeholder="Greensboro Walmart, online, etc.">
+        </div>
+      </div>
+      <div class="row">
+        <div style="flex:1">
+          <label>Notes</label>
+          <textarea id="p_notes" rows="3" placeholder="Any rules or details"></textarea>
+        </div>
+      </div>
+      <div class="row">
+        <button class="primary" type="button" onclick="postAction()">Post</button>
+        <button class="ghost" type="button" onclick="seedAction()">Add 5 fake transactions</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- MESSAGES -->
+  <section id="messages">
+    <div class="card"><h2 style="margin:0;color:var(--gold)">Messages</h2></div>
+    <div id="messageList" class="threadlist"></div>
+    <div id="chatView" style="display:none">
+      <div class="card" id="chatHeader" style="display:flex;justify-content:space-between;align-items:center"></div>
+      <div class="card chat" id="chatBody" style="min-height:180px"></div>
+      <div class="chatbar">
+        <input id="chatInput" placeholder="Type a message…">
+        <button class="primary" type="button" onclick="sendChat()">Send</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROFILE -->
+  <section id="profile">
+    <div class="card">
+      <div class="profile-card">
+        <img id="profilePic" src="" alt="avatar" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2264%22><rect width=%2264%22 height=%2264%22 fill=%22%232b2b2e%22/><text x=%2232%22 y=%2238%22 font-size=%2226%22 text-anchor=%22middle%22 fill=%22%23aaa%22>👤</text></svg>'">
+        <div>
+          <div style="font-weight:700" id="profileName">Dallas Abbott</div>
+          <div class="rating" id="profileRating">⭐ 0.0</div>
+          <div class="small" id="profileHandle">@Dallas1221</div>
+        </div>
+      </div>
+      <hr>
+      <label>Display name</label><input id="pf_name" placeholder="Dallas Abbott">
+      <label>Handle</label><input id="pf_handle" placeholder="@Dallas1221">
+      <label>Bio</label><textarea id="pf_bio" rows="3" placeholder="Write something cool…"></textarea>
+      <label>Avatar URL (optional)</label><input id="pf_avatar" placeholder="https://…/pic.png">
+      <div class="row">
+        <button class="primary" onclick="saveProfile()">Save Profile</button>
+        <button class="ghost" onclick="openFriends()">Open Friends</button>
+        <button class="ghost" onclick="openActivity()">Open Activity</button>
+        <button class="ghost" onclick="restoreDemo()">Restore Demo Data (small)</button>
+      </div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><div class="n" id="kpiEarned">$0</div><div class="small">Earned</div></div>
+      <div class="kpi"><div class="n" id="kpiDone">0</div><div class="small">Tasks Done</div></div>
+      <div class="kpi"><div class="n" id="kpiPosted">0</div><div class="small">Posted</div></div>
+      <div class="kpi"><div class="n" id="kpiPoints">0 ⭐</div><div class="small">Points</div></div>
+    </div>
+  </section>
+
+  <!-- FRIENDS -->
+  <section id="friends">
+    <div class="card"><h2 style="margin:0;color:var(--gold)">Friends</h2></div>
+    <div id="friendsList"></div>
+  </section>
+
+  <!-- ACTIVITY -->
+  <section id="activity">
+    <div class="card"><h2 style="margin:0;color:var(--gold)">Activity</h2></div>
+    <div id="feed" class="feed"></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="settings">
+    <div class="card">
+      <h2 style="margin:0 0 10px;color:var(--gold)">Account & Direct Deposit</h2>
+      <div class="row">
+        <div style="flex:1;min-width:220px">
+          <label>Full Name</label>
+          <input id="s_name" placeholder="Dallas Abbott">
+        </div>
+        <div style="flex:1;min-width:200px">
+          <label>Email</label>
+          <input id="s_email" placeholder="you@example.com">
+        </div>
+      </div>
+      <div class="row">
+        <div style="flex:1;min-width:180px">
+          <label>Payout Method</label>
+          <select id="s_method">
+            <option>Bank (ACH)</option><option>Cash App</option><option>PayPal</option><option>Venmo</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:160px">
+          <label>Routing #</label>
+          <input id="s_routing" inputmode="numeric" maxlength="9" placeholder="XXXXXXXXX">
+        </div>
+        <div style="flex:1;min-width:180px">
+          <label>Account #</label>
+          <input id="s_account" inputmode="numeric" placeholder="XXXXXXXXXXXX">
+        </div>
+      </div>
+      <div class="row">
+        <div style="flex:1;min-width:200px">
+          <label>Cash App / PayPal / Venmo handle (optional)</label>
+          <input id="s_handle" placeholder="$yourcashapp / you@paypal / @venmo">
+        </div>
+      </div>
+      <div class="row">
+        <button class="primary" type="button" onclick="saveSettingsAction()">Save</button>
+        <span class="small" id="settingsSaved" style="display:none;">Saved ✔</span>
+      </div>
+    </div>
+
+    <!-- Preferences -->
+    <div class="card">
+      <h2 style="margin:0 0 10px;color:var(--gold)">Preferences</h2>
+      <label><input id="opt_push" type="checkbox"> Push Notifications</label><br>
+      <label><input id="opt_email" type="checkbox"> Email Reports</label><br>
+      <label><input id="opt_experimental" type="checkbox"> Experimental Features</label><br>
+      <label><input id="opt_theme" type="checkbox"> Light Mode</label>
+      <div class="row" style="margin-top:10px">
+        <button class="primary" type="button" onclick="startTutorial(true)">Start Tutorial</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FLAPPY (NEW) -->
+  <section id="flappy">
+    <div class="card" style="position:relative">
+      <h2 style="margin:0 0 10px;color:var(--gold)">Flappy</h2>
+      <div class="small">Tap / click anywhere to flap. Score 1 for each pipe pair passed. Earn 1 ⭐ per 10 points on game over.</div>
+      <div id="devBadge">DEV</div><!-- shows only when dev enabled -->
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <canvas id="flappyCanvas" style="display:block;width:100%;max-width:560px;margin:auto;background:linear-gradient(#7ec8ff,#bde4ff)"></canvas>
+    </div>
+    <div class="card" id="flappyHUD" style="display:flex;gap:12px;align-items:center;justify-content:space-between">
+      <div>
+        <span class="badge">Score: <b id="flappyScore">0</b></span>
+        <span class="badge" id="flappyBestBadge">Best: <b id="flappyBest">0</b></span>
+      </div>
+      <div>
+        <button class="ghost" onclick="flappyReset()">Reset</button>
+        <button class="primary" onclick="flappyStart()">Play</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Bottom Tab Bar -->
+<footer>
+  <button id="tabBank" class="active" onclick="activate('bank')"><div class="ico">🏦</div>Bank</button>
+  <button id="tabBoard" onclick="activate('board')"><div class="ico">📋</div>Board</button>
+  <button id="tabPost" onclick="activate('post')"><div class="ico">➕</div>Post</button>
+  <button id="tabMessages" onclick="activate('messages')"><div class="ico">💬</div>Msgs</button>
+  <button id="tabProfile" onclick="activate('profile')"><div class="ico">👤</div>Profile</button>
+</footer>
+
+<!-- Secret DEV/MOD overlay -->
+<div id="devScrim" onclick="hideDev()"></div>
+<div id="devPanel" role="dialog" aria-modal="true" aria-labelledby="devTitle">
+  <h3 id="devTitle">🐤 Flappy — Dev / Mod</h3>
+  <div class="grid">
+    <div><label>Gravity</label><input type="number" id="dev_gravity" step="0.05"></div>
+    <div><label>Flap (lift)</label><input type="number" id="dev_flap" step="0.1"></div>
+    <div><label>Speed</label><input type="number" id="dev_speed" step="0.1"></div>
+    <div><label>Time scale</label><input type="number" id="dev_timescale" step="0.1" min="0.1"></div>
+    <div><label>Gap</label><input type="number" id="dev_gap" step="1" min="40"></div>
+    <div><label>Pipe spacing</label><input type="number" id="dev_spacing" step="1" min="80"></div>
+    <div><label>Pipe width</label><input type="number" id="dev_pipew" step="1" min="20"></div>
+    <div><label>⭐ multiplier</label><input type="number" id="dev_starMult" step="0.5" min="0"></div>
+  </div>
+  <div class="row">
+    <label><input type="checkbox" id="dev_god"> God mode (no collisions)</label>
+    <label><input type="checkbox" id="dev_showTick"> Show tick overlay</label>
+  </div>
+  <div class="row">
+    <button class="primary" onclick="applyDev()">Apply</button>
+    <button class="ghost" onclick="giveStars()">Give 10 ⭐</button>
+    <button class="ghost" onclick="setScore(25)">Set Score=25</button>
+    <button class="ghost" onclick="resetBest()">Reset Best</button>
+    <button class="ghost" onclick="hideDev()">Close</button>
+  </div>
+  <div class="small" style="margin-top:6px;color:var(--muted)">Tip: Open this by tapping “Best” 7× within 3s on the Flappy HUD or typing BIRD.</div>
+</div>
+
+<script>
+/* ---------- Helpers ---------- */
+function $(id){return document.getElementById(id)}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function load(k){ try{return JSON.parse(localStorage.getItem(k))}catch(e){return null} }
+function save(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+function money(n){return (n||0).toLocaleString(undefined,{style:'currency',currency:'USD'})}
+function escapeHTML(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function now(){return Date.now()}
+function rng(seed){ let x = seed >>> 0; return function(){ x ^= x << 13; x ^= x >>> 17; x ^= x << 5; return (x>>>0) / 4294967296; }}
+
+/* ---------- Storage Keys ---------- */
+const KEY_TXN='pb_txn_v5';
+const KEY_SETTINGS='pb_settings_v2';
+const KEY_PROFILE='pb_profile_v3';
+const KEY_THREADS='pb_threads_v3';
+const KEY_FEED='pb_feed_v3';
+const KEY_RATINGS='pb_ratings_v3';
+const KEY_SAMPLES='pb_samples_v2';
+const KEY_POINTS='pb_points_v1';
+const KEY_PREFS='pb_prefs_v1';
+const KEY_BOOTSTRAP='pb_bootstrap_done_v3';
+const KEY_TOUR_DONE='pb_tour_done_v1';
+const KEY_FLAPPY_BEST='pb_flappy_best_v1';
+const KEY_FLAPPY_DEV='pb_flappy_dev_v1';
+
+/* ---------- Points ---------- */
+function getPoints(){ return Number(load(KEY_POINTS) || 0); }
+function setPoints(v){ save(KEY_POINTS, Math.max(0, Math.round(v))); renderPoints(); }
+function addPoints(v, reason){
+  const p = getPoints() + v;
+  setPoints(p);
+  if(reason){ feed.unshift(mkEvent(`Points ${v>0?'+':''}${v}: ${reason}`, now())); save(KEY_FEED,feed); }
+}
+function spendPoints(v, reason){
+  const p=getPoints();
+  if(p < v){ alert('Not enough points'); return false; }
+  setPoints(p - v);
+  if(reason){ feed.unshift(mkEvent(`Points -${v}: ${reason}`, now())); save(KEY_FEED,feed); }
+  return true;
+}
+function renderPoints(){
+  const p=getPoints();
+  ['pointsCount','pointsCountDrawer','statPoints','kpiPoints'].forEach(id=>{
+    const el=$(id); if(!el) return;
+    el.textContent = id==='kpiPoints' ? (p+' ⭐') : p;
+  });
+}
+
+/* ---------- Models ---------- */
+function mkTxn(title,cat,amt,status,dateMs,note,counterparty){
+  return {id:Math.random().toString(36).slice(2,10),title,category:cat,amount:amt,status,createdAt:dateMs,note:note||'',counterparty:counterparty||null};
+}
+function mkEvent(text, at){ return {id:'ev'+Math.random().toString(36).slice(2,7), text, at}; }
+
+/* ---------- Demo Bootstrap (3 years) ---------- */
+function bootstrapIfNeeded(){
+  if(load(KEY_BOOTSTRAP)) return;
+  const rand=rng(0xD411A5);
+
+  const profile = { name:'Dallas Abbott', handle:'@Dallas1221', bio:'Greensboro runner of bounties. I post, claim, and boost. 💸', avatar:'', ratingOverride:null };
+  save(KEY_PROFILE, profile);
+
+  const handles=['@deana','@pixelfixer','@jayfromwalmart','@gg_clutch','@sweeper','@mapscout','@ghosthunter','@photowiz','@errandpro','@clipqueen','@dronedude'];
+  const ratings={};
+  handles.forEach(h=>{
+    const arr=[]; for(let i=0;i< 8+Math.floor(rand()*18);i++){ arr.push( (3.5 + rand()*1.5 + (h==='@deana'?0.4:0)).toFixed(1)*1 ); }
+    ratings[h]=arr;
+  });
+  ratings['@Dallas1221']=[4.8,5,5,4.9,5,4.7,5];
+  save(KEY_RATINGS,ratings);
+
+  const categories=['Errand','Photo/Edit','Gaming','Prank','Misc'];
+  const places=['Greensboro','Winston-Salem','Kernersville','King','High Point','Myrtle Beach','Online','Burlington','Reidsville'];
+  const locs=['Walmart','Target','Sheetz','Best Buy','Park','Downtown','Hanes Mall','Wendover','Battleground'];
+  const verbs=['Pick up','Deliver','Snap photo of','Record','Design','Photoshop','Edit','Win','Write','Assemble','Test','Bake','Print','Review','Caption','Transcribe'];
+  const objects=['McFlurry','store hours sign','car interior before/after','30s prank clip','logo idea','ex out of pic','TikTok edit','Rocket League match','short review','chair','PC temps','cupcakes','flyer','app feature','5 pics','1 audio minute'];
+
+  let samples=[];
+  for(let i=0;i<50;i++){
+    const by=handles[Math.floor(rand()*handles.length)]||'@mapscout';
+    const cat=categories[Math.floor(rand()*categories.length)];
+    const verb=verbs[Math.floor(rand()*verbs.length)];
+    const obj=objects[Math.floor(rand()*objects.length)];
+    const where = (rand()<0.6 ? places[Math.floor(rand()*places.length)]+' '+locs[Math.floor(rand()*locs.length)] : 'online');
+    const reward = 5 + Math.floor(rand()*40);
+    const notes = rand()<0.5?'fast turnaround':(rand()<0.5?'send screenshot':'be respectful');
+    samples.push({id:'s'+(i+1), by, title:`${verb} ${obj}`, reward, cat, where, notes, boosts: Math.floor(rand()*30)});
+  }
+  save(KEY_SAMPLES, samples);
+
+  const txns=[]; const feed=[];
+  const today = new Date();
+  for(let d=0; d<1095; d+= Math.floor(1+rand()*3)){
+    const date = new Date(today.getTime() - d*24*3600*1000);
+    const sample = samples[Math.floor(rand()*samples.length)];
+    const isPaid = rand()<0.7;
+    const amt = Math.max(5, Math.round(sample.reward * (0.7 + rand()*0.8)));
+    const status = isPaid ? 'paid' : 'pending';
+    const note = (sample.where? sample.where+' • ':'') + (sample.notes||'');
+    const cp = sample.by;
+    const txn = mkTxn(sample.title, sample.cat, amt, status, date.getTime(), note, cp);
+    txns.push(txn);
+    if(isPaid){
+      feed.push( mkEvent(`You were paid ${money(amt)} for "${sample.title}" by ${cp}`, date.getTime()+3600*1000) );
+    } else {
+      feed.push( mkEvent(`You claimed "${sample.title}" from ${cp}`, date.getTime()+3600*1000) );
+    }
+    if(rand()<0.15){
+      const myAmt=Math.max(5, Math.round(5+rand()*35));
+      feed.push( mkEvent(`You posted "${sample.title}" for ${money(myAmt)}`, date.getTime()+2*3600*1000) );
+    }
+  }
+  txns.sort((a,b)=>b.createdAt-a.createdAt);
+  feed.sort((a,b)=>b.at-a.at);
+  save(KEY_TXN, txns);
+  save(KEY_FEED, feed);
+
+  const threads=[];
+  ['@pixelfixer','@jayfromwalmart','@deana','@gg_clutch'].forEach(h=>{
+    threads.push({
+      id:'t'+Math.random().toString(36).slice(2,6),
+      with:h, name:h.replace('@',''),
+      avatar:'',
+      msgs:[
+        {who:'them', text:`Hey @Dallas1221, about "${samples[Math.floor(rand()*samples.length)].title}" — I can start soon.`, at: now()-1000*60*(60+Math.floor(rand()*200))},
+        {who:'me', text:'Cool, keep me posted.', at: now()-1000*60*(40+Math.floor(rand()*150))}
+      ]
+    });
+  });
+  save(KEY_THREADS, threads);
+
+  save(KEY_POINTS, 250);
+  save(KEY_PREFS, {push:false,email:false,experimental:false,light:false});
+  save(KEY_BOOTSTRAP, 1);
+}
+
+/* ---------- Drawer ---------- */
+function openDrawer(){ $('drawer').classList.add('open'); $('drawerBackdrop').style.display='block'; }
+function closeDrawer(){ $('drawer').classList.remove('open'); $('drawerBackdrop').style.display='none'; }
+document.addEventListener('click', (e)=>{ if(e.target && e.target.id==='menuBtn'){ openDrawer(); } });
+$('drawerBackdrop').addEventListener('click', closeDrawer);
+
+/* ---------- Load state after bootstrap ---------- */
+bootstrapIfNeeded();
+let txns = load(KEY_TXN) || [];
+let samples = load(KEY_SAMPLES) || [];
+let profile = load(KEY_PROFILE) || {name:'Dallas Abbott', handle:'@Dallas1221', bio:'', avatar:'', ratingOverride:null};
+let settings = load(KEY_SETTINGS) || {};
+let ratings = load(KEY_RATINGS) || {};
+let threads = load(KEY_THREADS) || [];
+let feed = load(KEY_FEED) || [];
+renderPoints();
+
+/* ---------- HARD TAB SWITCHER (prevents Bank showing everywhere) ---------- */
+const ALL_SECTIONS=['bank','board','post','messages','profile','friends','activity','settings','flappy']; /* +flappy */
+function activate(tab){
+  ALL_SECTIONS.forEach(id=>{
+    const el=$(id);
+    if(el) el.style.display = (id===tab) ? 'block' : 'none';
+  });
+  ['tabBank','tabBoard','tabPost','tabMessages','tabProfile'].forEach(btnId=>{
+    const btn=$(btnId); if(btn) btn.classList.toggle('active', btnId.toLowerCase().includes(tab));
+  });
+  if(tab==='messages'){ renderThreads(); }
+  if(tab==='activity'){ renderFeed(); }
+  if(tab==='flappy'){ flappyResize(); flappyReset(); flappyDraw(); } else { flappyStop(); } /* pause/play */
+  closeDrawer();
+}
+
+/* ---------- BANK ---------- */
+function renderBank(){
+  const q=($('bankSearch').value||'').toLowerCase();
+  const f=$('bankStatus').value;
+  const s=$('bankSort').value;
+  const items=txns.filter(t=>{
+    const hay=(t.title+' '+t.category+' '+(t.note||'')+' '+(t.counterparty||'')).toLowerCase();
+    return (f==='all'||t.status===f)&&hay.includes(q);
+  }).sort((a,b)=> s==='amount'?(b.amount-a.amount):(b.createdAt-a.createdAt));
+
+  const lifetime=txns.reduce((sum,t)=>sum+(t.status==='paid'?t.amount:0),0);
+  const pending=txns.reduce((sum,t)=>sum+(t.status==='pending'?t.amount:0),0);
+  $('statLifetime').textContent=money(lifetime);
+  $('statBalance').textContent=money(pending);
+
+  const tbody=document.querySelector('#txnTable tbody'); tbody.innerHTML='';
+  $('emptyBank').style.display = items.length?'none':'block';
+  items.forEach(t=>{
+    const d=new Date(t.createdAt);
+    const tr=document.createElement('tr');
+    const cp=t.counterparty?` <span class="small">${escapeHTML(t.counterparty)}</span>`:'';
+    tr.innerHTML = `
+      <td>${d.toLocaleDateString()}</td>
+      <td>${escapeHTML(t.title)}${cp}<div class="small">${escapeHTML(t.note||'')}</div></td>
+      <td><span class="badge">${escapeHTML(t.category)}</span></td>
+      <td><strong>${money(t.amount)}</strong></td>
+      <td>${t.status==='paid'?'<span class="badge paid">PAID</span>':'<span class="badge pending">PENDING</span>'}</td>
+      <td class="right">
+        ${t.status==='pending'
+           ? `<button class="primary" onclick="markPaid('${t.id}')">Mark Paid</button>`
+           : `<button class="ghost" onclick="refundTxn('${t.id}')">Refund</button>`}
+        <button class="ghost" onclick="deleteTxn('${t.id}')">✕</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+
+  $('kpiEarned').textContent = money(lifetime);
+  $('kpiDone').textContent = txns.filter(t=>t.status==='paid').length;
+  $('kpiPosted').textContent = samples.length;
+}
+function findTxn(id){return txns.find(t=>t.id===id)}
+function markPaid(id){
+  const t=findTxn(id); if(!t) return;
+  t.status='paid'; t.note='Paid to bank'; save(KEY_TXN,txns); renderBank();
+  addPoints( Math.max(1, Math.round(t.amount/5)), `Payout of ${money(t.amount)} for "${t.title}"` );
+  if(t.counterparty){
+    const r = Number(prompt(`Rate ${t.counterparty} from 1-5 stars:`,'5'));
+    if(!isNaN(r) && r>0){ (ratings[t.counterparty]=ratings[t.counterparty]||[]).push(Math.max(1,Math.min(5,r))); save(KEY_RATINGS,ratings); updateProfileRatingCard(t.counterparty); }
+    feed.unshift(mkEvent(`You rated ${t.counterparty} ${r}★ for "${t.title}"`, now())); save(KEY_FEED,feed);
+  }
+}
+function refundTxn(id){const t=findTxn(id); if(!t) return; t.status='pending'; t.note='Returned to pending'; save(KEY_TXN,txns); renderBank();}
+function deleteTxn(id){txns=txns.filter(x=>x.id!==id); save(KEY_TXN,txns); renderBank();}
+/* Restore small demo */
+function restoreDemo(){
+  alert('Full 3-year dataset is loaded. Loading a small sample…');
+  const today=Date.now();
+  txns=[
+    mkTxn('Grab McFlurry delivery','Errand',12,'paid',today-5*86400000,'Paid to bank','@jayfromwalmart'),
+    mkTxn('Photoshop ex out of pic','Photo/Edit',25,'paid',today-12*86400000,'Paid to bank','@pixelfixer'),
+    mkTxn('Funny caption pack','Misc',20,'pending',today-0,'Awaiting payout','@pixelfixer'),
+    mkTxn('Yard leaf bagging (2)','Errand',30,'paid',today-15*86400000,'Paid to bank','@mapscout'),
+    mkTxn('Door sign photo set','Misc',16,'paid',today-8*86400000,'Paid to bank','@mapscout'),
+    mkTxn('Win 1 RL casual','Gaming',12,'pending',today-0,'Awaiting payout','@gg_clutch')
+  ];
+  save(KEY_TXN,txns);
+  renderBank();
+}
+/* ---------- BOARD (sorted high → low) ---------- */
+function renderBoard(){
+  const wrap = $('boardList'); 
+  wrap.innerHTML = '';
+
+  // clone and sort by reward descending
+  const items = (samples || []).slice().sort((a,b)=>(b.reward||0)-(a.reward||0));
+
+  items.slice(0,60).forEach(p=>{
+    const card=document.createElement('article'); 
+    card.className='postcard';
+    card.innerHTML = `
+      <div class="postleft">
+        <h3>${escapeHTML(p.title)}</h3>
+        <div class="meta">
+          <span class="tag">${escapeHTML(p.cat)}</span> 
+          <span class="by">by ${escapeHTML(p.by)}</span>
+          <span class="boost-pill">Boosts: <span id="boost_${p.id}">${p.boosts||0}</span></span>
+          <div>${escapeHTML(p.where)}</div>
+          <div class="small">${escapeHTML(p.notes||'')}</div>
+        </div>
+      </div>
+      <div class="actions">
+        <strong>${money(p.reward)}</strong>
+        <button class="primary" onclick="claimSample('${p.id}')">Claim</button>
+        <button class="ghost" onclick="useSample('${p.id}')">Use This</button>
+        <button class="ghost" onclick="dm('${p.by}')">Message</button>
+        <button class="ghost" onclick="boostPost('${p.id}')">Boost (2⭐)</button>
+      </div>`;
+    wrap.appendChild(card);
+  });
+}
+function getSample(id){return (samples||[]).find(x=>x.id===id)}
+function claimSample(id){
+  const p=getSample(id); if(!p) return;
+  txns.unshift(mkTxn(p.title,p.cat,p.reward,'pending',now(),(p.where? p.where+' • ' : '')+(p.notes||''),p.by));
+  save(KEY_TXN,txns);
+  addPoints(1, `Claimed "${p.title}"`);
+  feed.unshift(mkEvent(`You claimed "${p.title}" from ${p.by}`, now())); save(KEY_FEED,feed);
+  activate('bank'); renderBank();
+}
+function useSample(id){
+  const p=getSample(id); if(!p) return;
+  $('p_title').value=p.title; $('p_reward').value=p.reward; $('p_cat').value=p.cat; $('p_where').value=p.where; $('p_notes').value=p.notes||'';
+  activate('post');
+}
+function boostPost(id){
+  const p=getSample(id); if(!p) return;
+  if(!spendPoints(2, `Boosted "${p.title}"`)) return;
+  p.boosts=(p.boosts||0)+1; save(KEY_SAMPLES, samples);
+  const el=$('boost_'+id); if(el) el.textContent=p.boosts;
+  feed.unshift(mkEvent(`You boosted "${p.title}" (+1 visibility)`, now()));
+  save(KEY_FEED,feed);
+}
+
+/* ---------- POST ---------- */
+function postAction(){
+  const title=($('p_title').value||'').trim();
+  const amount=Number($('p_reward').value||0);
+  if(!title){alert('Title required');return}
+  const t=mkTxn(title,$('p_cat').value,amount,'pending',now(),($('p_where').value?$('p_where').value+' • ':'')+($('p_notes').value||''),'@Dallas1221');
+  txns.unshift(t); save(KEY_TXN,txns);
+  addPoints(1, `Posted "${title}"`);
+  feed.unshift(mkEvent(`You posted "${title}" for ${money(amount)}`, now())); save(KEY_FEED,feed);
+  $('p_title').value='';$('p_where').value='';$('p_notes').value='';
+  activate('bank'); renderBank();
+}
+function seedAction(){
+  const add=[
+    mkTxn('Clean dust filter','Misc',12,'pending',now(),'Awaiting payout','@sweeper'),
+    mkTxn('Take photo of sign','Misc',8,'paid',now()-2*86400000,'Paid to bank','@mapscout'),
+    mkTxn('Car interior quick vac','Errand',18,'pending',now(),'Awaiting payout','@sweeper'),
+    mkTxn('Deliver energy drink','Errand',9,'paid',now()-3*86400000,'Paid to bank','@jayfromwalmart'),
+    mkTxn('Caption 5 pics','Misc',15,'pending',now(),'Awaiting payout','@pixelfixer')
+  ];
+  add.forEach(x=>txns.unshift(x)); save(KEY_TXN,txns); activate('bank'); renderBank();
+}
+
+/* ---------- MESSAGES ---------- */
+let currentThreadId=null;
+function renderThreads(){
+  const list=$('messageList'); list.innerHTML='';
+  (threads||[]).forEach(t=>{
+    const div=document.createElement('div'); div.className='thread';
+    const initials=(t.name||t.with).replace(/[@_]/g,'').split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase();
+    const last=t.msgs[t.msgs.length-1]; const lastTxt=last?last.text:'';
+    div.innerHTML=`<div class="avatar">${initials||'👤'}</div>
+      <div style="flex:1">
+        <div class="name">${escapeHTML(t.name||t.with)} <span class="small" style="margin-left:6px;color:#ffdb70">${starAvg(t.with)}</span></div>
+        <div class="small">${escapeHTML(lastTxt)}</div>
+      </div>
+      <button class="ghost" onclick="openChat('${t.id}')">Open</button>`;
+    list.appendChild(div);
+  });
+  $('chatView').style.display='none';
+}
+function openChat(id){
+  currentThreadId=id;
+  const t=threads.find(x=>x.id===id); if(!t) return;
+  $('chatView').style.display='block';
+  $('chatHeader').innerHTML=`<strong>Chat with ${escapeHTML(t.name||t.with)}</strong>
+    <button class="ghost" onclick="renderThreads()">Back</button>`;
+  const body=$('chatBody'); body.innerHTML='';
+  t.msgs.forEach(m=>{
+    const b=document.createElement('div'); b.className='msg '+(m.who==='me'?'me':'them'); b.textContent=m.text; body.appendChild(b);
+  });
+  body.scrollTop=body.scrollHeight;
+}
+function sendChat(){
+  const t=threads.find(x=>x.id===currentThreadId); if(!t) return;
+  const txt=$('chatInput').value.trim(); if(!txt) return;
+  t.msgs.push({who:'me', text:txt, at:now()}); save(KEY_THREADS,threads); $('chatInput').value='';
+  openChat(t.id);
+}
+function dm(handle){
+  let t=threads.find(x=>x.with===handle);
+  if(!t){ t={id:'t'+Math.random().toString(36).slice(2,6), with:handle, name:handle.replace('@',''), avatar:'', msgs:[]}; threads.unshift(t); save(KEY_THREADS,threads); }
+  activate('messages'); renderThreads(); openChat(t.id);
+}
+
+/* ---------- PROFILE / FRIENDS / ACTIVITY ---------- */
+function loadProfileUI(){
+  $('pf_name').value=profile.name||'Dallas Abbott'; $('pf_handle').value=profile.handle||'@Dallas1221'; $('pf_bio').value=profile.bio||''; $('pf_avatar').value=profile.avatar||'';
+  $('profileName').textContent=profile.name||'Dallas Abbott'; $('profileHandle').textContent=profile.handle||'@Dallas1221'; $('profilePic').src=profile.avatar||'';
+  updateProfileRatingCard(profile.handle);
+}
+function updateProfileRatingCard(handle){
+  const avg = starAvg(handle);
+  if(handle===profile.handle){ $('profileRating').textContent = `⭐ ${avg}`; }
+}
+function starAvg(handle){
+  const arr=ratings[handle]||[]; if(!arr.length) return '4.9';
+  const avg=(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1); return avg;
+}
+function saveProfile(){
+  profile={name:$('pf_name').value.trim()||'Dallas Abbott', handle:($('pf_handle').value.trim()||'@Dallas1221'), bio:$('pf_bio').value.trim(), avatar:$('pf_avatar').value.trim(), ratingOverride:profile.ratingOverride||null};
+  save(KEY_PROFILE,profile); loadProfileUI();
+  feed.unshift(mkEvent(`You updated your profile`, now())); save(KEY_FEED,feed);
+  alert('Profile saved');
+}
+const friendsSeed=[
+  {handle:'@deana', name:'Deana', rating:4.9},
+  {handle:'@pixelfixer', name:'Pixelfixer', rating:starAvg('@pixelfixer')},
+  {handle:'@jayfromwalmart', name:'Jay', rating:starAvg('@jayfromwalmart')}
+];
+function renderFriends(){
+  const wrap=$('friendsList'); wrap.innerHTML='';
+  friendsSeed.forEach(f=>{
+    const div=document.createElement('div'); div.className='friend';
+    const initials=f.name[0].toUpperCase();
+    div.innerHTML=`<div class="avatar">${initials}</div>
+      <div style="flex:1">
+        <div><strong>${escapeHTML(f.name)}</strong> <span class="small">${escapeHTML(f.handle)}</span></div>
+        <div class="small">⭐ ${escapeHTML(String(f.rating))}</div>
+      </div>
+      <button class="ghost" onclick="dm('${f.handle}')">Message</button>`;
+    wrap.appendChild(div);
+  });
+}
+function renderFeed(){
+  const wrap=$('feed'); wrap.innerHTML='';
+  (feed||[]).sort((a,b)=>b.at-a.at).slice(0,300).forEach(ev=>{
+    const div=document.createElement('div'); div.className='event';
+    const when=new Date(ev.at).toLocaleString();
+    div.innerHTML=`<div>${escapeHTML(ev.text)}</div><div class="small">${when}</div>`;
+    wrap.appendChild(div);
+  });
+}
+function openFriends(){ activate('friends'); renderFriends(); }
+function openActivity(){ activate('activity'); renderFeed(); }
+
+/* ---------- Settings ---------- */
+function fillSettings(){
+  $('s_name').value=settings.name||'Dallas Abbott'; $('s_email').value=settings.email||''; $('s_method').value=settings.method||'Bank (ACH)';
+  $('s_routing').value=settings.routing||''; $('s_account').value=settings.account||''; $('s_handle').value=settings.handle||'';
+
+  const prefs = load(KEY_PREFS) || {push:false,email:false,experimental:false,light:false};
+  $('opt_push').checked=prefs.push; $('opt_email').checked=prefs.email; $('opt_experimental').checked=prefs.experimental; $('opt_theme').checked=prefs.light;
+  applyTheme(prefs.light);
+  $('opt_push').onchange=savePrefs; $('opt_email').onchange=savePrefs; $('opt_experimental').onchange=savePrefs; $('opt_theme').onchange=savePrefs;
+}
+function savePrefs(){
+  const prefs = { push:$('opt_push').checked, email:$('opt_email').checked, experimental:$('opt_experimental').checked, light:$('opt_theme').checked };
+  save(KEY_PREFS, prefs); applyTheme(prefs.light);
+}
+function applyTheme(light){
+  if(light){ document.body.classList.add('light'); } else { document.body.classList.remove('light'); }
+}
+function saveSettingsAction(){
+  settings={name:$('s_name').value.trim(),email:$('s_email').value.trim(),method:$('s_method').value,routing:$('s_routing').value.trim(),account:$('s_account').value.trim(),handle:$('s_handle').value.trim()};
+  save(KEY_SETTINGS,settings); $('settingsSaved').style.display='inline'; setTimeout(()=>$('settingsSaved').style.display='none',1200);
+}
+
+/* ---------- Add-to-Home-Screen ---------- */
+let deferredPrompt=null;
+function maybeShowIOSHint(){
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const inStandalone=window.navigator.standalone===true;
+  if(isIOS && !inStandalone && !sessionStorage.getItem('a2hsDismiss')){ $('installHint').style.display='block'; }
+}
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault(); deferredPrompt=e;
+  $('installText').textContent='Install this app with one tap.'; $('a2hsBtn').style.display='inline-block';
+  $('installHint').style.display='block';
+  $('a2hsBtn').onclick=async()=>{ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; dismissInstall(); };
+});
+function dismissInstall(){ $('installHint').style.display='none'; sessionStorage.setItem('a2hsDismiss','1'); }
+
+/* ---------- Tutorial (no blur + Safari-safe top placement) ---------- */
+let TOUR = { steps:[], i:0 };
+let tourFocusEl=null;
+function getEl(sel){ try{ return document.querySelector(sel); }catch(_){ return null; } }
+function rectOf(el){ const r=el.getBoundingClientRect(); return {x:r.left+window.scrollX, y:r.top+window.scrollY, w:r.width, h:r.height}; }
+function focusEl(el){
+  if(tourFocusEl){ tourFocusEl.classList.remove('tour-ring','tourPulse'); }
+  tourFocusEl = el;
+  if(!tourFocusEl) return;
+  tourFocusEl.classList.add('tour-ring','tourPulse');
+  tourFocusEl.scrollIntoView({behavior:'smooth', block:'center', inline:'center'});
+}
+function clearFocus(){ if(tourFocusEl){ tourFocusEl.classList.remove('tour-ring','tourPulse'); tourFocusEl=null; } }
+
+/* Key change: card prefers TOP when near header + Safari viewport offsets */
+function placeCardNear(target, prefer='bottom'){
+  const card=$('tourCard');
+  const r = rectOf(target);
+  const margin=10;
+  const vv = window.visualViewport || {pageTop: window.scrollY, height: window.innerHeight};
+  const viewportTop = (vv.pageTop !== undefined ? vv.pageTop : window.scrollY);
+  const viewportBottom = viewportTop + (vv.height || window.innerHeight);
+
+  let top, left = r.x;
+
+  const forceTop = (prefer==='top') || (r.y - viewportTop < 120); // near the top (header/search) → put card above
+
+  if(forceTop){
+    top = Math.max(viewportTop + 8, r.y - card.offsetHeight - margin);
+  }else{
+    top = r.y + r.h + margin;
+    if(top + card.offsetHeight > viewportBottom - 8){
+      top = Math.max(viewportTop + 8, r.y - card.offsetHeight - margin);
+    }
+  }
+
+  if(left + card.offsetWidth > window.scrollX + window.innerWidth - 8){
+    left = window.scrollX + window.innerWidth - card.offsetWidth - 8;
+  }
+  card.style.left = Math.max(8, left)+'px';
+  card.style.top  = Math.max(viewportTop + 8, top)+'px';
+}
+
+function goStep(idx){
+  TOUR.i = idx;
+  const s = TOUR.steps[idx];
+  if(!s){ endTutorial(true); return; }
+  if(s.pre){ s.pre(); }
+  setTimeout(()=>{
+    const el = getEl(s.sel);
+    $('tourTitle').textContent = s.title || 'Pocket Bounty';
+    $('tourText').innerHTML = s.text || '';
+    if(el){ focusEl(el); placeCardNear(el, s.prefer||'bottom'); }
+    else { clearFocus(); const c=$('tourCard'); c.style.left='50%'; c.style.top=(window.scrollY+window.innerHeight*0.3)+'px'; c.style.transform='translate(-50%,-30%)'; }
+    $('tourMask').style.display='block';
+    $('tourCard').style.display='block';
+  }, 60);
+}
+function nextStep(){ goStep(TOUR.i+1); }
+function prevStep(){ goStep(Math.max(0, TOUR.i-1)); }
+function endTutorial(done){
+  $('tourMask').style.display='none';
+  $('tourCard').style.display='none';
+  clearFocus();
+  if(done) save(KEY_TOUR_DONE, true);
+}
+function startTutorial(manual=false){
+  TOUR.steps = [
+    { title:'Welcome to Pocket Bounty', text:'Post small tasks (“bounties”), <b>claim</b> ones you like, get paid, and earn <b>⭐ points</b> for actions.', sel:'header .bar h1', prefer:'top' },
+    { title:'Hamburger Menu', text:'Tap <b>☰</b> to open quick navigation and see your points. You can start this tutorial any time from there.', sel:'#menuBtn', prefer:'top' },
+
+    { title:'Drawer & Points', text:'Your ⭐ balance lives here too. Use it to <b>Boost</b> posts so more people see them.', sel:'#drawer', pre:()=>openDrawer(), prefer:'top' },
+
+    { title:'Board: Find Work', text:'Browse example bounties. <b>Claim</b> adds a pending entry to Bank, <b>Use This</b> prefills a new post, <b>Boost</b> costs 2 ⭐.', sel:'#board .card h2', pre:()=>{ closeDrawer(); activate('board'); } },
+    { title:'Boost Meter', text:'Each post shows its <b>Boosts</b>. Boosting increases visibility—points are your promo fuel.', sel:'.boost-pill', prefer:'top' },
+    { title:'Post your own Bounty', text:'Describe the task, set a reward, location, and notes. Posting gives you ⭐ and creates an entry.', sel:'#post .card h2', pre:()=>activate('post') },
+    { title:'Messages', text:'Coordinate details. Ratings appear beside names. You can DM from posts or Friends.', sel:'#messages .card h2', pre:()=>activate('messages') },
+    { title:'Bank', text:'Track <b>Pending</b> vs <b>Paid</b>, see lifetime earned, and mark jobs paid when done (you’ll be asked to rate).', sel:'#bank .statgrid', pre:()=>activate('bank') },
+    { title:'Activity (Notifications)', text:'Claims, boosts, ratings, points changes, and payouts show up here.', sel:'#activity .card h2', pre:()=>{ activate('activity'); renderFeed(); } },
+    { title:'Profile & KPI', text:'Update your name, handle, bio, avatar, and see earned/done/posted/⭐.', sel:'#profile .profile-card', pre:()=>activate('profile') },
+    { title:'Friends', text:'Shortcut to DM your regulars. Ratings help you decide who to work with.', sel:'#friends .card h2', pre:()=>activate('friends') },
+    { title:'Settings', text:'Manage payout info and Preferences. Toggle <b>Light Mode</b>, opt into push/email (stub), or <b>Start Tutorial</b> again.', sel:'#settings .card h2', pre:()=>activate('settings') },
+
+    { title:'You’re set!', text:'That’s it. Try claiming a post on the Board or posting your own bounty to earn ⭐.', sel:'header .points-pill', pre:()=>activate('board'), prefer:'top' }
+  ];
+  $('tourNext').onclick = ()=>{ if(TOUR.i>=TOUR.steps.length-1){ endTutorial(true); } else { nextStep(); } };
+  $('tourBack').onclick = prevStep;
+  $('tourSkip').onclick = ()=> endTutorial(false);
+  goStep(0);
+}
+
+/* ---------- Flappy (with DEV/MOD menu) ---------- */
+let flappy = {
+  running:false, raf:0, state:'ready', // 'ready' | 'play' | 'over'
+  W:360, H:520, dpr:window.devicePixelRatio||1,
+  bird:{x:0,y:0,v:0,r:12},
+  gravity:0.35, flap:-6.2, speed:2.2,
+  pipes:[], tick:0, gap:110, spacing:160, pipeW:52, score:0, best: Number(load(KEY_FLAPPY_BEST)||0),
+  starMult:1, timeScale:1, god:false, showTick:false
+};
+
+function loadDev(){
+  const d = load(KEY_FLAPPY_DEV)||null;
+  if(!d) return;
+  Object.assign(flappy, {
+    gravity: d.gravity ?? flappy.gravity,
+    flap: d.flap ?? flappy.flap,
+    speed: d.speed ?? flappy.speed,
+    timeScale: d.timeScale ?? 1,
+    gap: d.gap ?? flappy.gap,
+    spacing: d.spacing ?? flappy.spacing,
+    pipeW: d.pipeW ?? flappy.pipeW,
+    starMult: d.starMult ?? flappy.starMult,
+    god: !!d.god,
+    showTick: !!d.showTick
+  });
+  $('devBadge').style.display='inline-block';
+}
+function saveDev(){
+  const d = {
+    gravity: flappy.gravity, flap: flappy.flap, speed: flappy.speed, timeScale: flappy.timeScale,
+    gap: flappy.gap, spacing: flappy.spacing, pipeW: flappy.pipeW, starMult: flappy.starMult,
+    god: flappy.god, showTick: flappy.showTick
+  };
+  save(KEY_FLAPPY_DEV, d);
+}
+
+function flappyCanvas(){ return document.getElementById('flappyCanvas'); }
+function flappyCtx(){ const c=flappyCanvas(); return c?c.getContext('2d'):null; }
+
+function flappyResize(){
+  const c = flappyCanvas(); if(!c) return;
+  const dpr = window.devicePixelRatio||1; flappy.dpr=dpr;
+  flappy.W = 360; flappy.H = 520;
+  c.width = Math.floor(flappy.W * dpr);
+  c.height = Math.floor(flappy.H * dpr);
+  const ctx = flappyCtx(); if(ctx) ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+function flappyReset(){
+  flappy.state='ready';
+  flappy.bird = {x: flappy.W*0.28, y: flappy.H*0.45, v: 0, r: 12};
+  flappy.pipes = [];
+  flappy.tick = 0;
+  flappy.score = 0;
+  updateFlappyHUD();
+  flappyDraw();
+}
+
+function flappyStart(){
+  if(flappy.running) return;
+  flappyReset();
+  flappy.state='play';
+  flappy.running = true;
+  flappyLoop();
+}
+
+function flappyStop(){
+  flappy.running=false;
+  if(flappy.raf){ cancelAnimationFrame(flappy.raf); flappy.raf=0; }
+}
+
+function updateFlappyHUD(){
+  const sEl = document.getElementById('flappyScore');
+  const bEl = document.getElementById('flappyBest');
+  if(sEl) sEl.textContent = flappy.score;
+  if(bEl) bEl.textContent = flappy.best;
+}
+
+function flappyAddPipe(){
+  const minY = 80; const maxY = flappy.H - 160;
+  const gapY = Math.floor(minY + Math.random()*(maxY-minY));
+  flappy.pipes.push({ x: flappy.W + 20, gapY, counted:false });
+}
+
+function flappyFlap(){
+  if(flappy.state==='ready'){ flappyStart(); return; }
+  if(flappy.state!=='play') return;
+  flappy.bird.v = flappy.flap;
+}
+
+function flappyLoop(){
+  flappy.raf = requestAnimationFrame(flappyLoop);
+  const ts = Math.max(0.1, Number(flappy.timeScale)||1);
+  // Update may run multiple times if timeScale>1 for a snappier feel
+  const steps = Math.max(1, Math.floor(ts));
+  for(let i=0;i<steps;i++){ flappyUpdate(1); }
+  // Fractional leftover
+  const frac = ts - steps; if(frac>0) flappyUpdate(frac);
+  flappyDraw();
+}
+
+function flappyUpdate(scale){
+  const b=flappy.bird;
+  if(flappy.state==='play'){
+    b.v += flappy.gravity * scale;
+    b.y += b.v * scale;
+
+    flappy.tick++;
+    if(flappy.tick % Math.floor(flappy.spacing / Math.max(0.1,flappy.speed)) === 0){
+      flappyAddPipe();
+    }
+    for(let p of flappy.pipes){ p.x -= flappy.speed * scale; }
+    while(flappy.pipes.length && flappy.pipes[0].x < -flappy.pipeW-10){ flappy.pipes.shift(); }
+
+    flappy.pipes.forEach(p=>{
+      if(!p.counted && p.x + flappy.pipeW < b.x - b.r){
+        p.counted = true;
+        flappy.score++;
+        updateFlappyHUD();
+      }
+    });
+
+    if(b.y - b.r < 0) { b.y = b.r; b.v=0; }
+    const ground = flappy.H - 40;
+    if(b.y + b.r > ground){ b.y = ground - b.r; return flappyGameOver(); }
+
+    if(!flappy.god){
+      for(const p of flappy.pipes){
+        const gapHalf=flappy.gap/2;
+        const topRect = {x:p.x, y:0, w:flappy.pipeW, h:p.gapY-gapHalf};
+        const botRect = {x:p.x, y:p.gapY+gapHalf, w:flappy.pipeW, h:flappy.H-(p.gapY+gapHalf)};
+        if(circleRectCollide(b.x,b.y,b.r, topRect) || circleRectCollide(b.x,b.y,b.r, botRect)){
+          return flappyGameOver();
+        }
+      }
+    }
+  }
+}
+
+function flappyGameOver(){
+  flappy.state='over';
+  flappyStop();
+  if(flappy.score > flappy.best){
+    flappy.best = flappy.score;
+    save(KEY_FLAPPY_BEST, flappy.best);
+  }
+  updateFlappyHUD();
+  const stars = Math.floor((flappy.score/10) * Math.max(0, Number(flappy.starMult)||1));
+  if(stars>0){ addPoints(stars, `Flappy score ${flappy.score} (x${flappy.starMult}⭐)`); }
+}
+
+function circleRectCollide(cx,cy,cr, r){
+  const nx = Math.max(r.x, Math.min(cx, r.x+r.w));
+  const ny = Math.max(r.y, Math.min(cy, r.y+r.h));
+  const dx = cx - nx, dy = cy - ny;
+  return (dx*dx + dy*dy) <= cr*cr;
+}
+
+function flappyDraw(){
+  const ctx = flappyCtx(); if(!ctx) return;
+  const W=flappy.W, H=flappy.H;
+  ctx.clearRect(0,0,W,H);
+
+  // ground strip
+  ctx.fillStyle = '#6bd15b';
+  ctx.fillRect(0, H-40, W, 40);
+  ctx.fillStyle = '#4aa63e';
+  for(let i=0;i<W;i+=18){ ctx.fillRect(i, H-40, 12, 4); }
+
+  // pipes
+  for(const p of flappy.pipes){
+    const gapHalf=flappy.gap/2;
+    ctx.fillStyle='#2fb34e';
+    ctx.fillRect(p.x, 0, flappy.pipeW, p.gapY-gapHalf);
+    ctx.fillStyle='#1f8b3a';
+    ctx.fillRect(p.x, (p.gapY-gapHalf)-6, flappy.pipeW, 6);
+
+    ctx.fillStyle='#2fb34e';
+    ctx.fillRect(p.x, p.gapY+gapHalf, flappy.pipeW, H-(p.gapY+gapHalf)-40);
+    ctx.fillStyle='#1f8b3a';
+    ctx.fillRect(p.x, p.gapY+gapHalf, flappy.pipeW, 6);
+  }
+
+  // bird
+  const b=flappy.bird;
+  ctx.save();
+  ctx.translate(b.x, b.y);
+  const angle = Math.max(-0.6, Math.min(0.8, b.v/10));
+  ctx.rotate(angle);
+  ctx.fillStyle='#ffd35a';
+  ctx.beginPath(); ctx.arc(0,0,b.r,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(6,-4,2,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ff7d36'; ctx.beginPath();
+  ctx.moveTo(b.r-2,2); ctx.lineTo(b.r+8,0); ctx.lineTo(b.r-2,-2); ctx.closePath(); ctx.fill();
+  ctx.restore();
+
+  // score / labels
+  ctx.fillStyle='#fff'; ctx.font='bold 22px system-ui,-apple-system,Segoe UI,Roboto,sans-serif';
+  ctx.textAlign='center';
+  if(flappy.state==='ready'){
+    ctx.fillText('Tap to start', W/2, H*0.42);
+  } else if(flappy.state==='play'){
+    ctx.fillText(String(flappy.score), W/2, 36);
+  } else if(flappy.state==='over'){
+    ctx.fillText('Game Over', W/2, H*0.40);
+    ctx.fillText(`Score ${flappy.score}  •  Best ${flappy.best}`, W/2, H*0.46);
+    ctx.fillText('Tap to retry', W/2, H*0.54);
+  }
+
+  // dev tick overlay
+  if(flappy.showTick){
+    ctx.fillStyle='#000a';
+    ctx.fillRect(W-86, 6, 80, 44);
+    ctx.fillStyle='#fff';
+    ctx.font='12px system-ui,-apple-system,Segoe UI,Roboto,sans-serif';
+    ctx.textAlign='left';
+    ctx.fillText(`tick: ${flappy.tick}`, W-80, 22);
+    ctx.fillText(`pipes: ${flappy.pipes.length}`, W-80, 38);
+  }
+}
+
+function flappyBind(){
+  const c = flappyCanvas(); if(!c) return;
+  const onTap = (e)=>{ e.preventDefault(); if(flappy.state==='over'){ flappyStart(); } else { flappyFlap(); } };
+  c.addEventListener('pointerdown', onTap, {passive:false});
+  window.addEventListener('resize', ()=>{ flappyResize(); flappyDraw(); });
+}
+
+/* ---------- Secret DEV/MOD menu logic ---------- */
+let devTapCount=0, devTapTimer=0;
+const BEST_BADGE = ()=>$('flappyBestBadge');
+
+function tryOpenDevByTap(){
+  const nowMs = Date.now();
+  if(!devTapTimer){ devTapTimer = nowMs; devTapCount=0; }
+  if(nowMs - devTapTimer > 3000){ devTapTimer = nowMs; devTapCount=0; }
+  devTapCount++;
+  if(devTapCount >= 7){ showDev(); devTapCount=0; devTapTimer=0; }
+}
+function tryOpenDevByKeys(){
+  let buffer='';
+  return function(e){
+    if(document.getElementById('flappy').style.display!=='block') return;
+    const ch = (e.key||'').toLowerCase();
+    if(ch.length===1 && /[a-z0-9]/.test(ch)){
+      buffer = (buffer + ch).slice(-8);
+      if(buffer.endsWith('bird')){ showDev(); buffer=''; }
+    } else if(ch==='escape'){ hideDev(); }
+  };
+}
+document.addEventListener('keydown', tryOpenDevByKeys());
+
+function syncDevUI(){
+  $('dev_gravity').value = flappy.gravity;
+  $('dev_flap').value    = flappy.flap;
+  $('dev_speed').value   = flappy.speed;
+  $('dev_timescale').value = flappy.timeScale;
+  $('dev_gap').value     = flappy.gap;
+  $('dev_spacing').value = flappy.spacing;
+  $('dev_pipew').value   = flappy.pipeW;
+  $('dev_starMult').value= flappy.starMult;
+  $('dev_god').checked   = flappy.god;
+  $('dev_showTick').checked = flappy.showTick;
+}
+function applyDev(){
+  flappy.gravity   = Number($('dev_gravity').value)||flappy.gravity;
+  flappy.flap      = Number($('dev_flap').value)||flappy.flap;
+  flappy.speed     = Number($('dev_speed').value)||flappy.speed;
+  flappy.timeScale = Math.max(0.1, Number($('dev_timescale').value)||1);
+  flappy.gap       = Math.max(40, Number($('dev_gap').value)||flappy.gap);
+  flappy.spacing   = Math.max(80, Number($('dev_spacing').value)||flappy.spacing);
+  flappy.pipeW     = Math.max(20, Number($('dev_pipew').value)||flappy.pipeW);
+  flappy.starMult  = Math.max(0, Number($('dev_starMult').value)||flappy.starMult);
+  flappy.god       = !!$('dev_god').checked;
+  flappy.showTick  = !!$('dev_showTick').checked;
+  saveDev();
+  $('devBadge').style.display='inline-block';
+  flappyDraw();
+}
+function giveStars(){ addPoints(10,'DEV: grant'); }
+function setScore(n){ flappy.score = Number(n)||0; updateFlappyHUD(); flappyDraw(); }
+function resetBest(){ flappy.best = 0; save(KEY_FLAPPY_BEST, 0); updateFlappyHUD(); }
+
+function showDev(){
+  syncDevUI();
+  $('devScrim').style.display='block';
+  $('devPanel').style.display='block';
+}
+function hideDev(){
+  $('devScrim').style.display='none';
+  $('devPanel').style.display='none';
+}
+
+/* ---------- Kickoff ---------- */
+document.addEventListener('DOMContentLoaded', ()=>{
+  try{
+    flappyBind(); flappyResize(); loadDev(); flappyReset();
+    const bb = BEST_BADGE(); if(bb){ bb.addEventListener('click', tryOpenDevByTap); }
+  }catch(_){}
+});
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+  const ALL=['bank','board','post','messages','profile','friends','activity','settings','flappy'];
+  ALL.forEach(id=>{ const el=$(id); if(el) el.style.display='none'; });
+  activate('board');
+
+  maybeShowIOSHint();
+  renderBank(); renderBoard(); renderThreads(); loadProfileUI(); fillSettings(); renderPoints();
+
+  if(!load(KEY_TOUR_DONE)){ startTutorial(false); }
+});
+</script>
+</body>
+</html>
