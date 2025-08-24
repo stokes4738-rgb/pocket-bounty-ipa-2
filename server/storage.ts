@@ -10,6 +10,7 @@ import {
   bountyApplications,
   paymentMethods,
   payments,
+  platformRevenue,
   type User,
   type UpsertUser,
   type Bounty,
@@ -30,6 +31,8 @@ import {
   type InsertPaymentMethod,
   type Payment,
   type InsertPayment,
+  type PlatformRevenue,
+  type InsertPlatformRevenue,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql } from "drizzle-orm";
@@ -88,6 +91,14 @@ export interface IStorage {
   getUserPayments(userId: string): Promise<Payment[]>;
   updatePaymentStatus(id: string, status: string): Promise<void>;
   updateUserStripeInfo(userId: string, stripeCustomerId?: string, stripeSubscriptionId?: string): Promise<void>;
+  
+  // Platform revenue operations
+  createPlatformRevenue(revenue: InsertPlatformRevenue): Promise<PlatformRevenue>;
+  getPlatformRevenue(): Promise<PlatformRevenue[]>;
+  getTotalPlatformRevenue(): Promise<string>;
+  
+  // Fee calculation utility
+  calculatePlatformFee(amount: string): { fee: string; netAmount: string; grossAmount: string };
 }
 
 export class DatabaseStorage implements IStorage {
@@ -499,6 +510,39 @@ export class DatabaseStorage implements IStorage {
       .update(users)
       .set(updateData)
       .where(eq(users.id, userId));
+  }
+
+  // Platform revenue operations
+  async createPlatformRevenue(revenue: InsertPlatformRevenue): Promise<PlatformRevenue> {
+    const [newRevenue] = await db.insert(platformRevenue).values(revenue).returning();
+    return newRevenue;
+  }
+
+  async getPlatformRevenue(): Promise<PlatformRevenue[]> {
+    return db
+      .select()
+      .from(platformRevenue)
+      .orderBy(desc(platformRevenue.createdAt));
+  }
+
+  async getTotalPlatformRevenue(): Promise<string> {
+    const [result] = await db
+      .select({ total: sql<string>`COALESCE(SUM(${platformRevenue.amount}), 0)` })
+      .from(platformRevenue);
+    return result.total || "0.00";
+  }
+
+  // Fee calculation utility (5% platform fee)
+  calculatePlatformFee(amount: string): { fee: string; netAmount: string; grossAmount: string } {
+    const grossAmount = parseFloat(amount);
+    const fee = Math.round(grossAmount * 0.05 * 100) / 100; // 5% fee, rounded to 2 decimals
+    const netAmount = Math.round((grossAmount - fee) * 100) / 100;
+    
+    return {
+      fee: fee.toFixed(2),
+      netAmount: netAmount.toFixed(2),
+      grossAmount: grossAmount.toFixed(2)
+    };
   }
 }
 

@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertBountySchema, insertMessageSchema, insertTransactionSchema, insertReviewSchema, insertPaymentMethodSchema, insertPaymentSchema } from "@shared/schema";
+import { insertBountySchema, insertMessageSchema, insertTransactionSchema, insertReviewSchema, insertPaymentMethodSchema, insertPaymentSchema, insertPlatformRevenueSchema } from "@shared/schema";
 
 // Stripe setup with error handling for missing keys
 let stripe: any = null;
@@ -53,19 +53,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const bountyData = insertBountySchema.parse({ ...req.body, authorId: userId });
+      
+      // Calculate platform fee (5% of reward)
+      const feeInfo = storage.calculatePlatformFee(bountyData.reward.toString());
+      const totalCost = parseFloat(feeInfo.grossAmount) + parseFloat(feeInfo.fee);
+      
+      // Check if user has enough balance
+      const user = await storage.getUser(userId);
+      if (!user || parseFloat(user.balance) < totalCost) {
+        return res.status(400).json({ 
+          message: `Insufficient balance. Need $${totalCost.toFixed(2)} (including $${feeInfo.fee} platform fee)` 
+        });
+      }
+      
       const bounty = await storage.createBounty(bountyData);
       
-      // Deduct posting fee
+      // Deduct total cost from user balance
+      await storage.updateUserBalance(userId, `-${totalCost}`);
+      
+      // Deduct points for posting bounty
       await storage.updateUserPoints(userId, -5);
+      
+      // Create transaction record with fee details
       await storage.createTransaction({
         userId,
         type: "spending",
-        amount: "5.00",
-        description: "Bounty posting fee",
+        amount: totalCost.toString(),
+        description: `Posted bounty: ${bountyData.title} (includes $${feeInfo.fee} platform fee)`,
         status: "completed",
       });
+      
+      // Create platform revenue record
+      await storage.createPlatformRevenue({
+        bountyId: bounty.id,
+        amount: feeInfo.fee,
+        source: "bounty_posting",
+        description: `Platform fee from bounty: ${bountyData.title}`,
+      });
 
-      res.status(201).json(bounty);
+      res.status(201).json({
+        ...bounty,
+        platformFee: feeInfo.fee,
+        totalCost: totalCost.toFixed(2)
+      });
     } catch (error) {
       console.error("Error creating bounty:", error);
       res.status(500).json({ message: "Failed to create bounty" });
@@ -406,8 +436,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Stripe customer not found" });
       }
 
+      // Calculate platform fee (5% of deposit)
+      const feeInfo = storage.calculatePlatformFee(amount.toString());
+      const totalCharge = parseFloat(feeInfo.grossAmount) + parseFloat(feeInfo.fee);
+
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(parseFloat(amount) * 100), // Convert to cents
+        amount: Math.round(totalCharge * 100), // Convert to cents, include fee
         currency: 'usd',
         customer: user.stripeCustomerId,
         payment_method: paymentMethodId,
@@ -419,16 +453,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const payment = await storage.createPayment({
         userId,
         stripePaymentIntentId: paymentIntent.id,
-        amount: amount.toString(),
+        amount: feeInfo.grossAmount,
+        platformFee: feeInfo.fee,
+        netAmount: feeInfo.grossAmount, // User gets the full amount they requested
         status: paymentIntent.status,
         type: 'deposit',
-        description: `Account deposit of $${amount}`,
+        description: `Account deposit of $${amount} (platform fee: $${feeInfo.fee})`,
       });
 
-      // If payment succeeded, update user balance
+      // If payment succeeded, update user balance and record platform revenue
       if (paymentIntent.status === 'succeeded') {
-        await storage.updateUserBalance(userId, amount.toString());
+        await storage.updateUserBalance(userId, feeInfo.grossAmount);
         await storage.updatePaymentStatus(payment.id, 'succeeded');
+        
+        // Create platform revenue record
+        await storage.createPlatformRevenue({
+          transactionId: payment.id,
+          amount: feeInfo.fee,
+          source: "deposit",
+          description: `Platform fee from deposit: $${amount}`,
+        });
       }
 
       res.json({ 
@@ -437,7 +481,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: paymentIntent.id,
           status: paymentIntent.status,
           client_secret: paymentIntent.client_secret
-        }
+        },
+        platformFee: feeInfo.fee,
+        totalCharged: totalCharge.toFixed(2),
+        amountCredited: feeInfo.grossAmount
       });
     } catch (error: any) {
       console.error("Error processing deposit:", error);
@@ -453,6 +500,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching payment history:", error);
       res.status(500).json({ message: "Failed to fetch payment history" });
+    }
+  });
+
+  // Platform revenue endpoints (admin only)
+  app.get('/api/admin/platform-revenue', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      // Check if user is admin (you can set this field in the database for specific users)
+      if (!user?.email?.includes('admin') && !user?.email?.includes('creator')) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const revenue = await storage.getPlatformRevenue();
+      const totalRevenue = await storage.getTotalPlatformRevenue();
+      
+      res.json({ 
+        revenue,
+        totalRevenue,
+        summary: {
+          totalEarned: totalRevenue,
+          transactionCount: revenue.length,
+          avgPerTransaction: revenue.length > 0 ? (parseFloat(totalRevenue) / revenue.length).toFixed(2) : "0.00"
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching platform revenue:", error);
+      res.status(500).json({ message: "Failed to fetch platform revenue" });
+    }
+  });
+
+  // Bounty completion with platform fee
+  app.post('/api/bounties/:id/complete', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const bounty = await storage.getBounty(id);
+      if (!bounty) {
+        return res.status(404).json({ message: "Bounty not found" });
+      }
+      
+      if (bounty.authorId !== userId) {
+        return res.status(403).json({ message: "Only bounty author can mark as complete" });
+      }
+      
+      if (bounty.status !== "active" || !bounty.claimedBy) {
+        return res.status(400).json({ message: "Bounty must be claimed to complete" });
+      }
+      
+      // Calculate platform fee (5% of bounty reward)
+      const feeInfo = storage.calculatePlatformFee(bounty.reward.toString());
+      
+      // Mark bounty as completed
+      await storage.updateBountyStatus(id, "completed");
+      
+      // Pay the worker (reward minus platform fee)
+      await storage.updateUserBalance(bounty.claimedBy, feeInfo.netAmount);
+      
+      // Create transaction for the worker
+      await storage.createTransaction({
+        userId: bounty.claimedBy,
+        bountyId: id,
+        type: "earning",
+        amount: feeInfo.netAmount,
+        description: `Completed bounty: ${bounty.title} (after $${feeInfo.fee} platform fee)`,
+        status: "completed",
+      });
+      
+      // Create platform revenue record
+      await storage.createPlatformRevenue({
+        bountyId: id,
+        amount: feeInfo.fee,
+        source: "bounty_completion",
+        description: `Platform fee from bounty completion: ${bounty.title}`,
+      });
+      
+      // Create activities
+      await storage.createActivity({
+        userId: bounty.claimedBy,
+        type: "bounty_completed",
+        description: `Completed bounty: ${bounty.title}`,
+        metadata: { bountyId: id, earned: feeInfo.netAmount, platformFee: feeInfo.fee },
+      });
+      
+      await storage.createActivity({
+        userId,
+        type: "bounty_completed",
+        description: `Bounty completed: ${bounty.title}`,
+        metadata: { bountyId: id, workerId: bounty.claimedBy },
+      });
+      
+      res.json({ 
+        success: true,
+        workerEarned: feeInfo.netAmount,
+        platformFee: feeInfo.fee,
+        originalReward: bounty.reward
+      });
+    } catch (error) {
+      console.error("Error completing bounty:", error);
+      res.status(500).json({ message: "Failed to complete bounty" });
     }
   });
 

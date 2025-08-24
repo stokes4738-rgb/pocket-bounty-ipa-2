@@ -149,6 +149,8 @@ export const payments = pgTable("payments", {
   stripePaymentIntentId: varchar("stripe_payment_intent_id").notNull(),
   paymentMethodId: uuid("payment_method_id").references(() => paymentMethods.id),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  platformFee: decimal("platform_fee", { precision: 10, scale: 2 }).default("0.00"), // 5% platform fee
+  netAmount: decimal("net_amount", { precision: 10, scale: 2 }).notNull(), // amount after fees
   currency: varchar("currency", { length: 3 }).default("usd"),
   status: varchar("status", { length: 50 }).notNull(), // pending, succeeded, failed
   type: varchar("type", { length: 50 }).notNull(), // deposit, withdrawal, bounty_payout
@@ -156,6 +158,17 @@ export const payments = pgTable("payments", {
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Platform revenue tracking
+export const platformRevenue = pgTable("platform_revenue", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  transactionId: uuid("transaction_id").references(() => payments.id),
+  bountyId: uuid("bounty_id").references(() => bounties.id),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  source: varchar("source", { length: 50 }).notNull(), // 'bounty_posting', 'bounty_completion', 'deposit'
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Insert schemas
@@ -214,6 +227,11 @@ export const insertPaymentSchema = createInsertSchema(payments).omit({
   updatedAt: true,
 });
 
+export const insertPlatformRevenueSchema = createInsertSchema(platformRevenue).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -235,3 +253,5 @@ export type PaymentMethod = typeof paymentMethods.$inferSelect;
 export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
 export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type PlatformRevenue = typeof platformRevenue.$inferSelect;
+export type InsertPlatformRevenue = z.infer<typeof insertPlatformRevenueSchema>;
