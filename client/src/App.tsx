@@ -12,6 +12,7 @@ const Landing = lazy(() => import("@/pages/Landing"));
 const Login = lazy(() => import("@/pages/Login"));
 const CreateAccount = lazy(() => import("@/pages/CreateAccount"));
 const Home = lazy(() => import("@/pages/Home"));
+const Profile = lazy(() => import("@/pages/Profile"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 function Router() {
@@ -47,7 +48,10 @@ function Router() {
             <Route path="/create-account" component={CreateAccount} />
           </>
         ) : (
-          <Route path="/" component={Home} />
+          <>
+            <Route path="/" component={Home} />
+            <Route path="/profile" component={Profile} />
+          </>
         )}
         <Route component={NotFound} />
       </Switch>

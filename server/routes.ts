@@ -313,6 +313,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile update route
+  app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { handle, bio, skills, experience } = req.body;
+      
+      await storage.updateUserProfile(userId, {
+        handle,
+        bio,
+        skills,
+        experience
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
   // Payment routes
   app.get('/api/payments/methods', isAuthenticated, async (req: any, res) => {
     try {
