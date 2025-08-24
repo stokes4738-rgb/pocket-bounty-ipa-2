@@ -503,6 +503,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test deposit endpoint (for development without Stripe)
+  app.post('/api/test/deposit', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { amount } = req.body;
+      
+      const numAmount = parseFloat(amount);
+      if (isNaN(numAmount) || numAmount < 1 || numAmount > 1000) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+      
+      // Add funds to user balance
+      await storage.updateUserBalance(userId, amount);
+      
+      // Create transaction record
+      await storage.createTransaction({
+        userId,
+        type: "earning",
+        amount,
+        description: "Test deposit",
+        status: "completed",
+      });
+      
+      // Create activity
+      await storage.createActivity({
+        userId,
+        type: "deposit",
+        description: `Added $${amount} in test funds`,
+        metadata: { amount },
+      });
+      
+      const updatedUser = await storage.getUser(userId);
+      res.json({ 
+        success: true, 
+        balance: updatedUser?.balance,
+        message: "Test funds added successfully"
+      });
+    } catch (error) {
+      console.error("Error processing test deposit:", error);
+      res.status(500).json({ message: "Failed to process test deposit" });
+    }
+  });
+
   // Creator dashboard endpoints (creator only)
   app.get('/api/creator/stats', isAuthenticated, async (req: any, res) => {
     try {

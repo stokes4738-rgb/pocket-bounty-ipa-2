@@ -357,16 +357,143 @@ export default function Account() {
     },
   });
 
+  const [testDepositAmount, setTestDepositAmount] = useState("");
+
+  const testDepositMutation = useMutation({
+    mutationFn: async (amount: string) => {
+      return apiRequest("POST", "/api/test/deposit", { amount });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Test funds added to your account!",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/transactions"] });
+      setTestDepositAmount("");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to add test funds",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleTestDeposit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const amount = parseFloat(testDepositAmount);
+    if (amount < 1 || amount > 1000) {
+      toast({
+        title: "Error",
+        description: "Amount must be between $1 and $1000",
+        variant: "destructive",
+      });
+      return;
+    }
+    testDepositMutation.mutate(testDepositAmount);
+  };
+
   if (!stripePromise) {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">Account Management</h1>
+        
+        {/* Test Mode Banner */}
+        <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div>
+                <h3 className="font-semibold text-blue-900 dark:text-blue-100">Test Mode Active</h3>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  Payment system running in test mode. Use the form below to add test funds.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Balance Card */}
         <Card>
-          <CardContent className="p-6">
-            <div className="text-center text-muted-foreground">
-              <Shield className="h-12 w-12 mx-auto mb-4" />
-              <p>Payment system is being configured...</p>
-              <p className="text-sm mt-2">Please check back later for payment features.</p>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Current Balance
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-pocket-gold">
+              ${parseFloat(user?.balance || "0").toFixed(2)}
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              Available for bounties and withdrawals
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Test Deposit Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              Add Test Funds
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleTestDeposit} className="space-y-4">
+              <div>
+                <Label htmlFor="amount">Amount (USD)</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                  <Input
+                    id="amount"
+                    type="number"
+                    min="1"
+                    max="1000"
+                    step="0.01"
+                    placeholder="100.00"
+                    value={testDepositAmount}
+                    onChange={(e) => setTestDepositAmount(e.target.value)}
+                    className="pl-8"
+                    data-testid="input-deposit-amount"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Add between $1 and $1000 in test funds
+                </p>
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={testDepositMutation.isPending}
+                data-testid="button-add-funds"
+              >
+                {testDepositMutation.isPending ? "Adding..." : "Add Test Funds"}
+              </Button>
+            </form>
+            
+            {/* Quick Add Buttons */}
+            <div className="mt-4 pt-4 border-t">
+              <p className="text-sm font-medium mb-2">Quick Add:</p>
+              <div className="grid grid-cols-4 gap-2">
+                {["10", "25", "50", "100"].map((amount) => (
+                  <Button
+                    key={amount}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setTestDepositAmount(amount);
+                      testDepositMutation.mutate(amount);
+                    }}
+                    disabled={testDepositMutation.isPending}
+                    data-testid={`button-quick-add-${amount}`}
+                  >
+                    +${amount}
+                  </Button>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
