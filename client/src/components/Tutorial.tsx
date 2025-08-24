@@ -115,7 +115,9 @@ const tutorialSteps = [
           <ul className="text-xs text-orange-700 dark:text-orange-300 space-y-1">
             <li>• Full amount charged upfront (held safely in escrow)</li>
             <li>• If someone completes it → they get paid instantly!</li>
-            <li>• If NO ONE takes it after 3 days → auto-refund minus 5% fee</li>
+            <li>• If NO ONE takes it after 3 days → auto-refund minus fee:</li>
+            <li className="ml-4">→ Under $250: 5% fee</li>
+            <li className="ml-4">→ $250+: Only 3.5% fee (better deal!)</li>
             <li>• No surprises, no hidden costs!</li>
           </ul>
         </div>

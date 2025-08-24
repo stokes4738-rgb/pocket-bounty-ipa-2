@@ -31,7 +31,9 @@ async function processExpiredBounties() {
     
     for (const bounty of expiredBounties) {
       const bountyReward = parseFloat(bounty.reward.toString());
-      const platformFee = bountyReward * 0.05; // 5% fee
+      // Tiered fee structure: 5% for under $250, 3.5% for $250+
+      const feePercentage = bountyReward >= 250 ? 0.035 : 0.05;
+      const platformFee = bountyReward * feePercentage;
       const refundAmount = bountyReward - platformFee;
       
       // Mark bounty as expired
@@ -45,7 +47,7 @@ async function processExpiredBounties() {
         userId: bounty.authorId,
         type: "refund",
         amount: refundAmount.toString(),
-        description: `Auto-refund for expired bounty: ${bounty.title} (less 5% platform fee)`,
+        description: `Auto-refund for expired bounty: ${bounty.title} (less ${(feePercentage * 100).toFixed(1)}% platform fee)`,
         status: "completed",
       });
       
@@ -54,14 +56,14 @@ async function processExpiredBounties() {
         bountyId: bounty.id,
         amount: platformFee.toString(),
         source: "expired_bounty_fee",
-        description: `5% fee from expired bounty: ${bounty.title}`,
+        description: `${(feePercentage * 100).toFixed(1)}% fee from expired bounty: ${bounty.title}`,
       });
       
       // Create activity
       await storage.createActivity({
         userId: bounty.authorId,
         type: "bounty_expired",
-        description: `Your bounty "${bounty.title}" expired and was refunded (minus 5% fee)`,
+        description: `Your bounty "${bounty.title}" expired and was refunded (minus ${(feePercentage * 100).toFixed(1)}% fee)`,
         metadata: { bountyId: bounty.id, refundAmount: refundAmount.toFixed(2), fee: platformFee.toFixed(2) },
       });
     }
@@ -116,7 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(userId);
       if (!user || parseFloat(user.balance) < bountyReward) {
         return res.status(400).json({ 
-          message: `Insufficient balance. Need $${bountyReward.toFixed(2)} (held in escrow until completed or auto-refunded after 3 days minus 5% fee)` 
+          message: `Insufficient balance. Need $${bountyReward.toFixed(2)} (held in escrow until completed or auto-refunded after 3 days minus ${bountyReward >= 250 ? '3.5%' : '5%'} fee)` 
         });
       }
       
@@ -133,7 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId,
         type: "escrow_hold",
         amount: bountyReward.toString(),
-        description: `Posted bounty: ${bountyData.title} (held in escrow, auto-refunds in 3 days minus 5% fee if unclaimed)`,
+        description: `Posted bounty: ${bountyData.title} (held in escrow, auto-refunds in 3 days minus ${bountyReward >= 250 ? '3.5%' : '5%'} fee if unclaimed)`,
         status: "completed",
       });
 

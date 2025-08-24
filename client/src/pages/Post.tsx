@@ -252,7 +252,7 @@ export default function Post() {
                   {postMutation.isPending ? "Posting..." : "Post Bounty"}
                 </Button>
                 <div className="text-xs text-muted-foreground text-center">
-                  💰 Full amount held in escrow. Auto-refunds in 3 days minus 5% fee if unclaimed.
+                  💰 Full amount held in escrow. Auto-refunds in 3 days minus {parseFloat(form.watch("reward") || "0") >= 250 ? "3.5%" : "5%"} fee if unclaimed.
                 </div>
                 {(user?.points || 0) < 5 && (
                   <div className="text-xs text-destructive text-center">
