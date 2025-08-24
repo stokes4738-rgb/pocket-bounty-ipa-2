@@ -151,21 +151,20 @@ export default function Post() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-xs text-muted-foreground">
-                        Category
+                        Value Range
                       </FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-bounty-category">
-                            <SelectValue placeholder="Select category" />
+                            <SelectValue placeholder="Select value range" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="design">Design</SelectItem>
-                          <SelectItem value="testing">Testing</SelectItem>
-                          <SelectItem value="writing">Writing</SelectItem>
-                          <SelectItem value="development">Development</SelectItem>
-                          <SelectItem value="marketing">Marketing</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="quick_cash">💵 Quick Cash ($5-15)</SelectItem>
+                          <SelectItem value="good_money">💰 Good Money ($16-50)</SelectItem>
+                          <SelectItem value="big_bucks">💎 Big Bucks ($51-100)</SelectItem>
+                          <SelectItem value="major_bag">🏆 Major Bag ($100+)</SelectItem>
+                          <SelectItem value="other">🎲 Other</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

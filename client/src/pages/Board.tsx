@@ -116,12 +116,11 @@ export default function Board() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="design">Design</SelectItem>
-            <SelectItem value="testing">Testing</SelectItem>
-            <SelectItem value="writing">Writing</SelectItem>
-            <SelectItem value="development">Development</SelectItem>
-            <SelectItem value="marketing">Marketing</SelectItem>
+            <SelectItem value="all">All Bounties</SelectItem>
+            <SelectItem value="quick_cash">💵 Quick Cash ($5-15)</SelectItem>
+            <SelectItem value="good_money">💰 Good Money ($16-50)</SelectItem>
+            <SelectItem value="big_bucks">💎 Big Bucks ($51-100)</SelectItem>
+            <SelectItem value="major_bag">🏆 Major Bag ($100+)</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -137,7 +136,7 @@ export default function Board() {
                 <p className="text-muted-foreground">
                   {selectedCategory === "all" 
                     ? "No bounties posted yet. Be the pioneer who gets this community started!"
-                    : `No ${selectedCategory} bounties yet. Perfect opportunity to be first!`
+                    : `No bounties in this price range yet. Perfect opportunity to be first!`
                   }
                 </p>
                 <div className="bg-muted/30 rounded-lg p-4 text-left">
