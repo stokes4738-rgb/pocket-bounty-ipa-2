@@ -449,6 +449,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         customer: user.stripeCustomerId,
         payment_method: paymentMethodId,
         confirm: true,
+        automatic_payment_methods: {
+          enabled: false,
+        },
         return_url: `${req.protocol}://${req.get('host')}/account`,
       });
 
@@ -491,7 +494,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       console.error("Error processing deposit:", error);
-      res.status(500).json({ message: "Failed to process deposit" });
+      
+      // Handle Stripe-specific errors with better messages
+      if (error.type === 'StripeCardError') {
+        let message = "Payment failed";
+        
+        switch (error.decline_code) {
+          case 'insufficient_funds':
+            message = "Your card has insufficient funds. Please try a different payment method or a smaller amount.";
+            break;
+          case 'card_declined':
+            message = "Your card was declined. Please try a different payment method.";
+            break;
+          case 'expired_card':
+            message = "Your card has expired. Please add a new payment method.";
+            break;
+          default:
+            message = error.message || "Payment failed. Please try again.";
+        }
+        
+        return res.status(400).json({ message, decline_code: error.decline_code });
+      }
+      
+      res.status(500).json({ message: error.message || "Failed to process deposit" });
     }
   });
 

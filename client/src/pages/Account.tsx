@@ -180,7 +180,7 @@ function DepositForm({ paymentMethods }: { paymentMethods: PaymentMethodType[] }
       setAmount("");
       setSelectedMethod("");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
@@ -192,9 +192,19 @@ function DepositForm({ paymentMethods }: { paymentMethods: PaymentMethodType[] }
         }, 500);
         return;
       }
+      
+      // Extract error message from response
+      let errorMessage = "Failed to process deposit";
+      try {
+        const errorData = JSON.parse(error.message.split(': ').slice(1).join(': '));
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        errorMessage = error.message || errorMessage;
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to process deposit",
+        title: "Payment Failed",
+        description: errorMessage,
         variant: "destructive",
       });
     },
