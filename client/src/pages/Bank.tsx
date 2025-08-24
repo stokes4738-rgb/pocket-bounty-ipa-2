@@ -168,14 +168,14 @@ export default function Bank() {
                 <div className="bg-muted/30 rounded-lg p-4 text-left">
                   <h4 className="font-medium text-sm mb-2">💡 How to start earning:</h4>
                   <ul className="text-xs text-muted-foreground space-y-1">
-                    <li>• Browse bounties and find tasks you can complete</li>
-                    <li>• Apply with a clear message about your approach</li>
-                    <li>• Complete the work and submit for review</li>
-                    <li>• Get paid instantly when approved!</li>
+                    <li>• Find bounties that sound fun (or hilariously weird)</li>
+                    <li>• Jump in with a quick "I can do this!" message</li>
+                    <li>• Do the thing and have some fun with it</li>
+                    <li>• Money hits your account instantly! ⚡</li>
                   </ul>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  🎯 Goal: Complete your first bounty to see your first transaction here
+                  🎯 Mission: Get your first weird bounty and join the fun!
                 </p>
               </div>
             </div>

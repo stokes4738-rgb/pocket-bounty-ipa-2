@@ -28,24 +28,24 @@ interface TutorialProps {
 const tutorialSteps = [
   {
     id: 1,
-    title: "Welcome to Pocket Bounty!",
-    description: "Your gateway to earning money by completing tasks",
+    title: "Welcome to the Chaos! 🎉",
+    description: "Where weird meets wallet-friendly",
     content: (
       <div className="space-y-4">
         <div className="text-center">
-          <div className="text-6xl mb-4">🪙</div>
+          <div className="text-6xl mb-4">🤪</div>
           <p className="text-muted-foreground">
-            Pocket Bounty connects people who need tasks done with those who want to earn money doing them.
+            This isn't your typical work platform. Here, you get paid for the random stuff you're already good at!
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg text-center">
             <DollarSign className="h-8 w-8 mx-auto text-green-600 mb-2" />
-            <p className="text-sm font-medium">Earn Money</p>
+            <p className="text-sm font-medium">Quick Cash</p>
           </div>
-          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
-            <Users className="h-8 w-8 mx-auto text-blue-600 mb-2" />
-            <p className="text-sm font-medium">Help Others</p>
+          <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center">
+            <Gamepad2 className="h-8 w-8 mx-auto text-purple-600 mb-2" />
+            <p className="text-sm font-medium">Have Fun</p>
           </div>
         </div>
       </div>
@@ -53,70 +53,70 @@ const tutorialSteps = [
   },
   {
     id: 2,
-    title: "How Bounties Work",
-    description: "Understanding the bounty system",
+    title: "The Bounty Hunt Begins! 🎯",
+    description: "It's like treasure hunting, but for your skills",
     content: (
       <div className="space-y-4">
         <div className="p-4 border rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
           <div className="flex items-center gap-2 mb-3">
             <Trophy className="h-5 w-5 text-purple-600" />
-            <h3 className="font-semibold">Sample Bounty</h3>
+            <h3 className="font-semibold">Real Bounty Example</h3>
           </div>
-          <h4 className="font-medium mb-2">Design a Logo for My Coffee Shop</h4>
+          <h4 className="font-medium mb-2">Rate my outfit for a first date 👗</h4>
           <p className="text-sm text-muted-foreground mb-3">
-            I need a creative logo for "Bean There" coffee shop. Should be modern and friendly.
+            Help me pick between 3 outfits! Just tell me which looks best and why. Takes 2 minutes max.
           </p>
           <div className="flex items-center justify-between">
-            <Badge className="bg-green-600">Reward: $25.00</Badge>
-            <Badge variant="outline">Design</Badge>
+            <Badge className="bg-green-600">Reward: $8.00</Badge>
+            <Badge variant="outline">💵 Quick Cash</Badge>
           </div>
         </div>
         <div className="text-sm text-muted-foreground">
-          <p><strong>1.</strong> Browse available bounties</p>
-          <p><strong>2.</strong> Apply to ones that match your skills</p>
-          <p><strong>3.</strong> Complete the task</p>
-          <p><strong>4.</strong> Get paid instantly!</p>
+          <p><strong>1.</strong> Find something that sounds fun (or weird)</p>
+          <p><strong>2.</strong> Jump in if you can do it</p>
+          <p><strong>3.</strong> Do the thing!</p>
+          <p><strong>4.</strong> Cash hits your account ⚡</p>
         </div>
       </div>
     )
   },
   {
     id: 3,
-    title: "Posting Your Own Bounties",
-    description: "Need something done? Post a bounty!",
+    title: "Got Something Weird? Post It! 🎲",
+    description: "Turn your random problems into someone's payday",
     content: (
       <div className="space-y-4">
         <div className="p-4 border rounded-lg">
           <div className="flex items-center gap-2 mb-3">
             <PlusCircle className="h-5 w-5 text-pocket-red" />
-            <h3 className="font-semibold">Create a Bounty</h3>
+            <h3 className="font-semibold">Your Bounty Creation</h3>
           </div>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Title:</span>
-              <span>Write a product description</span>
+              <span>Help me name my pet rock 🪨</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Reward:</span>
-              <span className="text-green-600">$15.00</span>
+              <span className="text-green-600">$12.00</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Category:</span>
-              <span>Writing</span>
+              <span className="text-muted-foreground">Range:</span>
+              <span>💵 Quick Cash</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Duration:</span>
-              <span>3 days</span>
+              <span>1 day</span>
             </div>
           </div>
         </div>
         <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
           <p className="text-sm text-green-800 dark:text-green-200 font-medium">
-            ✅ No posting fees! You only pay the exact reward amount.
+            ✅ No posting fees! Seriously, none. Just pay what you promised.
           </p>
         </div>
         <p className="text-sm text-muted-foreground">
-          Minimum bounty reward is just $1. Perfect for small tasks!
+          From $5 mini-tasks to $500 adventures - anything goes here!
         </p>
       </div>
     )

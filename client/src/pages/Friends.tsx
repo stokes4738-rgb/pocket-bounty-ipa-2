@@ -310,16 +310,16 @@ export default function Friends() {
                       Building your network opens doors to better opportunities!
                     </p>
                     <div className="bg-muted/30 rounded-lg p-4 text-left">
-                      <h4 className="font-medium text-sm mb-2">🤝 Networking benefits:</h4>
+                      <h4 className="font-medium text-sm mb-2">🤝 Friend benefits:</h4>
                       <ul className="text-xs text-muted-foreground space-y-1">
-                        <li>• Get referrals for high-paying bounties</li>
-                        <li>• Find reliable partners for big projects</li>
-                        <li>• Learn from experienced earners</li>
-                        <li>• Build your reputation in the community</li>
+                        <li>• Get tagged in bounties that match your weirdness</li>
+                        <li>• Team up for bigger, weirder projects</li>
+                        <li>• Learn creative money-making tricks</li>
+                        <li>• Build your rep as the go-to person for [insert random skill]</li>
                       </ul>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      💡 Tip: Look for users who complete bounties similar to your skills
+                      💡 Tip: Find people who do the same weird stuff you're good at
                     </p>
                   </div>
                 ) : (

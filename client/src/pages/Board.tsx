@@ -140,15 +140,15 @@ export default function Board() {
                   }
                 </p>
                 <div className="bg-muted/30 rounded-lg p-4 text-left">
-                  <h4 className="font-medium text-sm mb-2">💡 Great bounty ideas:</h4>
+                  <h4 className="font-medium text-sm mb-2">💡 Bounty ideas that actually exist:</h4>
                   <ul className="text-xs text-muted-foreground space-y-1">
-                    <li>• "Design a logo for my coffee shop - $50"</li>
-                    <li>• "Write product descriptions (10 items) - $25"</li>
-                    <li>• "Test my website on mobile devices - $15"</li>
+                    <li>• "Rate my outfit for a first date 👗 - $8"</li>
+                    <li>• "Help me name my pet rock 🪨 - $12"</li>
+                    <li>• "Tell me if this meme is funny 😂 - $5"</li>
                   </ul>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  💰 Tip: Start with small tasks ($5-25) to build trust quickly
+                  🎯 Tip: Weird pays well here - embrace the chaos!
                 </p>
               </div>
             </CardContent>

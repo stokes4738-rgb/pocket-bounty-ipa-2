@@ -216,14 +216,14 @@ export default function Messages() {
                 <div className="bg-muted/30 rounded-lg p-4 text-left">
                   <h4 className="font-medium text-sm mb-2">💡 Ways to start chatting:</h4>
                   <ul className="text-xs text-muted-foreground space-y-1">
-                    <li>• Apply to bounties you can complete</li>
-                    <li>• Connect with other users in Friends</li>
-                    <li>• Ask questions about posted tasks</li>
-                    <li>• Share your expertise with bounty posters</li>
+                    <li>• Jump on bounties that sound fun to you</li>
+                    <li>• Connect with fellow weirdos in Friends</li>
+                    <li>• Ask "wait, what exactly do you need?" 😅</li>
+                    <li>• Share your random talents with bounty posters</li>
                   </ul>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  💫 Tip: Good communication builds trust and leads to more opportunities
+                  💫 Tip: Be yourself - personality pays here!
                 </p>
               </div>
             </CardContent>

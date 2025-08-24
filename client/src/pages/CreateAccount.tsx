@@ -47,7 +47,7 @@ export default function CreateAccount() {
           <div className="text-4xl mb-2">🪙</div>
           <h1 className="text-3xl font-bold text-pocket-gold">Pocket Bounty</h1>
           <p className="text-muted-foreground">
-            Join thousands earning money through bounties
+            Where your random talents actually pay the bills 🤑
           </p>
         </div>
 
@@ -56,21 +56,21 @@ export default function CreateAccount() {
           <CardHeader className="text-center space-y-1">
             <CardTitle className="text-2xl">Create Your Account</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Start your journey to financial freedom
+              Join the fun and start making money from weird stuff
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Benefits */}
             <div className="space-y-3">
-              <h3 className="font-semibold text-center mb-4">What You Get:</h3>
+              <h3 className="font-semibold text-center mb-4">Why You'll Love It:</h3>
               
               <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50 dark:bg-green-900/20">
                 <div className="bg-green-600 rounded-full p-1">
                   <Check className="h-3 w-3 text-white" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Instant $10 Starting Bonus</p>
-                  <p className="text-xs text-muted-foreground">Free money to start posting bounties</p>
+                  <p className="font-medium text-sm">$10 Welcome Gift 🎁</p>
+                  <p className="text-xs text-muted-foreground">Free money to post your first weird request</p>
                 </div>
               </div>
 
@@ -79,8 +79,8 @@ export default function CreateAccount() {
                   <Check className="h-3 w-3 text-white" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Unlimited Earning Potential</p>
-                  <p className="text-xs text-muted-foreground">No caps on how much you can make</p>
+                  <p className="font-medium text-sm">Make Money From Anything 💸</p>
+                  <p className="text-xs text-muted-foreground">Your weird skills are finally worth something</p>
                 </div>
               </div>
 
@@ -99,8 +99,8 @@ export default function CreateAccount() {
                   <Check className="h-3 w-3 text-white" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Social Features & Games</p>
-                  <p className="text-xs text-muted-foreground">Connect with friends and play mini-games</p>
+                  <p className="font-medium text-sm">Friends & Mini-Games 🎮</p>
+                  <p className="text-xs text-muted-foreground">Because making money should be social and fun</p>
                 </div>
               </div>
             </div>
