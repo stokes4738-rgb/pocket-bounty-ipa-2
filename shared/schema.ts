@@ -60,7 +60,7 @@ export const bounties = pgTable("bounties", {
   reward: decimal("reward", { precision: 10, scale: 2 }).notNull(),
   tags: text("tags").array(),
   duration: integer("duration").notNull(), // days
-  status: varchar("status", { length: 50 }).default("active"), // active, completed, cancelled
+  status: varchar("status", { length: 50 }).default("active"), // active, completed, cancelled, expired
   authorId: varchar("author_id").references(() => users.id).notNull(),
   claimedBy: varchar("claimed_by").references(() => users.id),
   completedAt: timestamp("completed_at"),

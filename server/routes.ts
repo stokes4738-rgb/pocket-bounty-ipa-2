@@ -11,7 +11,7 @@ let stripe: Stripe | null = null;
 if (process.env.STRIPE_SECRET_KEY) {
   try {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2024-04-10",
+      apiVersion: "2023-10-16",
     });
     console.log("Stripe initialized successfully");
   } catch (error) {
@@ -19,6 +19,55 @@ if (process.env.STRIPE_SECRET_KEY) {
   }
 } else {
   console.log("Stripe not initialized - running in test mode (no STRIPE_SECRET_KEY)");
+}
+
+// Process expired bounties (auto-refund after 3 days with 5% fee)
+async function processExpiredBounties() {
+  try {
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    
+    const expiredBounties = await storage.getExpiredBounties(threeDaysAgo);
+    
+    for (const bounty of expiredBounties) {
+      const bountyReward = parseFloat(bounty.reward.toString());
+      const platformFee = bountyReward * 0.05; // 5% fee
+      const refundAmount = bountyReward - platformFee;
+      
+      // Mark bounty as expired
+      await storage.updateBountyStatus(bounty.id, 'expired');
+      
+      // Refund user (minus 5% fee)
+      await storage.updateUserBalance(bounty.authorId, `+${refundAmount.toFixed(2)}`);
+      
+      // Create refund transaction
+      await storage.createTransaction({
+        userId: bounty.authorId,
+        type: "refund",
+        amount: refundAmount.toString(),
+        description: `Auto-refund for expired bounty: ${bounty.title} (less 5% platform fee)`,
+        status: "completed",
+      });
+      
+      // Record platform revenue from the fee
+      await storage.createPlatformRevenue({
+        bountyId: bounty.id,
+        amount: platformFee.toString(),
+        source: "expired_bounty_fee",
+        description: `5% fee from expired bounty: ${bounty.title}`,
+      });
+      
+      // Create activity
+      await storage.createActivity({
+        userId: bounty.authorId,
+        type: "bounty_expired",
+        description: `Your bounty "${bounty.title}" expired and was refunded (minus 5% fee)`,
+        metadata: { bountyId: bounty.id, refundAmount: refundAmount.toFixed(2), fee: platformFee.toFixed(2) },
+      });
+    }
+  } catch (error) {
+    console.error("Error processing expired bounties:", error);
+  }
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -40,6 +89,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Bounty routes
   app.get('/api/bounties', async (req, res) => {
     try {
+      // Check for expired bounties before returning list
+      await processExpiredBounties();
+      
       const { category, search } = req.query;
       const bounties = await storage.getBounties({
         category: category as string,
@@ -57,31 +109,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const bountyData = insertBountySchema.parse({ ...req.body, authorId: userId });
       
-      // No posting fee - just the bounty reward amount
+      // Full bounty amount is charged upfront (held in escrow)
       const bountyReward = parseFloat(bountyData.reward.toString());
       
-      // Check if user has enough balance for the bounty reward only
+      // Check if user has enough balance for the full bounty amount
       const user = await storage.getUser(userId);
       if (!user || parseFloat(user.balance) < bountyReward) {
         return res.status(400).json({ 
-          message: `Insufficient balance. Need $${bountyReward.toFixed(2)} for bounty reward` 
+          message: `Insufficient balance. Need $${bountyReward.toFixed(2)} (held in escrow until completed or auto-refunded after 3 days minus 5% fee)` 
         });
       }
       
       const bounty = await storage.createBounty(bountyData);
       
-      // Deduct only the bounty reward from user balance
+      // Deduct full bounty amount from user balance (held in escrow)
       await storage.updateUserBalance(userId, `-${bountyReward}`);
       
       // Deduct points for posting bounty
       await storage.updateUserPoints(userId, -5);
       
-      // Create transaction record without posting fee
+      // Create transaction record for escrow hold
       await storage.createTransaction({
         userId,
-        type: "spending",
+        type: "escrow_hold",
         amount: bountyReward.toString(),
-        description: `Posted bounty: ${bountyData.title}`,
+        description: `Posted bounty: ${bountyData.title} (held in escrow, auto-refunds in 3 days minus 5% fee if unclaimed)`,
         status: "completed",
       });
 

@@ -50,6 +50,7 @@ export interface IStorage {
   getBounty(id: string): Promise<Bounty | undefined>;
   updateBountyStatus(id: string, status: string, claimedBy?: string): Promise<void>;
   getUserBounties(userId: string): Promise<Bounty[]>;
+  getExpiredBounties(cutoffDate: Date): Promise<Bounty[]>;
   
   // Application operations
   createBountyApplication(bountyId: string, userId: string, message?: string): Promise<BountyApplication>;
@@ -205,6 +206,19 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(bounties)
       .where(or(eq(bounties.authorId, userId), eq(bounties.claimedBy, userId)))
+      .orderBy(desc(bounties.createdAt));
+  }
+
+  async getExpiredBounties(cutoffDate: Date): Promise<Bounty[]> {
+    return db
+      .select()
+      .from(bounties)
+      .where(
+        and(
+          eq(bounties.status, "active"),
+          sql`${bounties.createdAt} < ${cutoffDate.toISOString()}`
+        )
+      )
       .orderBy(desc(bounties.createdAt));
   }
 

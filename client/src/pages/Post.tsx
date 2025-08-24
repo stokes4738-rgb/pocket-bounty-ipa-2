@@ -252,7 +252,7 @@ export default function Post() {
                   {postMutation.isPending ? "Posting..." : "Post Bounty"}
                 </Button>
                 <div className="text-xs text-muted-foreground text-center">
-                  Your bounty will be visible to all users immediately. No posting fees!
+                  💰 Full amount held in escrow. Auto-refunds in 3 days minus 5% fee if unclaimed.
                 </div>
                 {(user?.points || 0) < 5 && (
                   <div className="text-xs text-destructive text-center">

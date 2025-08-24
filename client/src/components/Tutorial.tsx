@@ -110,10 +110,14 @@ const tutorialSteps = [
             </div>
           </div>
         </div>
-        <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
-          <p className="text-sm text-green-800 dark:text-green-200 font-medium">
-            ✅ No posting fees! Seriously, none. Just pay what you promised.
-          </p>
+        <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg border border-orange-200 dark:border-orange-800">
+          <h4 className="font-semibold text-orange-800 dark:text-orange-200 text-sm mb-2">💰 How Payment Works:</h4>
+          <ul className="text-xs text-orange-700 dark:text-orange-300 space-y-1">
+            <li>• Full amount charged upfront (held safely in escrow)</li>
+            <li>• If someone completes it → they get paid instantly!</li>
+            <li>• If NO ONE takes it after 3 days → auto-refund minus 5% fee</li>
+            <li>• No surprises, no hidden costs!</li>
+          </ul>
         </div>
         <p className="text-sm text-muted-foreground">
           From $5 mini-tasks to $500 adventures - anything goes here!
@@ -310,13 +314,10 @@ const tutorialSteps = [
         <div className="space-y-3 pt-4">
           <Button 
             className="w-full bg-green-600 hover:bg-green-700 text-white mb-2"
-            onClick={() => {
-              setDemoMode(true);
-              window.location.href = "/api/login";
-            }}
+            onClick={() => window.location.href = "/api/login"}
             data-testid="button-tutorial-demo"
           >
-            Try Full Demo Mode
+            Try Demo Mode
           </Button>
           <Button 
             variant="outline"
