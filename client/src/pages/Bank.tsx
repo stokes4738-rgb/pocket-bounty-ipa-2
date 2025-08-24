@@ -223,6 +223,7 @@ export default function Bank() {
                 <SelectContent>
                   <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
                   <SelectItem value="debit_card">Instant Debit Card</SelectItem>
+                  <SelectItem value="cash_app">Cash App</SelectItem>
                   <SelectItem value="paypal">PayPal (Coming Soon)</SelectItem>
                 </SelectContent>
               </Select>

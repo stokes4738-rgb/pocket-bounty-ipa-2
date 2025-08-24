@@ -613,11 +613,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Create withdrawal transaction record
+      const methodNames = {
+        'bank_transfer': 'bank transfer',
+        'debit_card': 'instant debit',
+        'cash_app': 'Cash App',
+        'paypal': 'PayPal'
+      };
+      
       const withdrawalTransaction = await storage.createTransaction({
         userId,
         type: "spending",
         amount: amount,
-        description: `Withdrawal via ${method === 'debit_card' ? 'instant debit' : 'bank transfer'}`,
+        description: `Withdrawal via ${methodNames[method] || method}`,
         status: "pending",
         metadata: {
           stripeTransferId: transfer.id,
