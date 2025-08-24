@@ -1,0 +1,207 @@
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { useTheme } from "@/components/ThemeProvider";
+import { useToast } from "@/hooks/use-toast";
+
+export default function Settings() {
+  const { theme, toggleTheme } = useTheme();
+  const { toast } = useToast();
+  
+  // Local state for notification preferences
+  const [notifications, setNotifications] = useState({
+    newBounties: true,
+    messages: true,
+    payments: true,
+    friendRequests: true,
+  });
+  
+  // Local state for privacy settings
+  const [privacy, setPrivacy] = useState({
+    showOnlineStatus: true,
+    publicProfile: true,
+    showEarnings: false,
+  });
+
+  const handleLogout = () => {
+    window.location.href = "/api/logout";
+  };
+
+  const handleNotificationChange = (key: keyof typeof notifications) => {
+    setNotifications(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+    toast({
+      title: "Settings Updated",
+      description: "Your notification preferences have been saved.",
+    });
+  };
+
+  const handlePrivacyChange = (key: keyof typeof privacy) => {
+    setPrivacy(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+    toast({
+      title: "Settings Updated",
+      description: "Your privacy settings have been saved.",
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-lg font-bold">Settings</h2>
+
+      {/* Appearance */}
+      <Card className="theme-transition">
+        <CardContent className="p-3.5">
+          <h3 className="text-sm font-semibold mb-3">Appearance</h3>
+          <div className="flex justify-between items-center">
+            <div>
+              <Label className="text-sm">Dark Mode</Label>
+              <div className="text-xs text-muted-foreground">
+                Switch between light and dark themes
+              </div>
+            </div>
+            <Switch
+              checked={theme === "dark"}
+              onCheckedChange={toggleTheme}
+              data-testid="switch-dark-mode"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Notifications */}
+      <Card className="theme-transition">
+        <CardContent className="p-3.5">
+          <h3 className="text-sm font-semibold mb-3">Notifications</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <Label className="text-sm">New bounties</Label>
+              <Switch
+                checked={notifications.newBounties}
+                onCheckedChange={() => handleNotificationChange("newBounties")}
+                data-testid="switch-new-bounties"
+              />
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <Label className="text-sm">Messages</Label>
+              <Switch
+                checked={notifications.messages}
+                onCheckedChange={() => handleNotificationChange("messages")}
+                data-testid="switch-messages"
+              />
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <Label className="text-sm">Payment updates</Label>
+              <Switch
+                checked={notifications.payments}
+                onCheckedChange={() => handleNotificationChange("payments")}
+                data-testid="switch-payments"
+              />
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <Label className="text-sm">Friend requests</Label>
+              <Switch
+                checked={notifications.friendRequests}
+                onCheckedChange={() => handleNotificationChange("friendRequests")}
+                data-testid="switch-friend-requests"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Privacy */}
+      <Card className="theme-transition">
+        <CardContent className="p-3.5">
+          <h3 className="text-sm font-semibold mb-3">Privacy</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <Label className="text-sm">Show online status</Label>
+              <Switch
+                checked={privacy.showOnlineStatus}
+                onCheckedChange={() => handlePrivacyChange("showOnlineStatus")}
+                data-testid="switch-online-status"
+              />
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <Label className="text-sm">Public profile</Label>
+              <Switch
+                checked={privacy.publicProfile}
+                onCheckedChange={() => handlePrivacyChange("publicProfile")}
+                data-testid="switch-public-profile"
+              />
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <Label className="text-sm">Show earnings</Label>
+              <Switch
+                checked={privacy.showEarnings}
+                onCheckedChange={() => handlePrivacyChange("showEarnings")}
+                data-testid="switch-show-earnings"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Account */}
+      <Card className="theme-transition">
+        <CardContent className="p-3.5">
+          <h3 className="text-sm font-semibold mb-3">Account</h3>
+          <div className="space-y-2">
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-left p-2 text-sm hover:bg-accent"
+              data-testid="button-edit-profile"
+            >
+              Edit Profile
+            </Button>
+            
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-left p-2 text-sm hover:bg-accent"
+              data-testid="button-payment-methods"
+            >
+              Payment Methods
+            </Button>
+            
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-left p-2 text-sm hover:bg-accent"
+              data-testid="button-privacy-policy"
+            >
+              Privacy Policy
+            </Button>
+            
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-left p-2 text-sm hover:bg-accent"
+              data-testid="button-terms-of-service"
+            >
+              Terms of Service
+            </Button>
+            
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className="w-full justify-start text-left p-2 text-sm text-destructive hover:bg-destructive/10"
+              data-testid="button-sign-out"
+            >
+              Sign Out
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

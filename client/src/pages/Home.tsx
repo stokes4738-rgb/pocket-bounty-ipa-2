@@ -1,0 +1,49 @@
+import { useState } from "react";
+import { Layout } from "@/components/Layout";
+import Bank from "./Bank";
+import Board from "./Board";
+import Post from "./Post";
+import Messages from "./Messages";
+import Profile from "./Profile";
+import Friends from "./Friends";
+import Activity from "./Activity";
+import Settings from "./Settings";
+import FlappyGame from "./FlappyGame";
+
+export default function Home() {
+  const [activeSection, setActiveSection] = useState("board");
+
+  const renderSection = () => {
+    switch (activeSection) {
+      case "bank":
+        return <Bank />;
+      case "board":
+        return <Board />;
+      case "post":
+        return <Post />;
+      case "messages":
+        return <Messages />;
+      case "profile":
+        return <Profile />;
+      case "friends":
+        return <Friends />;
+      case "activity":
+        return <Activity />;
+      case "settings":
+        return <Settings />;
+      case "flappy":
+        return <FlappyGame />;
+      default:
+        return <Board />;
+    }
+  };
+
+  return (
+    <Layout 
+      activeSection={activeSection} 
+      onSectionChange={setActiveSection}
+    >
+      {renderSection()}
+    </Layout>
+  );
+}

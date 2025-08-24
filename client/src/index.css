@@ -1,0 +1,192 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Pocket Bounty Color Palette */
+  --pocket-red: hsl(8, 89%, 40%);
+  --pocket-red-dark: hsl(8, 89%, 30%);
+  --pocket-gold: hsl(33, 100%, 64%);
+  --pocket-gold-light: hsl(45, 100%, 71%);
+  
+  /* Dark Theme */
+  --dark-bg: hsl(240, 5%, 6%);
+  --dark-panel: hsl(240, 3%, 9%);
+  --dark-card: hsl(240, 4%, 12%);
+  --dark-line: hsl(240, 4%, 17%);
+  --dark-ink: hsl(0, 0%, 95%);
+  --dark-muted: hsl(0, 0%, 67%);
+  
+  /* Light Theme */
+  --light-bg: hsl(240, 9%, 96%);
+  --light-panel: hsl(0, 0%, 100%);
+  --light-card: hsl(0, 0%, 100%);
+  --light-line: hsl(0, 0%, 80%);
+  --light-ink: hsl(240, 9%, 7%);
+  --light-muted: hsl(0, 0%, 40%);
+  
+  /* Green Points System */
+  --points-bg: hsl(83, 61%, 12%);
+  --points-border: hsl(83, 32%, 22%);
+  --points-text: hsl(83, 73%, 80%);
+  
+  /* Purple Boost System */
+  --boost-bg: hsl(285, 45%, 12%);
+  --boost-border: hsl(285, 32%, 30%);
+  --boost-text: hsl(285, 88%, 84%);
+  
+  /* Safe area for mobile */
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  
+  /* Shadcn/ui variables */
+  --background: hsl(240, 5%, 6%);
+  --foreground: hsl(0, 0%, 95%);
+  --card: hsl(240, 4%, 12%);
+  --card-foreground: hsl(0, 0%, 95%);
+  --popover: hsl(240, 4%, 12%);
+  --popover-foreground: hsl(0, 0%, 95%);
+  --primary: hsl(8, 89%, 40%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(240, 4%, 17%);
+  --secondary-foreground: hsl(0, 0%, 95%);
+  --muted: hsl(240, 4%, 17%);
+  --muted-foreground: hsl(0, 0%, 67%);
+  --accent: hsl(240, 4%, 17%);
+  --accent-foreground: hsl(0, 0%, 95%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(240, 4%, 17%);
+  --input: hsl(240, 4%, 17%);
+  --ring: hsl(8, 89%, 40%);
+  --radius: 0.75rem;
+}
+
+.light {
+  --background: hsl(240, 9%, 96%);
+  --foreground: hsl(240, 9%, 7%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(240, 9%, 7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(240, 9%, 7%);
+  --primary: hsl(8, 89%, 40%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(240, 5%, 96%);
+  --secondary-foreground: hsl(240, 9%, 7%);
+  --muted: hsl(240, 5%, 96%);
+  --muted-foreground: hsl(0, 0%, 40%);
+  --accent: hsl(240, 5%, 96%);
+  --accent-foreground: hsl(240, 9%, 7%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(0, 0%, 80%);
+  --input: hsl(240, 5%, 96%);
+  --ring: hsl(8, 89%, 40%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    padding-bottom: calc(66px + var(--safe-area-bottom));
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  
+  h1 {
+    @apply text-lg font-semibold;
+    color: var(--pocket-gold);
+  }
+  
+  a {
+    color: var(--pocket-gold);
+    text-decoration: none;
+  }
+}
+
+@layer components {
+  .points-pill {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-bold;
+    background: var(--points-bg);
+    border: 1px solid var(--points-border);
+    color: var(--points-text);
+  }
+  
+  .boost-pill {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs;
+    background: var(--boost-bg);
+    border: 1px solid var(--boost-border);
+    color: var(--boost-text);
+  }
+  
+  .tour-ring {
+    outline: 3px solid var(--pocket-gold-light);
+    border-radius: 12px;
+    box-shadow: 0 0 0 6px rgba(255, 219, 112, 0.28);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  
+  .backdrop-blur-safari {
+    backdrop-filter: blur(6px) saturate(130%);
+    -webkit-backdrop-filter: blur(6px) saturate(130%);
+  }
+  
+  .theme-transition {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+  
+  .slide-enter {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+  
+  .slide-enter-active {
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0% { 
+    box-shadow: 0 0 0 6px rgba(255, 219, 112, 0.28); 
+  }
+  70% { 
+    box-shadow: 0 0 0 16px rgba(255, 219, 112, 0); 
+  }
+  100% { 
+    box-shadow: 0 0 0 6px rgba(255, 219, 112, 0.28); 
+  }
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--dark-panel);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--dark-line);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--dark-muted);
+}
+
+/* Light theme scrollbar */
+.light ::-webkit-scrollbar-track {
+  background: var(--light-panel);
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: var(--light-line);
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: var(--light-muted);
+}
