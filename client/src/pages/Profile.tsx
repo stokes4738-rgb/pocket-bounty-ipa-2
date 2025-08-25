@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
+import { navigateToLogin } from "@/lib/navigation";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -47,7 +48,7 @@ export default function Profile() {
           variant: "destructive",
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          navigateToLogin();
         }, 500);
         return;
       }
@@ -325,7 +326,7 @@ export default function Profile() {
                 <h4 className="font-semibold mb-2">Skills</h4>
                 {formData.skills ? (
                   <div className="flex flex-wrap gap-2">
-                    {formData.skills.split(",").map((skill, index) => (
+                    {formData.skills.split(",").map((skill: string, index: number) => (
                       <Badge key={index} variant="secondary" className="bg-blue-900/30 border-blue-600/50 text-blue-300">
                         {skill.trim()}
                       </Badge>

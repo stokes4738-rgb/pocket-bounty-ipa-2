@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useDemo } from "@/contexts/DemoContext";
+import { navigateToLogin } from "@/lib/navigation";
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -316,7 +317,7 @@ const tutorialSteps = [
         <div className="space-y-3 pt-4">
           <Button 
             className="w-full bg-green-600 hover:bg-green-700 text-white mb-2"
-            onClick={() => window.location.href = "/api/login"}
+            onClick={() => navigateToLogin()}
             data-testid="button-tutorial-demo"
           >
             Try Demo Mode
@@ -324,7 +325,7 @@ const tutorialSteps = [
           <Button 
             variant="outline"
             className="w-full"
-            onClick={() => window.location.href = "/api/login"}
+            onClick={() => navigateToLogin()}
             data-testid="button-tutorial-signup"
           >
             Sign Up for Real Account

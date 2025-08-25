@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
+import { navigateToLogin } from "@/lib/navigation";
 
 const postBountySchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(255, "Title too long"),
@@ -39,7 +40,7 @@ export default function Post() {
         <h2 className="text-lg font-bold">Please Log In</h2>
         <p className="text-muted-foreground">You need to be logged in to post bounties.</p>
         <Button 
-          onClick={() => window.location.href = "/api/login"}
+          onClick={() => navigateToLogin()}
           className="bg-pocket-red hover:bg-pocket-red-dark"
         >
           Log In to Post Bounties
@@ -96,7 +97,7 @@ export default function Post() {
           variant: "destructive",
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          navigateToLogin();
         }, 500);
         return;
       }

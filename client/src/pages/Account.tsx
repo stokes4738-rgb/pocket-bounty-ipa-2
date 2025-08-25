@@ -18,6 +18,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import DemoLockOverlay from "@/components/DemoLockOverlay";
+import { navigateToLogin } from "@/lib/navigation";
 import { CreditCard, Plus, Trash2, Star, DollarSign, History, Shield, Lock, Wallet, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import type { Transaction } from "@shared/schema";
 
@@ -43,7 +44,7 @@ function AddPaymentMethodForm({ onSuccess }: { onSuccess: () => void }) {
           variant: "destructive",
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          navigateToLogin();
         }, 500);
         return;
       }
@@ -74,7 +75,7 @@ function AddPaymentMethodForm({ onSuccess }: { onSuccess: () => void }) {
           variant: "destructive",
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          navigateToLogin();
         }, 500);
         return;
       }
@@ -92,7 +93,8 @@ function AddPaymentMethodForm({ onSuccess }: { onSuccess: () => void }) {
 
     setIsLoading(true);
 
-    const { clientSecret } = await setupIntentMutation.mutateAsync();
+    const response = await setupIntentMutation.mutateAsync();
+    const clientSecret = (response as any).clientSecret;
 
     const { error, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
       payment_method: {
@@ -175,7 +177,7 @@ function DepositForm({ paymentMethods }: { paymentMethods: any[] }) {
           variant: "destructive",
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          navigateToLogin();
         }, 500);
         return;
       }
@@ -343,7 +345,7 @@ export default function Account() {
           variant: "destructive",
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          navigateToLogin();
         }, 500);
         return;
       }
@@ -383,7 +385,7 @@ export default function Account() {
           variant: "destructive",
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          navigateToLogin();
         }, 500);
         return;
       }
@@ -414,7 +416,7 @@ export default function Account() {
           variant: "destructive",
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          navigateToLogin();
         }, 500);
         return;
       }
@@ -492,13 +494,13 @@ export default function Account() {
                 <div className="text-center py-4">
                   <p className="text-sm text-muted-foreground">Please log in to view your transactions</p>
                   <Button 
-                    onClick={() => window.location.href = "/api/login"}
+                    onClick={() => navigateToLogin()}
                     className="mt-4"
                   >
                     Log In
                   </Button>
                 </div>
-              ) : transactions.length === 0 ? (
+              ) : (transactions as Transaction[]).length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <div className="text-4xl mb-4">💎</div>
                   <h3 className="text-lg font-semibold mb-3 text-foreground">Your earning journey starts here!</h3>
@@ -519,7 +521,7 @@ export default function Account() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {transactions.slice(0, 10).map((transaction) => (
+                  {(transactions as Transaction[]).slice(0, 10).map((transaction: Transaction) => (
                     <div 
                       key={transaction.id} 
                       className="flex justify-between items-center py-2 border-b last:border-0"
@@ -711,7 +713,7 @@ export default function Account() {
                                   {method.brand?.toUpperCase()} •••• {method.last4}
                                 </div>
                                 <div className="text-xs text-muted-foreground">
-                                  Expires {method.expMonth}/{method.expYear}
+                                  Expires {method.expiryMonth}/{method.expiryYear}
                                 </div>
                               </div>
                               {method.isDefault && (

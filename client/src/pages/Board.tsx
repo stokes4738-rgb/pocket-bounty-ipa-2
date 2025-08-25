@@ -14,6 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import DemoLockOverlay from "@/components/DemoLockOverlay";
 import BoostDialog from "@/components/BoostDialog";
+import { navigateToLogin } from "@/lib/navigation";
 import type { Bounty } from "@shared/schema";
 
 export default function Board() {
@@ -57,7 +58,7 @@ export default function Board() {
           variant: "destructive",
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          navigateToLogin();
         }, 500);
         return;
       }
@@ -129,7 +130,7 @@ export default function Board() {
 
       {/* Bounties List */}
       <div className="space-y-3">
-        {bounties.length === 0 ? (
+        {(bounties as Bounty[]).length === 0 ? (
           <Card className="theme-transition">
             <CardContent className="p-8 text-center">
               <div className="text-4xl mb-4">🚀</div>
@@ -156,7 +157,7 @@ export default function Board() {
             </CardContent>
           </Card>
         ) : (
-          bounties.map((bounty: any) => (
+          (bounties as Bounty[]).map((bounty: Bounty) => (
             <Card key={bounty.id} className="theme-transition" data-testid={`bounty-${bounty.id}`}>
               <CardContent className="p-3.5">
                 <div className="flex justify-between items-start gap-3">
@@ -181,7 +182,7 @@ export default function Board() {
                     <div className="text-xs text-muted-foreground">
                       <span>Posted by </span>
                       <span className="text-foreground font-medium">@{bounty.authorId}</span>
-                      <span> • {formatDate(bounty.createdAt)}</span>
+                      <span> • {formatDate(bounty.createdAt || new Date())}</span>
                     </div>
                   </div>
                   
@@ -189,7 +190,7 @@ export default function Board() {
                     <div className="text-lg font-bold text-pocket-gold mb-1" data-testid="text-bounty-reward">
                       {formatCurrency(bounty.reward)}
                     </div>
-                    {bounty.boostLevel > 0 && bounty.boostExpiresAt && new Date(bounty.boostExpiresAt) > new Date() && (
+                    {(bounty.boostLevel || 0) > 0 && bounty.boostExpiresAt && new Date(bounty.boostExpiresAt) > new Date() && (
                       <div className="boost-pill">
                         <span>🚀</span>
                         <span>Boost {bounty.boostLevel}</span>
