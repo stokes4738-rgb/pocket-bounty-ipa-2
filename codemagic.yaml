@@ -27,6 +27,14 @@ workflows:
           ls -la client/
       - name: Install npm dependencies
         script: |
+          echo "Installing dependencies..."
+          npm ci --verbose
+          echo "Dependencies installed successfully"
+          echo "Ensuring TypeScript is available for Capacitor..."
+          npm install typescript --save-dev || echo "TypeScript already available"
+          echo "Checking vite installation..."
+          npx vite --version || echo "Vite not found in local installation"
+        script: |
           npm ci
       - name: Build web application  
         script: |
