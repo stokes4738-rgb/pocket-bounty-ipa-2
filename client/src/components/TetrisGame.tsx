@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
+import { Maximize, Minimize } from "lucide-react";
 
 interface Position {
   x: number;
@@ -63,6 +64,8 @@ export default function TetrisGame() {
   const [bestScore, setBestScore] = useState(() => {
     return parseInt(localStorage.getItem("tetris-best-score") || "0", 10);
   });
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const gameContainerRef = useRef<HTMLDivElement>(null);
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -361,8 +364,35 @@ export default function TetrisGame() {
     setGameState(prev => ({ ...prev, gameStatus: "playing" }));
   };
 
+  const toggleFullscreen = async () => {
+    if (!gameContainerRef.current) return;
+    
+    try {
+      if (!isFullscreen) {
+        if (gameContainerRef.current.requestFullscreen) {
+          await gameContainerRef.current.requestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+      }
+    } catch (error) {
+      console.error('Fullscreen error:', error);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   return (
-    <div className="space-y-4">
+    <div ref={gameContainerRef} className={`space-y-4 ${isFullscreen ? 'fixed inset-0 z-50 bg-background p-4 overflow-auto' : ''}`}>
       <div className="text-center">
         <h2 className="text-lg font-bold mb-2">🧩 Tetris</h2>
         <p className="text-sm text-muted-foreground">Clear lines by filling rows completely!</p>
@@ -459,6 +489,14 @@ export default function TetrisGame() {
             <Badge variant="outline">Lines: {gameState.lines}</Badge>
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={toggleFullscreen}
+              className="px-2"
+            >
+              {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+            </Button>
             <Button variant="outline" onClick={resetGame}>Reset</Button>
             <Button
               onClick={gameState.gameStatus === "waiting" ? startGame : resetGame}

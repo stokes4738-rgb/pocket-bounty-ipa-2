@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
+import { Maximize, Minimize } from "lucide-react";
 
 type Board = number[][];
 
@@ -28,6 +29,8 @@ export default function Game2048() {
   const [gameWon, setGameWon] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [animationKey, setAnimationKey] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const gameContainerRef = useRef<HTMLDivElement>(null);
 
   const { user } = useAuth();
   const { toast } = useToast();
