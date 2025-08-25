@@ -9,8 +9,9 @@ export function useAuth() {
     queryKey: ["/api/user"],
     retry: false,
     enabled: !isDemoMode, // Only fetch real user data when not in demo mode
-    refetchInterval: 5000, // Auto-refresh every 5 seconds to reduce race conditions
-    staleTime: 2000, // Consider data stale after 2 seconds
+    refetchInterval: false, // Disable automatic polling
+    staleTime: 300000, // Consider data fresh for 5 minutes
+    refetchOnWindowFocus: true, // Only refetch when user focuses the window
   });
 
   // Return demo user data when in demo mode, otherwise real user data
