@@ -786,14 +786,16 @@ export class DatabaseStorage implements IStorage {
       expiresAt
     });
 
-    // Create transaction record
+    // Create transaction record with proper point-to-dollar conversion
+    // Conversion rate: 200 points = $1, so 1 point = $0.005
+    const dollarAmount = (pointsCost * 0.005).toFixed(2);
     await this.createTransaction({
       userId,
       bountyId,
       type: "spending",
-      amount: pointsCost.toString(),
+      amount: dollarAmount,
       status: "completed",
-      description: `Boosted bounty (Level ${boostLevel}) for ${durationHours} hours`
+      description: `Boosted bounty (Level ${boostLevel}) for ${durationHours} hours - ${pointsCost} points`
     });
 
     // Create activity

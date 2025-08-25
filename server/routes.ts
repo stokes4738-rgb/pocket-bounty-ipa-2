@@ -362,9 +362,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Calculate cost and duration based on boost level
       const boostConfigs = {
-        1: { points: 10, hours: 6 },   // Level 1: 10 points for 6 hours
-        2: { points: 25, hours: 12 },  // Level 2: 25 points for 12 hours
-        3: { points: 50, hours: 24 },  // Level 3: 50 points for 24 hours
+        1: { points: 2, hours: 6 },    // Level 1: 2 points for 6 hours (1 cent)
+        2: { points: 5, hours: 12 },   // Level 2: 5 points for 12 hours (2.5 cents)
+        3: { points: 10, hours: 24 },  // Level 3: 10 points for 24 hours (5 cents)
       };
       
       const config = boostConfigs[boostLevel as keyof typeof boostConfigs];
