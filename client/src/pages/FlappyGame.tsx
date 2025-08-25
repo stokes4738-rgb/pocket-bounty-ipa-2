@@ -25,7 +25,7 @@ export default function FlappyGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>();
   const [gameState, setGameState] = useState<GameState>({
-    bird: { x: 80, y: 200, velocity: 0 }, // Adjusted for larger canvas
+    bird: { x: 120, y: 300, velocity: 0 }, // Adjusted for much larger canvas
     pipes: [],
     score: 0,
     gameStatus: "waiting",
@@ -73,7 +73,7 @@ export default function FlappyGame() {
 
   const resetGame = useCallback(() => {
     setGameState({
-      bird: { x: 80, y: 200, velocity: 0 }, // Adjusted for larger canvas
+      bird: { x: 120, y: 300, velocity: 0 }, // Adjusted for much larger canvas
       pipes: [],
       score: 0,
       gameStatus: "waiting",
@@ -126,14 +126,14 @@ export default function FlappyGame() {
         y: prev.bird.y + prev.bird.velocity,
       };
 
-      // Generate pipes (adjusted for larger canvas)
-      if (newState.pipes.length === 0 || newState.pipes[newState.pipes.length - 1].x < 450 - 200) {
-        const pipeHeight = Math.random() * (400 - PIPE_GAP - 60) + 30;
+      // Generate pipes (adjusted for much larger canvas)
+      if (newState.pipes.length === 0 || newState.pipes[newState.pipes.length - 1].x < 700 - 250) {
+        const pipeHeight = Math.random() * (600 - PIPE_GAP - 80) + 40;
         newState.pipes.push({
-          x: 450,
+          x: 700,
           topHeight: pipeHeight,
           bottomY: pipeHeight + PIPE_GAP,
-          bottomHeight: 400 - pipeHeight - PIPE_GAP,
+          bottomHeight: 600 - pipeHeight - PIPE_GAP,
           scored: false,
         });
       }
@@ -151,15 +151,15 @@ export default function FlappyGame() {
         }
       });
 
-      // Collision detection (adjusted for larger canvas)
-      if (!godMode && (newState.bird.y < 0 || newState.bird.y > 400 - 20)) {
+      // Collision detection (adjusted for much larger canvas)
+      if (!godMode && (newState.bird.y < 0 || newState.bird.y > 600 - 20)) {
         return { ...newState, gameStatus: "gameover" };
       }
 
       // Keep bird in bounds in god mode
       if (godMode) {
         if (newState.bird.y < 0) newState.bird.y = 0;
-        if (newState.bird.y > 400 - 20) newState.bird.y = 400 - 20;
+        if (newState.bird.y > 600 - 20) newState.bird.y = 600 - 20;
       }
 
       // Pipe collision (skip in god mode)
@@ -378,9 +378,9 @@ export default function FlappyGame() {
           <div className="relative w-full bg-gradient-to-b from-blue-400 to-blue-600 rounded-lg overflow-hidden">
             <canvas
               ref={canvasRef}
-              width={450}
-              height={400}
-              className="w-full h-96 cursor-pointer"
+              width={700}
+              height={600}
+              className="w-full h-[500px] cursor-pointer"
               onClick={handleCanvasClick}
               data-testid="canvas-flappy-game"
             />
