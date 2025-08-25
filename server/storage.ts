@@ -125,6 +125,9 @@ export interface IStorage {
   processReferralSignup(newUserId: string, referralCode: string): Promise<void>;
   getUserReferrals(userId: string): Promise<User[]>;
   updateReferralCount(userId: string): Promise<void>;
+  
+  // Data recovery operations
+  recoverUserData(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -139,7 +142,8 @@ export class DatabaseStorage implements IStorage {
     const existingUser = await this.getUser(userData.id);
     
     if (existingUser) {
-      // User exists - only update profile fields, never touch game data
+      // User exists - only update profile fields, NEVER touch game data
+      // This protects points, balance, lifetime_earned, referral_code, etc.
       const result = await db
         .update(users)
         .set({
@@ -148,16 +152,25 @@ export class DatabaseStorage implements IStorage {
           lastName: userData.lastName,
           profileImageUrl: userData.profileImageUrl,
           updatedAt: new Date(),
+          // Explicitly NOT updating: points, balance, lifetimeEarned, referralCode, handle, bio, etc.
         })
         .where(eq(users.id, userData.id))
         .returning();
+      
+      console.log(`[AUTH] Updated profile for user ${userData.id}, preserved game data: ${existingUser.points} points, $${existingUser.balance} balance`);
       return Array.isArray(result) ? result[0] : result;
     } else {
-      // New user - create with defaults
+      // New user - create with safe defaults
       const result = await db
         .insert(users)
-        .values(userData)
+        .values({
+          ...userData,
+          points: 0,
+          balance: "0.00",
+          lifetimeEarned: "0.00",
+        })
         .returning();
+      console.log(`[AUTH] Created new user ${userData.id} with default values`);
       return Array.isArray(result) ? result[0] : result;
     }
   }
@@ -838,6 +851,39 @@ export class DatabaseStorage implements IStorage {
           sql`${bounties.boostLevel} > 0`
         )
       );
+  }
+
+  // Data recovery method - can restore user data from backups if needed
+  async recoverUserData(userId: string): Promise<void> {
+    try {
+      // Get the most recent backup for this user
+      const [backup] = await db.execute(sql`
+        SELECT points, balance, lifetime_earned 
+        FROM user_data_backups 
+        WHERE user_id = ${userId}
+        ORDER BY backup_date DESC 
+        LIMIT 1
+      `);
+      
+      if (backup) {
+        // Restore the user's data from backup
+        await db
+          .update(users)
+          .set({
+            points: backup.points,
+            balance: backup.balance,
+            lifetimeEarned: backup.lifetime_earned,
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, userId));
+        
+        console.log(`[RECOVERY] Restored data for user ${userId} from backup`);
+      } else {
+        console.log(`[RECOVERY] No backup found for user ${userId}`);
+      }
+    } catch (error) {
+      console.error(`[RECOVERY] Failed to recover data for user ${userId}:`, error);
+    }
   }
 }
 
