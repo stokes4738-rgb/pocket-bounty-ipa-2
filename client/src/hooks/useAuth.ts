@@ -6,7 +6,7 @@ export function useAuth() {
   const { isDemoMode, demoUser } = useDemo();
   
   const { data: realUser, isLoading } = useQuery<User>({
-    queryKey: ["/api/auth/user"],
+    queryKey: ["/api/user"],
     retry: false,
     enabled: !isDemoMode, // Only fetch real user data when not in demo mode
     refetchInterval: 5000, // Auto-refresh every 5 seconds to reduce race conditions

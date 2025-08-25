@@ -29,6 +29,8 @@ export const sessions = pgTable(
 export const users: any = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: varchar("email").unique(),
+  username: varchar("username").unique(),
+  password: varchar("password"),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
@@ -51,6 +53,7 @@ export const users: any = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("idx_users_email").on(table.email),
+  index("idx_users_username").on(table.username),
   index("idx_users_created_at").on(table.createdAt),
   index("idx_users_last_seen").on(table.lastSeen),
   index("idx_users_referral_code").on(table.referralCode),
@@ -226,6 +229,26 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  stripeCustomerId: true,
+  stripeSubscriptionId: true,
+  referralCode: true,
+  referredBy: true,
+  referralCount: true,
+  lastSeen: true,
+  isOnline: true,
+});
+
+export const loginSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+export const registerSchema = insertUserSchema.extend({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email("Invalid email address"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
 });
 
 export const insertBountySchema = createInsertSchema(bounties).omit({
@@ -306,6 +329,9 @@ export const insertPlatformRevenueSchema = createInsertSchema(platformRevenue).o
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type LoginData = z.infer<typeof loginSchema>;
+export type RegisterData = z.infer<typeof registerSchema>;
 export type Bounty = typeof bounties.$inferSelect;
 export type InsertBounty = z.infer<typeof insertBountySchema>;
 export type Transaction = typeof transactions.$inferSelect;

@@ -41,9 +41,13 @@ import { db } from "./db";
 import { eq, desc, and, or, sql } from "drizzle-orm";
 
 export interface IStorage {
-  // User operations (mandatory for Replit Auth)
+  // User operations
   getUser(id: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: Partial<User>): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
+  migrateUserToPasswordAuth(userId: string, data: { username: string, password: string, firstName: string, lastName: string }): Promise<User>;
   updateUserPoints(userId: string, points: number): Promise<void>;
   updateUserBalance(userId: string, amount: string): Promise<void>;
   
@@ -135,6 +139,51 @@ export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async createUser(userData: Partial<User>): Promise<User> {
+    const result = await db
+      .insert(users)
+      .values({
+        ...userData,
+        points: userData.points || 0,
+        balance: userData.balance || "0.00",
+        lifetimeEarned: userData.lifetimeEarned || "0.00",
+        level: userData.level || 1,
+        rating: userData.rating || "0.00",
+        reviewCount: userData.reviewCount || 0,
+        isOnline: false,
+        referralCount: userData.referralCount || 0,
+      } as any)
+      .returning();
+    
+    return Array.isArray(result) ? result[0] : result;
+  }
+
+  async migrateUserToPasswordAuth(userId: string, data: { username: string, password: string, firstName: string, lastName: string }): Promise<User> {
+    const result = await db
+      .update(users)
+      .set({
+        username: data.username,
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        handle: data.username, // Use username as initial handle
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return Array.isArray(result) ? result[0] : result;
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {

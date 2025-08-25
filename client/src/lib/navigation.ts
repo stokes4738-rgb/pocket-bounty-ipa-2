@@ -30,7 +30,7 @@ export const navigateTo = async (url: string, external = false) => {
 /**
  * Login navigation helper
  */
-export const navigateToLogin = () => navigateTo("/api/login");
+export const navigateToLogin = () => navigateTo("/auth");
 
 /**
  * Page navigation helper  

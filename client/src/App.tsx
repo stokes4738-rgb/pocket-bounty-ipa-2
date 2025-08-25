@@ -12,8 +12,7 @@ import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 
 // Lazy load pages for better performance
 const Landing = lazy(() => import("@/pages/Landing"));
-const Login = lazy(() => import("@/pages/Login"));
-const CreateAccount = lazy(() => import("@/pages/CreateAccount"));
+const AuthPage = lazy(() => import("@/pages/AuthPage"));
 const Home = lazy(() => import("@/pages/Home"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const Account = lazy(() => import("@/pages/Account"));
@@ -49,9 +48,10 @@ function Router() {
         {!isAuthenticated ? (
           <>
             <Route path="/" component={Landing} />
-            <Route path="/login" component={Login} />
-            <Route path="/create-account" component={CreateAccount} />
-            <Route path="/signup" component={CreateAccount} />
+            <Route path="/auth" component={AuthPage} />
+            <Route path="/login" component={AuthPage} />
+            <Route path="/signup" component={AuthPage} />
+            <Route path="/create-account" component={AuthPage} />
           </>
         ) : (
           <>
