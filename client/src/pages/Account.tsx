@@ -253,14 +253,26 @@ function DepositForm({ paymentMethods }: { paymentMethods: PaymentMethodType[] }
         <Label htmlFor="amount">Amount ($)</Label>
         <Input
           id="amount"
-          type="number"
-          min="1"
-          max="1000"
-          step="0.01"
+          type="text"
+          inputMode="decimal"
+          pattern="[0-9]*\.?[0-9]*"
           value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          placeholder="Enter amount"
+          onChange={(e) => {
+            // Only allow numbers and decimal point
+            const value = e.target.value.replace(/[^0-9.]/g, '');
+            // Prevent multiple decimal points
+            const parts = value.split('.');
+            if (parts.length > 2) {
+              return; // Don't update if more than one decimal point
+            }
+            setAmount(value);
+          }}
+          placeholder="Enter amount (e.g., 10.00)"
           data-testid="input-deposit-amount"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
         />
       </div>
       <div>

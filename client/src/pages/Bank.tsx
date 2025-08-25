@@ -248,15 +248,27 @@ export default function Bank() {
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                 <Input 
-                  type="number" 
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9]*\.?[0-9]*"
                   placeholder="5.00" 
-                  min="5" 
-                  max={user?.balance || 0}
-                  step="0.01"
                   value={payoutAmount}
-                  onChange={(e) => setPayoutAmount(e.target.value)}
+                  onChange={(e) => {
+                    // Only allow numbers and decimal point
+                    const value = e.target.value.replace(/[^0-9.]/g, '');
+                    // Prevent multiple decimal points
+                    const parts = value.split('.');
+                    if (parts.length > 2) {
+                      return; // Don't update if more than one decimal point
+                    }
+                    setPayoutAmount(value);
+                  }}
                   className="pl-8"
                   data-testid="input-payout-amount"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
                 />
               </div>
               <div className="text-xs text-muted-foreground mt-1">
