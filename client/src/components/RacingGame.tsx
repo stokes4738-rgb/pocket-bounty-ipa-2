@@ -387,6 +387,27 @@ export default function RacingGame() {
           </ul>
         </CardContent>
       </Card>
+      {/* Mobile Controls */}
+      <div className="flex justify-center gap-4 sm:hidden">
+        <Button
+          variant="outline"
+          size="lg"
+          className="h-16 w-20"
+          onTouchStart={() => { keysRef.current['ArrowLeft'] = true; setTimeout(() => keysRef.current['ArrowLeft'] = false, 100); }}
+          onClick={() => { keysRef.current['ArrowLeft'] = true; setTimeout(() => keysRef.current['ArrowLeft'] = false, 100); }}
+        >
+          ← LEFT
+        </Button>
+        <Button
+          variant="outline"
+          size="lg"
+          className="h-16 w-20"
+          onTouchStart={() => { keysRef.current['ArrowRight'] = true; setTimeout(() => keysRef.current['ArrowRight'] = false, 100); }}
+          onClick={() => { keysRef.current['ArrowRight'] = true; setTimeout(() => keysRef.current['ArrowRight'] = false, 100); }}
+        >
+          RIGHT →
+        </Button>
+      </div>
     </div>
   );
 }

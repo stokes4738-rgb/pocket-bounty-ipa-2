@@ -504,6 +504,49 @@ export default function AsteroidsGame() {
           </ul>
         </CardContent>
       </Card>
+      {/* Mobile Controls */}
+      <div className="flex justify-center gap-4 sm:hidden">
+        <div className="flex flex-col gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-12 w-12 p-0"
+            onTouchStart={() => { keysRef.current['ArrowUp'] = true; setTimeout(() => keysRef.current['ArrowUp'] = false, 100); }}
+            onClick={() => { keysRef.current['ArrowUp'] = true; setTimeout(() => keysRef.current['ArrowUp'] = false, 100); }}
+          >
+            ↑
+          </Button>
+          <div className="flex gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-12 w-12 p-0"
+              onTouchStart={() => { keysRef.current['ArrowLeft'] = true; setTimeout(() => keysRef.current['ArrowLeft'] = false, 100); }}
+              onClick={() => { keysRef.current['ArrowLeft'] = true; setTimeout(() => keysRef.current['ArrowLeft'] = false, 100); }}
+            >
+              ←
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-12 w-12 p-0"
+              onTouchStart={() => { keysRef.current['ArrowRight'] = true; setTimeout(() => keysRef.current['ArrowRight'] = false, 100); }}
+              onClick={() => { keysRef.current['ArrowRight'] = true; setTimeout(() => keysRef.current['ArrowRight'] = false, 100); }}
+            >
+              →
+            </Button>
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="lg"
+          className="h-16 w-16 rounded-full bg-orange-500 hover:bg-orange-600 text-white"
+          onTouchStart={() => { keysRef.current['Space'] = true; setTimeout(() => keysRef.current['Space'] = false, 100); }}
+          onClick={() => { keysRef.current['Space'] = true; setTimeout(() => keysRef.current['Space'] = false, 100); }}
+        >
+          🚀
+        </Button>
+      </div>
     </div>
   );
 }

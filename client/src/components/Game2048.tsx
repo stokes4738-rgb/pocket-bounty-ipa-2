@@ -431,6 +431,64 @@ export default function Game2048() {
           </div>
         </CardContent>
       </Card>
+      {/* Mobile Controls */}
+      <div className="flex justify-center gap-8 sm:hidden">
+        {/* Directional Pad */}
+        <div className="relative">
+          <div className="grid grid-cols-3 gap-1 w-32 h-32">
+            {/* Top */}
+            <div></div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 w-10 p-0"
+              onTouchStart={() => handleKeyPress({ key: 'ArrowUp' } as KeyboardEvent)}
+              onClick={() => handleKeyPress({ key: 'ArrowUp' } as KeyboardEvent)}
+              disabled={gameOver}
+            >
+              ↑
+            </Button>
+            <div></div>
+            
+            {/* Middle */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 w-10 p-0"
+              onTouchStart={() => handleKeyPress({ key: 'ArrowLeft' } as KeyboardEvent)}
+              onClick={() => handleKeyPress({ key: 'ArrowLeft' } as KeyboardEvent)}
+              disabled={gameOver}
+            >
+              ←
+            </Button>
+            <div className="w-10 h-10 flex items-center justify-center text-xs text-muted-foreground">2048</div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 w-10 p-0"
+              onTouchStart={() => handleKeyPress({ key: 'ArrowRight' } as KeyboardEvent)}
+              onClick={() => handleKeyPress({ key: 'ArrowRight' } as KeyboardEvent)}
+              disabled={gameOver}
+            >
+              →
+            </Button>
+            
+            {/* Bottom */}
+            <div></div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 w-10 p-0"
+              onTouchStart={() => handleKeyPress({ key: 'ArrowDown' } as KeyboardEvent)}
+              onClick={() => handleKeyPress({ key: 'ArrowDown' } as KeyboardEvent)}
+              disabled={gameOver}
+            >
+              ↓
+            </Button>
+            <div></div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

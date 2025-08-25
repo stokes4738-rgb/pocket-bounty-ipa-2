@@ -308,6 +308,21 @@ export default function SpaceInvaders() {
     setGameState(prev => ({ ...prev, gameStatus: "playing" }));
   };
 
+  const handleMobileMove = (direction: string) => {
+    if (gameState.gameStatus === "playing") {
+      keysRef.current[direction] = true;
+      setTimeout(() => {
+        keysRef.current[direction] = false;
+      }, 100);
+    }
+  };
+
+  const handleMobileShoot = () => {
+    if (gameState.gameStatus === "playing") {
+      shoot();
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="text-center">
@@ -388,6 +403,41 @@ export default function SpaceInvaders() {
           </ul>
         </CardContent>
       </Card>
+      {/* Mobile Controls */}
+      <div className="flex justify-center gap-8 sm:hidden">
+        {/* Movement Controls */}
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-16 w-16"
+            onTouchStart={() => handleMobileMove('ArrowLeft')}
+            onClick={() => handleMobileMove('ArrowLeft')}
+          >
+            ←
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-16 w-16"
+            onTouchStart={() => handleMobileMove('ArrowRight')}
+            onClick={() => handleMobileMove('ArrowRight')}
+          >
+            →
+          </Button>
+        </div>
+        
+        {/* Shoot Button */}
+        <Button
+          variant="outline"
+          size="lg"
+          className="h-16 w-16 rounded-full bg-red-500 hover:bg-red-600 text-white"
+          onTouchStart={handleMobileShoot}
+          onClick={handleMobileShoot}
+        >
+          🚀
+        </Button>
+      </div>
     </div>
   );
 }

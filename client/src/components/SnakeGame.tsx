@@ -240,6 +240,18 @@ export default function SnakeGame() {
     setGameState(prev => ({ ...prev, gameStatus: "playing", direction: { x: 1, y: 0 } }));
   };
 
+  const handleDirectionChange = (newDirection: Position) => {
+    if (gameState.gameStatus !== "playing") return;
+    
+    setGameState(prev => {
+      // Prevent reverse direction
+      if (newDirection.x === -prev.direction.x && newDirection.y === -prev.direction.y) {
+        return prev;
+      }
+      return { ...prev, direction: newDirection };
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="text-center">
@@ -309,11 +321,66 @@ export default function SnakeGame() {
         </CardContent>
       </Card>
 
+      {/* Mobile Controls */}
+      <div className="flex justify-center gap-8 sm:hidden">
+        {/* Directional Pad */}
+        <div className="relative">
+          <div className="grid grid-cols-3 gap-1 w-32 h-32">
+            {/* Top */}
+            <div></div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 w-10 p-0"
+              onTouchStart={() => handleDirectionChange({ x: 0, y: -1 })}
+              onClick={() => handleDirectionChange({ x: 0, y: -1 })}
+            >
+              ↑
+            </Button>
+            <div></div>
+            
+            {/* Middle */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 w-10 p-0"
+              onTouchStart={() => handleDirectionChange({ x: -1, y: 0 })}
+              onClick={() => handleDirectionChange({ x: -1, y: 0 })}
+            >
+              ←
+            </Button>
+            <div className="w-10 h-10"></div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 w-10 p-0"
+              onTouchStart={() => handleDirectionChange({ x: 1, y: 0 })}
+              onClick={() => handleDirectionChange({ x: 1, y: 0 })}
+            >
+              →
+            </Button>
+            
+            {/* Bottom */}
+            <div></div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 w-10 p-0"
+              onTouchStart={() => handleDirectionChange({ x: 0, y: 1 })}
+              onClick={() => handleDirectionChange({ x: 0, y: 1 })}
+            >
+              ↓
+            </Button>
+            <div></div>
+          </div>
+        </div>
+      </div>
+
       <Card className="theme-transition">
         <CardContent className="p-3.5">
           <h3 className="text-sm font-semibold mb-2">How to Play</h3>
           <ul className="text-xs text-muted-foreground space-y-1">
-            <li>• Use arrow keys to control the snake</li>
+            <li>• Use arrow keys or on-screen controls</li>
             <li>• Eat red food to grow and score points</li>
             <li>• Avoid walls and your own tail</li>
             <li>• Earn 1 ⭐ for every 3 points scored</li>

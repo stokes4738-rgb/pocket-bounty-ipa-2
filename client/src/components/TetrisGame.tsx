@@ -482,6 +482,85 @@ export default function TetrisGame() {
           </ul>
         </CardContent>
       </Card>
+      {/* Mobile Controls */}
+      <div className="flex justify-center gap-8 sm:hidden">
+        {/* Directional Pad */}
+        <div className="relative">
+          <div className="grid grid-cols-3 gap-1 w-32 h-32">
+            {/* Top - Rotate */}
+            <div></div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 w-10 p-0"
+              onTouchStart={handleMobileRotate}
+              onClick={handleMobileRotate}
+            >
+              ↻
+            </Button>
+            <div></div>
+            
+            {/* Middle - Move */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 w-10 p-0"
+              onTouchStart={() => handleMobileMove({ x: -1, y: 0 })}
+              onClick={() => handleMobileMove({ x: -1, y: 0 })}
+            >
+              ←
+            </Button>
+            <div className="w-10 h-10"></div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 w-10 p-0"
+              onTouchStart={() => handleMobileMove({ x: 1, y: 0 })}
+              onClick={() => handleMobileMove({ x: 1, y: 0 })}
+            >
+              →
+            </Button>
+            
+            {/* Bottom - Down */}
+            <div></div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 w-10 p-0"
+              onTouchStart={() => handleMobileMove({ x: 0, y: 1 })}
+              onClick={() => handleMobileMove({ x: 0, y: 1 })}
+            >
+              ↓
+            </Button>
+            <div></div>
+          </div>
+        </div>
+        
+        {/* Drop Button */}
+        <div className="flex items-center">
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-16 w-16 rounded-full text-xs bg-purple-500 hover:bg-purple-600 text-white"
+            onTouchStart={() => {
+              let dropCount = 0;
+              while (gameState.currentPiece && gameState.gameStatus === "playing" && dropCount < 20) {
+                movePiece({ x: 0, y: 1 });
+                dropCount++;
+              }
+            }}
+            onClick={() => {
+              let dropCount = 0;
+              while (gameState.currentPiece && gameState.gameStatus === "playing" && dropCount < 20) {
+                movePiece({ x: 0, y: 1 });
+                dropCount++;
+              }
+            }}
+          >
+            DROP
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -578,6 +578,18 @@ export default function FlappyGame() {
           </ul>
         </CardContent>
       </Card>
+      {/* Mobile Controls */}
+      <div className="flex justify-center sm:hidden">
+        <Button
+          variant="outline"
+          size="lg"
+          className="h-20 w-32 text-lg bg-yellow-500 hover:bg-yellow-600 text-white"
+          onTouchStart={flap}
+          onClick={flap}
+        >
+          🐤 FLAP
+        </Button>
+      </div>
     </div>
   );
 }
