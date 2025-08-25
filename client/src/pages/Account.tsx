@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Elements, useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
@@ -278,10 +278,19 @@ export default function Account() {
   const { paymentMethods, isLoading: methodsLoading } = usePaymentMethods();
   const { transactions, isLoading: transactionsLoading } = useTransactions();
 
-  const { data: paymentHistory = [] } = useQuery<any[]>({
+  const { data: paymentHistory = [], isError: historyError } = useQuery<any[]>({
     queryKey: ["/api/payments/history"],
     retry: false,
+    enabled: !!user, // Only fetch when user is authenticated
   });
+
+  // Refetch payment methods when user changes
+  useEffect(() => {
+    if (user) {
+      queryClient.invalidateQueries({ queryKey: ["/api/payments/methods"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/transactions"] });
+    }
+  }, [user, queryClient]);
 
   const handleWithdrawal = (e: React.FormEvent) => {
     e.preventDefault();
@@ -432,7 +441,7 @@ export default function Account() {
               Available Balance
             </h3>
             <div className="text-lg font-bold text-pocket-gold" data-testid="text-balance">
-              {formatCurrency(user?.balance || "0")}
+              {user ? formatCurrency(user.balance || "0") : "$0.00"}
             </div>
           </CardContent>
         </Card>
@@ -443,7 +452,7 @@ export default function Account() {
               Lifetime Earned
             </h3>
             <div className="text-lg font-bold text-pocket-gold" data-testid="text-lifetime-earned">
-              {formatCurrency(user?.lifetimeEarned || "0")}
+              {user ? formatCurrency(user.lifetimeEarned || "0") : "$0.00"}
             </div>
           </CardContent>
         </Card>
@@ -454,7 +463,7 @@ export default function Account() {
               Points
             </h3>
             <div className="text-lg font-bold text-pocket-gold" data-testid="text-points">
-              {user?.points || 0}
+              {user ? (user.points || 0) : 0}
             </div>
           </CardContent>
         </Card>
@@ -475,7 +484,20 @@ export default function Account() {
             <CardContent className="p-3.5">
               <h3 className="text-sm font-semibold mb-3">Recent Transactions</h3>
               {transactionsLoading ? (
-                <div className="text-center py-4">Loading...</div>
+                <div className="text-center py-4">
+                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">Loading transactions...</p>
+                </div>
+              ) : !user ? (
+                <div className="text-center py-4">
+                  <p className="text-sm text-muted-foreground">Please log in to view your transactions</p>
+                  <Button 
+                    onClick={() => window.location.href = "/api/login"}
+                    className="mt-4"
+                  >
+                    Log In
+                  </Button>
+                </div>
               ) : transactions.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <div className="text-4xl mb-4">💎</div>
@@ -560,15 +582,17 @@ export default function Account() {
               ) : paymentMethods.length === 0 ? (
                 <div className="text-center py-4">
                   <p className="text-sm text-muted-foreground mb-4">
-                    Add a payment method to deposit funds
+                    {methodsLoading ? "Loading payment methods..." : "Add a payment method to deposit funds"}
                   </p>
-                  <Button 
-                    onClick={() => setActiveTab("cards")}
-                    className="bg-pocket-red hover:bg-pocket-red-dark"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Payment Method
-                  </Button>
+                  {!methodsLoading && (
+                    <Button 
+                      onClick={() => setActiveTab("cards")}
+                      className="bg-pocket-red hover:bg-pocket-red-dark"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Payment Method
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <DepositForm paymentMethods={paymentMethods} />
@@ -658,9 +682,20 @@ export default function Account() {
               ) : (
                 <Elements stripe={stripePromise}>
                   <div className="space-y-4">
+                    {/* Saved Payment Methods */}
+                    <div className="mb-4">
+                      <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                        <CreditCard className="h-4 w-4" />
+                        Your Saved Cards ({paymentMethods.length})
+                      </h3>
+                    </div>
+                    
                     {/* Existing Payment Methods */}
                     {methodsLoading ? (
-                      <div className="text-center py-4">Loading payment methods...</div>
+                      <div className="text-center py-4">
+                        <div className="animate-spin w-6 h-6 border-3 border-primary border-t-transparent rounded-full mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">Loading your saved cards...</p>
+                      </div>
                     ) : paymentMethods.length > 0 ? (
                       <div className="space-y-3">
                         {paymentMethods.map((method) => (
