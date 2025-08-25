@@ -18,7 +18,7 @@ interface GameState {
 const GRAVITY = 0.4; // Reduced gravity for easier play
 const FLAP_STRENGTH = -10; // Stronger flap for easier control
 const PIPE_WIDTH = 40; // Made wider for larger canvas
-const PIPE_GAP = 120; // Even larger gap for easier navigation
+const PIPE_GAP = 180; // Much larger gap for easier navigation
 const PIPE_SPEED = 1.5; // Slower pipes for easier timing
 
 export default function FlappyGame() {
@@ -127,7 +127,7 @@ export default function FlappyGame() {
       };
 
       // Generate pipes (adjusted for much larger canvas)
-      if (newState.pipes.length === 0 || newState.pipes[newState.pipes.length - 1].x < 700 - 250) {
+      if (newState.pipes.length === 0 || newState.pipes[newState.pipes.length - 1].x < 700 - 350) {
         const pipeHeight = Math.random() * (600 - PIPE_GAP - 80) + 40;
         newState.pipes.push({
           x: 700,
