@@ -236,31 +236,37 @@ export default function Game2048() {
         case 'a':
         case 'A':
           e.preventDefault();
+          e.stopPropagation();
           move('left');
           break;
         case 'ArrowRight':
         case 'd':
         case 'D':
           e.preventDefault();
+          e.stopPropagation();
           move('right');
           break;
         case 'ArrowUp':
         case 'w':
         case 'W':
           e.preventDefault();
+          e.stopPropagation();
           move('up');
           break;
         case 'ArrowDown':
         case 's':
         case 'S':
           e.preventDefault();
+          e.stopPropagation();
           move('down');
           break;
       }
     };
 
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
+    if (!gameOver) {
+      document.addEventListener('keydown', handleKeyPress, { capture: true });
+      return () => document.removeEventListener('keydown', handleKeyPress, { capture: true });
+    }
   }, [gameOver]);
 
   function getTileColor(value: number): string {
@@ -319,8 +325,9 @@ export default function Game2048() {
       <Card className="theme-transition">
         <CardContent className="p-4">
           <div 
-            className="grid grid-cols-4 gap-2 bg-slate-300 dark:bg-slate-700 p-2 rounded-lg max-w-80 mx-auto"
+            className="grid grid-cols-4 gap-2 bg-slate-300 dark:bg-slate-700 p-2 rounded-lg max-w-80 mx-auto focus:outline-none focus:ring-2 focus:ring-pocket-red"
             data-testid="board-2048"
+            tabIndex={0}
             key={animationKey}
           >
             {board.map((row, i) =>

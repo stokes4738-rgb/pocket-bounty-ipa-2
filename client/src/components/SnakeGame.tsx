@@ -198,6 +198,7 @@ export default function SnakeGame() {
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      // Only handle if game is playing and focus is on game area
       if (gameState.gameStatus !== "playing") return;
       
       const keyDirections: { [key: string]: Position } = {
@@ -205,11 +206,20 @@ export default function SnakeGame() {
         ArrowDown: { x: 0, y: 1 },
         ArrowLeft: { x: -1, y: 0 },
         ArrowRight: { x: 1, y: 0 },
+        w: { x: 0, y: -1 },
+        s: { x: 0, y: 1 },
+        a: { x: -1, y: 0 },
+        d: { x: 1, y: 0 },
+        W: { x: 0, y: -1 },
+        S: { x: 0, y: 1 },
+        A: { x: -1, y: 0 },
+        D: { x: 1, y: 0 },
       };
 
       const newDirection = keyDirections[e.key];
       if (newDirection) {
         e.preventDefault();
+        e.stopPropagation();
         setGameState(prev => {
           // Prevent reverse direction
           if (newDirection.x === -prev.direction.x && newDirection.y === -prev.direction.y) {
@@ -220,8 +230,10 @@ export default function SnakeGame() {
       }
     };
 
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
+    if (gameState.gameStatus === "playing") {
+      document.addEventListener("keydown", handleKeyPress, { capture: true });
+      return () => document.removeEventListener("keydown", handleKeyPress, { capture: true });
+    }
   }, [gameState.gameStatus, gameState.direction]);
 
   const startGame = () => {
@@ -238,13 +250,19 @@ export default function SnakeGame() {
       <Card className="theme-transition">
         <CardContent className="p-2">
           <div className="relative bg-gradient-to-b from-gray-800 to-gray-900 rounded-lg overflow-hidden">
-            <canvas
-              ref={canvasRef}
-              width={CANVAS_SIZE}
-              height={CANVAS_SIZE}
-              className="w-full h-96"
-              data-testid="canvas-snake-game"
-            />
+            <div 
+              className="relative focus:outline-none focus:ring-2 focus:ring-pocket-red rounded"
+              tabIndex={0}
+              data-testid="game-container-snake"
+            >
+              <canvas
+                ref={canvasRef}
+                width={CANVAS_SIZE}
+                height={CANVAS_SIZE}
+                className="w-full h-96 cursor-crosshair"
+                data-testid="canvas-snake-game"
+              />
+            </div>
             
             {gameState.gameStatus !== "playing" && (
               <div className="absolute inset-0 flex items-center justify-center text-white bg-black/50">

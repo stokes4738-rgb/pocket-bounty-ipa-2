@@ -276,10 +276,17 @@ export default function SpaceInvaders() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      keysRef.current[e.key] = true;
-      if (e.key === ' ' && gameState.gameStatus === "playing") {
+      if (gameState.gameStatus !== "playing") return;
+      
+      const validKeys = ['ArrowLeft', 'ArrowRight', ' ', 'a', 'A', 'd', 'D'];
+      if (validKeys.includes(e.key)) {
         e.preventDefault();
-        shoot();
+        e.stopPropagation();
+        keysRef.current[e.key] = true;
+        
+        if (e.key === ' ') {
+          shoot();
+        }
       }
     };
 
@@ -287,12 +294,14 @@ export default function SpaceInvaders() {
       keysRef.current[e.key] = false;
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
-    };
+    if (gameState.gameStatus === "playing") {
+      document.addEventListener("keydown", handleKeyDown, { capture: true });
+      document.addEventListener("keyup", handleKeyUp, { capture: true });
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown, { capture: true });
+        document.removeEventListener("keyup", handleKeyUp, { capture: true });
+      };
+    }
   }, [gameState.gameStatus, shoot]);
 
   const startGame = () => {
@@ -308,12 +317,16 @@ export default function SpaceInvaders() {
 
       <Card className="theme-transition">
         <CardContent className="p-2">
-          <div className="relative bg-gradient-to-b from-blue-900 to-black rounded-lg overflow-hidden">
+          <div 
+            className="relative bg-gradient-to-b from-blue-900 to-black rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-pocket-red"
+            tabIndex={0}
+            data-testid="game-container-space-invaders"
+          >
             <canvas
               ref={canvasRef}
               width={CANVAS_WIDTH}
               height={CANVAS_HEIGHT}
-              className="w-full h-80"
+              className="w-full h-80 cursor-crosshair"
               data-testid="canvas-space-invaders"
             />
             

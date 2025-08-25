@@ -306,19 +306,31 @@ export default function TetrisGame() {
 
       switch (e.key) {
         case "ArrowLeft":
+        case "a":
+        case "A":
           e.preventDefault();
+          e.stopPropagation();
           movePiece({ x: -1, y: 0 });
           break;
         case "ArrowRight":
+        case "d":
+        case "D":
           e.preventDefault();
+          e.stopPropagation();
           movePiece({ x: 1, y: 0 });
           break;
         case "ArrowDown":
+        case "s":
+        case "S":
           e.preventDefault();
+          e.stopPropagation();
           movePiece({ x: 0, y: 1 });
           break;
         case "ArrowUp":
+        case "w":
+        case "W":
           e.preventDefault();
+          e.stopPropagation();
           setGameState(prev => {
             if (!prev.currentPiece) return prev;
             const rotated = rotatePiece(prev.currentPiece);
@@ -330,6 +342,7 @@ export default function TetrisGame() {
           break;
         case " ":
           e.preventDefault();
+          e.stopPropagation();
           // Hard drop
           while (gameState.currentPiece) {
             movePiece({ x: 0, y: 1 });
@@ -338,8 +351,10 @@ export default function TetrisGame() {
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    if (gameState.gameStatus === "playing") {
+      document.addEventListener("keydown", handleKeyDown, { capture: true });
+      return () => document.removeEventListener("keydown", handleKeyDown, { capture: true });
+    }
   }, [gameState.gameStatus, gameState.currentPiece, movePiece, rotatePiece, isValidPosition]);
 
   const startGame = () => {
@@ -356,12 +371,16 @@ export default function TetrisGame() {
       <div className="flex gap-4 justify-center">
         <Card className="theme-transition">
           <CardContent className="p-2">
-            <div className="relative bg-black rounded-lg overflow-hidden">
+            <div 
+              className="relative bg-black rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-pocket-red"
+              tabIndex={0}
+              data-testid="game-container-tetris"
+            >
               <canvas
                 ref={canvasRef}
                 width={GRID_WIDTH * CELL_SIZE}
                 height={GRID_HEIGHT * CELL_SIZE}
-                className="border border-gray-600"
+                className="border border-gray-600 cursor-crosshair"
                 data-testid="canvas-tetris"
               />
               

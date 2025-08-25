@@ -418,26 +418,40 @@ export default function PacManGame() {
 
       switch (e.key) {
         case "ArrowUp":
+        case "w":
+        case "W":
           e.preventDefault();
+          e.stopPropagation();
           setDirection({ x: 0, y: -1 });
           break;
         case "ArrowDown":
+        case "s":
+        case "S":
           e.preventDefault();
+          e.stopPropagation();
           setDirection({ x: 0, y: 1 });
           break;
         case "ArrowLeft":
+        case "a":
+        case "A":
           e.preventDefault();
+          e.stopPropagation();
           setDirection({ x: -1, y: 0 });
           break;
         case "ArrowRight":
+        case "d":
+        case "D":
           e.preventDefault();
+          e.stopPropagation();
           setDirection({ x: 1, y: 0 });
           break;
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    if (gameState.gameStatus === "playing") {
+      document.addEventListener("keydown", handleKeyDown, { capture: true });
+      return () => document.removeEventListener("keydown", handleKeyDown, { capture: true });
+    }
   }, [gameState.gameStatus]);
 
   const startGame = () => {
@@ -453,12 +467,16 @@ export default function PacManGame() {
 
       <Card className="theme-transition">
         <CardContent className="p-2">
-          <div className="relative bg-black rounded-lg overflow-hidden">
+          <div 
+            className="relative bg-black rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-pocket-red"
+            tabIndex={0}
+            data-testid="game-container-pacman"
+          >
             <canvas
               ref={canvasRef}
               width={CANVAS_WIDTH}
               height={CANVAS_HEIGHT}
-              className="w-full h-96"
+              className="w-full h-96 cursor-crosshair"
               data-testid="canvas-pacman"
             />
             
