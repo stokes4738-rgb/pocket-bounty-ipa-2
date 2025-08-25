@@ -14,8 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
-import PWAInputFix from "@/components/PWAInputFix";
-import PWAInput from "@/components/PWAInput";
 
 const postBountySchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(255, "Title too long"),
@@ -145,7 +143,6 @@ export default function Post() {
 
   return (
     <div className="space-y-4">
-      <PWAInputFix />
       <h2 className="text-lg font-bold">Post a New Bounty</h2>
       
       <Card className="theme-transition">
@@ -231,9 +228,8 @@ export default function Post() {
                         Reward Amount ($)
                       </FormLabel>
                       <FormControl>
-                        <PWAInput 
-                          type="text"
-                          inputMode="decimal"
+                        <Input 
+                          type="tel"
                           pattern="[0-9]*\.?[0-9]*"
                           placeholder="5.00"
                           {...field}

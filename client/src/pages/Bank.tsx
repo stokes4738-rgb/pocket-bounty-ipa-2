@@ -14,8 +14,6 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import DemoLockOverlay from "@/components/DemoLockOverlay";
-import PWAInputFix from "@/components/PWAInputFix";
-import PWAInput from "@/components/PWAInput";
 import type { Transaction } from "@shared/schema";
 
 export default function Bank() {
@@ -119,7 +117,6 @@ export default function Bank() {
 
   return (
     <div className="space-y-4">
-      <PWAInputFix />
       {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-2.5">
         <Card className="theme-transition">
@@ -250,9 +247,8 @@ export default function Bank() {
               </Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <PWAInput 
-                  type="text"
-                  inputMode="decimal"
+                <Input 
+                  type="tel"
                   pattern="[0-9]*\.?[0-9]*"
                   placeholder="5.00" 
                   value={payoutAmount}

@@ -15,8 +15,6 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import DemoLockOverlay from "@/components/DemoLockOverlay";
 import { CreditCard, Plus, Trash2, Star, DollarSign, History, Shield, Lock } from "lucide-react";
-import PWAInputFix from "@/components/PWAInputFix";
-import PWAInput from "@/components/PWAInput";
 
 // Stripe setup
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLIC_KEY ? 
@@ -253,10 +251,9 @@ function DepositForm({ paymentMethods }: { paymentMethods: PaymentMethodType[] }
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <Label htmlFor="amount">Amount ($)</Label>
-        <PWAInput
+        <Input
           id="amount"
-          type="text"
-          inputMode="decimal"
+          type="tel"
           pattern="[0-9]*\.?[0-9]*"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
@@ -460,10 +457,9 @@ export default function Account() {
                 <Label htmlFor="amount">Amount (USD)</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                  <PWAInput
+                  <Input
                     id="amount"
-                    type="text"
-                    inputMode="decimal"
+                    type="tel"
                     pattern="[0-9]*\.?[0-9]*"
                     placeholder="100.00"
                     value={testDepositAmount}
@@ -515,7 +511,6 @@ export default function Account() {
 
   return (
     <Elements stripe={stripePromise}>
-      <PWAInputFix />
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Account Management</h1>

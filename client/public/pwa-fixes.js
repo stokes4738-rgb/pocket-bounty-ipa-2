@@ -1,59 +1,89 @@
-// PWA input fixes for better keyboard support in standalone mode
+// PWA Input Fixes for iOS Safari standalone mode
 (function() {
   'use strict';
   
-  // Check if running in PWA standalone mode
-  const isPWAStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                          window.navigator.standalone === true ||
-                          document.referrer.includes('android-app://');
+  // Check if running as PWA
+  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
   
-  if (!isPWAStandalone) return;
+  // Apply fixes when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', applyFixes);
+  } else {
+    applyFixes();
+  }
   
-  console.log('PWA standalone mode detected - applying input fixes');
+  function applyFixes() {
+    // Fix all current and future inputs
+    fixAllInputs();
+    observeNewInputs();
+    
+    // Additional viewport fix for iOS
+    if (isStandalone) {
+      document.addEventListener('touchstart', function() {}, { passive: true });
+    }
+  }
   
-  // Fix for input focus issues in PWA
-  document.addEventListener('DOMContentLoaded', function() {
-    // Prevent zoom on input focus (iOS issue)
-    const preventZoom = function() {
-      const viewport = document.querySelector('meta[name=viewport]');
-      if (viewport) {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+  function fixAllInputs() {
+    const inputs = document.querySelectorAll('input[type="text"], input[type="tel"], input[type="number"], input[type="email"], input[type="password"]');
+    inputs.forEach(fixSingleInput);
+  }
+  
+  function fixSingleInput(input) {
+    // Set font size to prevent iOS zoom
+    if (!input.dataset.pwaFixed) {
+      input.dataset.pwaFixed = 'true';
+      
+      // Ensure 16px font size minimum
+      const computedStyle = window.getComputedStyle(input);
+      const fontSize = parseInt(computedStyle.fontSize);
+      if (fontSize < 16) {
+        input.style.fontSize = '16px';
       }
-    };
-    
-    const restoreZoom = function() {
-      const viewport = document.querySelector('meta[name=viewport]');
-      if (viewport) {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1');
+      
+      // Remove any autocorrect/autocapitalize that might interfere
+      input.setAttribute('autocorrect', 'off');
+      input.setAttribute('autocapitalize', 'off');
+      input.setAttribute('spellcheck', 'false');
+      
+      // Special handling for numeric inputs
+      if (input.type === 'tel' || input.pattern === '[0-9]*\\.?[0-9]*') {
+        // Ensure pattern is set
+        if (!input.pattern) {
+          input.pattern = '[0-9]*\\.?[0-9]*';
+        }
       }
-    };
-    
-    // Apply to all current and future input elements
-    const applyInputFix = function(element) {
-      if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-        element.addEventListener('focus', preventZoom, { passive: true });
-        element.addEventListener('blur', restoreZoom, { passive: true });
-        
-        // Force focus on touch for better mobile experience
-        element.addEventListener('touchstart', function() {
-          setTimeout(() => element.focus(), 100);
-        }, { passive: true });
-      }
-    };
-    
-    // Apply to existing elements
-    document.querySelectorAll('input, textarea').forEach(applyInputFix);
-    
-    // Apply to dynamically added elements
+      
+      // Touch event to ensure keyboard shows
+      input.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        const target = e.target;
+        setTimeout(function() {
+          target.focus();
+          target.click();
+        }, 0);
+      }, { passive: false });
+      
+      // Focus event to ensure visibility
+      input.addEventListener('focus', function() {
+        // Scroll into view after keyboard appears
+        setTimeout(function() {
+          input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+      });
+    }
+  }
+  
+  function observeNewInputs() {
     const observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
         mutation.addedNodes.forEach(function(node) {
-          if (node.nodeType === 1) {
-            if (node.tagName === 'INPUT' || node.tagName === 'TEXTAREA') {
-              applyInputFix(node);
+          if (node.nodeType === 1) { // Element node
+            if (node.tagName === 'INPUT') {
+              fixSingleInput(node);
+            } else if (node.querySelectorAll) {
+              const inputs = node.querySelectorAll('input');
+              inputs.forEach(fixSingleInput);
             }
-            // Also check children
-            node.querySelectorAll && node.querySelectorAll('input, textarea').forEach(applyInputFix);
           }
         });
       });
@@ -63,18 +93,25 @@
       childList: true,
       subtree: true
     });
-  });
+  }
   
-  // Additional fix for keyboard showing
-  document.addEventListener('touchend', function(e) {
-    const target = e.target;
-    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
-      // Small delay to ensure the element is ready
-      setTimeout(() => {
-        target.focus();
-        target.click();
-      }, 50);
-    }
-  }, { passive: true });
-  
+  // Additional iOS-specific fixes
+  if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+    // Prevent double-tap zoom
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function(event) {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300) {
+        event.preventDefault();
+      }
+      lastTouchEnd = now;
+    }, { passive: false });
+    
+    // Fix viewport on orientation change
+    window.addEventListener('orientationchange', function() {
+      setTimeout(function() {
+        window.scrollTo(0, 0);
+      }, 500);
+    });
+  }
 })();
