@@ -219,6 +219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/points/confirm-purchase", isAuthenticated, async (req: any, res) => {
     if (!stripe) {
+      console.error("Stripe not available for purchase confirmation");
       return res.status(500).json({ message: "Payment system not available" });
     }
 
@@ -226,61 +227,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { paymentIntentId } = req.body;
       const userId = req.user.claims.sub;
 
+      console.log(`Confirming purchase for user ${userId}, payment intent: ${paymentIntentId}`);
+
       // Retrieve payment intent to verify payment
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      console.log(`Payment intent status: ${paymentIntent.status}, amount: ${paymentIntent.amount}`);
       
       if (paymentIntent.status !== 'succeeded') {
+        console.error(`Payment not completed. Status: ${paymentIntent.status}`);
         return res.status(400).json({ message: "Payment not completed" });
       }
 
       if (paymentIntent.metadata.userId !== userId) {
+        console.error(`Payment belongs to different user. Expected: ${userId}, Found: ${paymentIntent.metadata.userId}`);
         return res.status(403).json({ message: "Payment belongs to different user" });
       }
 
       if (paymentIntent.metadata.type !== 'point_purchase') {
+        console.error(`Invalid payment type: ${paymentIntent.metadata.type}`);
         return res.status(400).json({ message: "Invalid payment type" });
       }
 
       const pointsToAward = parseInt(paymentIntent.metadata.points);
       const packageLabel = paymentIntent.description;
+      const purchaseAmount = (paymentIntent.amount / 100).toFixed(2);
+
+      console.log(`Awarding ${pointsToAward} points to user ${userId} for $${purchaseAmount}`);
 
       // Award points to user
       await storage.updateUserPoints(userId, pointsToAward);
+      console.log(`Points awarded successfully`);
 
       // Create transaction record
-      await storage.createTransaction({
+      const transaction = await storage.createTransaction({
         userId,
         type: "point_purchase",
-        amount: (paymentIntent.amount / 100).toFixed(2),
+        amount: purchaseAmount,
         description: `Purchased ${packageLabel}`,
         status: "completed",
       });
+      console.log(`Transaction created:`, transaction.id);
 
       // Create activity
       await storage.createActivity({
         userId,
         type: "points_purchased",
-        description: `Purchased ${pointsToAward} points for $${(paymentIntent.amount / 100).toFixed(2)}`,
+        description: `Purchased ${pointsToAward} points for $${purchaseAmount}`,
         metadata: { 
           points: pointsToAward, 
-          amount: (paymentIntent.amount / 100).toFixed(2),
+          amount: purchaseAmount,
           package: paymentIntent.metadata.packageId
         },
       });
+      console.log(`Activity created`);
 
       // Create platform revenue record
       await storage.createPlatformRevenue({
-        amount: (paymentIntent.amount / 100).toFixed(2),
+        amount: purchaseAmount,
         source: "point_purchase",
         description: `Point purchase: ${packageLabel}`,
       });
+      console.log(`Platform revenue recorded`);
 
       res.json({ 
         success: true, 
         pointsAwarded: pointsToAward,
-        message: `Successfully purchased ${pointsToAward} points!`
+        message: `Successfully purchased ${pointsToAward} points for $${purchaseAmount}!`
       });
     } catch (error: any) {
+      console.error("Error confirming purchase:", error);
       res.status(500).json({ message: "Error confirming purchase: " + error.message });
     }
   });
