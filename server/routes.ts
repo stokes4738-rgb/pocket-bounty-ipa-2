@@ -220,6 +220,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/points/confirm-purchase", isAuthenticated, async (req: any, res) => {
+    console.log("CONFIRMATION ENDPOINT CALLED!");
+    console.log("Request body:", req.body);
+    console.log("User from session:", req.user?.claims?.sub);
+    
     if (!stripe) {
       console.error("Stripe not available for purchase confirmation");
       return res.status(500).json({ message: "Payment system not available" });

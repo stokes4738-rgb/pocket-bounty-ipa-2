@@ -118,7 +118,11 @@ const CheckoutForm = ({ selectedPackage, onSuccess, onCancel }: {
         });
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         // Payment succeeded, confirm the purchase on our backend
+        console.log("Payment succeeded, attempting confirmation...");
+        console.log("Payment Intent ID:", paymentIntent.id);
         confirmPurchaseMutation.mutate(paymentIntent.id);
+      } else {
+        console.log("Payment status:", paymentIntent?.status);
       }
     } catch (err: any) {
       toast({
