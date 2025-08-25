@@ -63,7 +63,29 @@ export default function FeedbackButton() {
     });
   };
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        className="fixed bottom-20 right-4 z-50 bg-pocket-red hover:bg-pocket-red-dark text-white border-pocket-red shadow-lg"
+        onClick={() => {
+          toast({
+            title: "Please Log In",
+            description: "You need to be logged in to send feedback to the creator.",
+            variant: "default",
+          });
+          setTimeout(() => {
+            window.location.href = "/api/login";
+          }, 1500);
+        }}
+        data-testid="button-feedback-login"
+      >
+        <MessageCircle className="h-4 w-4 mr-2" />
+        💬 Talk to Creator
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
