@@ -1120,6 +1120,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Creator dashboard endpoints (creator only)
   app.get('/api/creator/stats', isAuthenticated, async (req: any, res) => {
     try {
+      // Disable caching for real-time analytics
+      res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      res.set('Surrogate-Control', 'no-store');
+
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       
