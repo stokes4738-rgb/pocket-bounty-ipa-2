@@ -487,3 +487,5 @@
 2025-08-25T16:44:49: Stripe not initialized - running in test mode (no STRIPE_SECRET_KEY)
 2025-08-25T16:54:17: Stripe not initialized - running in test mode (no STRIPE_SECRET_KEY)
 2025-08-25T16:54:17: 4:54:17 PM [express] serving on port 5000
+2025-08-25T16:54:34: 4:54:34 PM [express] GET /api/user 401 in 3ms :: {"message":"Unauthorized"}
+2025-08-25T16:54:45: 4:54:45 PM [express] GET /api/user 401 in 1ms :: {"message":"Unauthorized"}
