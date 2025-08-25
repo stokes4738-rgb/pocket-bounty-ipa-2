@@ -69,6 +69,9 @@ export const bounties = pgTable("bounties", {
   authorId: varchar("author_id").references(() => users.id).notNull(),
   claimedBy: varchar("claimed_by").references(() => users.id),
   completedAt: timestamp("completed_at"),
+  boostLevel: integer("boost_level").default(0), // 0 = no boost, 1-3 = boost levels
+  boostExpiresAt: timestamp("boost_expires_at"),
+  boostPurchasedAt: timestamp("boost_purchased_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
@@ -77,6 +80,8 @@ export const bounties = pgTable("bounties", {
   index("idx_bounties_claimed_by").on(table.claimedBy),
   index("idx_bounties_created_at").on(table.createdAt),
   index("idx_bounties_category").on(table.category),
+  index("idx_bounties_boost_level").on(table.boostLevel),
+  index("idx_bounties_boost_expires").on(table.boostExpiresAt),
 ]);
 
 export const bountyApplications = pgTable("bounty_applications", {
@@ -192,12 +197,28 @@ export const platformRevenue = pgTable("platform_revenue", {
   transactionId: uuid("transaction_id").references(() => payments.id),
   bountyId: uuid("bounty_id").references(() => bounties.id),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-  source: varchar("source", { length: 50 }).notNull(), // 'bounty_posting', 'bounty_completion', 'deposit'
+  source: varchar("source", { length: 50 }).notNull(), // 'bounty_posting', 'bounty_completion', 'deposit', 'boost'
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
   index("idx_platform_revenue_created_at").on(table.createdAt),
   index("idx_platform_revenue_source").on(table.source),
+]);
+
+// Boost history table
+export const boostHistory = pgTable("boost_history", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  bountyId: uuid("bounty_id").references(() => bounties.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  boostLevel: integer("boost_level").notNull(), // 1-3
+  pointsCost: integer("points_cost").notNull(),
+  durationHours: integer("duration_hours").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_boost_history_bounty_id").on(table.bountyId),
+  index("idx_boost_history_user_id").on(table.userId),
+  index("idx_boost_history_created_at").on(table.createdAt),
 ]);
 
 // Insert schemas
@@ -272,6 +293,11 @@ export const insertPaymentSchema = createInsertSchema(payments).omit({
   updatedAt: true,
 });
 
+export const insertBoostHistorySchema = createInsertSchema(boostHistory).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertPlatformRevenueSchema = createInsertSchema(platformRevenue).omit({
   id: true,
   createdAt: true,
@@ -297,6 +323,8 @@ export type BountyApplication = typeof bountyApplications.$inferSelect;
 export type PaymentMethod = typeof paymentMethods.$inferSelect;
 export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
 export type Payment = typeof payments.$inferSelect;
+export type BoostHistory = typeof boostHistory.$inferSelect;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type InsertBoostHistory = z.infer<typeof insertBoostHistorySchema>;
 export type PlatformRevenue = typeof platformRevenue.$inferSelect;
 export type InsertPlatformRevenue = z.infer<typeof insertPlatformRevenueSchema>;

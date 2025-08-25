@@ -11,6 +11,7 @@ import {
   paymentMethods,
   payments,
   platformRevenue,
+  boostHistory,
   type User,
   type UpsertUser,
   type Bounty,
@@ -33,6 +34,8 @@ import {
   type InsertPayment,
   type PlatformRevenue,
   type InsertPlatformRevenue,
+  type BoostHistory,
+  type InsertBoostHistory,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql } from "drizzle-orm";
@@ -51,6 +54,11 @@ export interface IStorage {
   updateBountyStatus(id: string, status: string, claimedBy?: string): Promise<void>;
   getUserBounties(userId: string): Promise<Bounty[]>;
   getExpiredBounties(cutoffDate: Date): Promise<Bounty[]>;
+  
+  // Boost operations
+  boostBounty(bountyId: string, userId: string, boostLevel: number, pointsCost: number, durationHours: number): Promise<void>;
+  getActiveBounties(): Promise<Bounty[]>;
+  updateExpiredBoosts(): Promise<void>;
   
   // Application operations
   createBountyApplication(bountyId: string, userId: string, message?: string): Promise<BountyApplication>;
@@ -714,6 +722,109 @@ export class DatabaseStorage implements IStorage {
         });
       }
     }
+  }
+
+  // Boost operations
+  async boostBounty(bountyId: string, userId: string, boostLevel: number, pointsCost: number, durationHours: number): Promise<void> {
+    // Deduct points from user
+    const user = await this.getUser(userId);
+    if (!user || user.points < pointsCost) {
+      throw new Error("Insufficient points for boost");
+    }
+
+    // Update user points
+    await this.updateUserPoints(userId, -pointsCost);
+
+    // Calculate expiry time
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + durationHours);
+
+    // Update bounty with boost info
+    await db
+      .update(bounties)
+      .set({
+        boostLevel,
+        boostExpiresAt: expiresAt,
+        boostPurchasedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(bounties.id, bountyId));
+
+    // Record boost history
+    await db.insert(boostHistory).values({
+      bountyId,
+      userId,
+      boostLevel,
+      pointsCost,
+      durationHours,
+      expiresAt
+    });
+
+    // Create transaction record
+    await this.createTransaction({
+      userId,
+      bountyId,
+      type: "spending",
+      amount: pointsCost.toString(),
+      status: "completed",
+      description: `Boosted bounty (Level ${boostLevel}) for ${durationHours} hours`
+    });
+
+    // Create activity
+    await this.createActivity({
+      userId,
+      type: "bounty_boosted",
+      description: `Boosted bounty for ${durationHours} hours (Level ${boostLevel})`,
+      metadata: { bountyId, boostLevel, pointsCost, durationHours }
+    });
+  }
+
+  async getActiveBounties(): Promise<Bounty[]> {
+    const now = new Date();
+    
+    // Get all active bounties and sort by boost level and creation date
+    const activeBounties = await db
+      .select()
+      .from(bounties)
+      .where(eq(bounties.status, "active"))
+      .orderBy(desc(bounties.boostLevel), desc(bounties.createdAt));
+
+    // Process bounties to include duplicates for boosted posts
+    const processedBounties: Bounty[] = [];
+    
+    for (const bounty of activeBounties) {
+      // Check if boost is still active
+      const isBoostActive = bounty.boostExpiresAt && bounty.boostExpiresAt > now;
+      const effectiveBoostLevel = isBoostActive ? (bounty.boostLevel || 0) : 0;
+      
+      // Add the bounty multiple times based on boost level
+      // Level 0 = 1 copy, Level 1 = 2 copies, Level 2 = 3 copies, Level 3 = 4 copies
+      const copies = effectiveBoostLevel + 1;
+      for (let i = 0; i < copies; i++) {
+        processedBounties.push(bounty);
+      }
+    }
+    
+    return processedBounties;
+  }
+
+  async updateExpiredBoosts(): Promise<void> {
+    const now = new Date();
+    
+    // Reset boost level for expired boosts
+    await db
+      .update(bounties)
+      .set({
+        boostLevel: 0,
+        updatedAt: new Date()
+      })
+      .where(
+        and(
+          sql`${bounties.boostExpiresAt} IS NOT NULL`,
+          sql`${bounties.boostExpiresAt} < ${now.toISOString()}`,
+          sql`${bounties.boostLevel} > 0`
+        )
+      );
   }
 }
 

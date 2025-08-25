@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Lock } from "lucide-react";
+import { Heart, Lock, Rocket } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useBounties } from "@/hooks/useBounties";
@@ -13,12 +13,14 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import DemoLockOverlay from "@/components/DemoLockOverlay";
+import BoostDialog from "@/components/BoostDialog";
 import type { Bounty } from "@shared/schema";
 
 export default function Board() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [favoritedBounties, setFavoritedBounties] = useState<Set<string>>(new Set());
   const [showDemoLock, setShowDemoLock] = useState(false);
+  const [boostBountyId, setBoostBountyId] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const { isDemoMode } = useDemo();
@@ -187,10 +189,10 @@ export default function Board() {
                     <div className="text-lg font-bold text-pocket-gold mb-1" data-testid="text-bounty-reward">
                       {formatCurrency(bounty.reward)}
                     </div>
-                    {Math.random() > 0.7 && ( // Random boost indicator
+                    {bounty.boostLevel > 0 && bounty.boostExpiresAt && new Date(bounty.boostExpiresAt) > new Date() && (
                       <div className="boost-pill">
                         <span>🚀</span>
-                        <span>Boosted</span>
+                        <span>Boost {bounty.boostLevel}</span>
                       </div>
                     )}
                   </div>
@@ -208,6 +210,17 @@ export default function Board() {
                       <Lock className="h-3 w-3 ml-2" />
                     )}
                   </Button>
+                  {bounty.authorId === user?.id && bounty.status === "active" && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setBoostBountyId(bounty.id)}
+                      data-testid={`button-boost-${bounty.id}`}
+                      title="Boost this bounty"
+                    >
+                      <Rocket className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="icon"
@@ -229,6 +242,13 @@ export default function Board() {
         <DemoLockOverlay
           action="Apply to bounties"
           onClose={() => setShowDemoLock(false)}
+        />
+      )}
+      {boostBountyId && (
+        <BoostDialog 
+          bountyId={boostBountyId} 
+          userPoints={user?.points || 0}
+          onClose={() => setBoostBountyId(null)} 
         />
       )}
     </div>

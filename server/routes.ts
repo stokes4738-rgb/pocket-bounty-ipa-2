@@ -303,18 +303,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Bounty routes
   app.get('/api/bounties', async (req, res) => {
     try {
-      // Check for expired bounties before returning list
+      // Check for expired bounties and boosts before returning list
       await processExpiredBounties();
+      await storage.updateExpiredBoosts();
       
       const { category, search } = req.query;
-      const bounties = await storage.getBounties({
-        category: category as string,
-        search: search as string,
-      });
-      res.json(bounties);
+      
+      // If no filters, use the boost-aware method
+      if (!category && !search) {
+        const bounties = await storage.getActiveBounties();
+        res.json(bounties);
+      } else {
+        // Use regular filtered search
+        const bounties = await storage.getBounties({
+          category: category as string,
+          search: search as string,
+        });
+        res.json(bounties);
+      }
     } catch (error) {
       console.error("Error fetching bounties:", error);
       res.status(500).json({ message: "Failed to fetch bounties" });
+    }
+  });
+
+  app.post('/api/bounties/boost/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const bountyId = req.params.id;
+      const { boostLevel } = req.body;
+      
+      // Validate boost level
+      if (!boostLevel || boostLevel < 1 || boostLevel > 3) {
+        return res.status(400).json({ message: "Invalid boost level. Must be between 1 and 3." });
+      }
+      
+      // Check if bounty exists and belongs to user
+      const bounty = await storage.getBounty(bountyId);
+      if (!bounty) {
+        return res.status(404).json({ message: "Bounty not found" });
+      }
+      if (bounty.authorId !== userId) {
+        return res.status(403).json({ message: "You can only boost your own bounties" });
+      }
+      if (bounty.status !== "active") {
+        return res.status(400).json({ message: "Can only boost active bounties" });
+      }
+      
+      // Calculate cost and duration based on boost level
+      const boostConfigs = {
+        1: { points: 10, hours: 6 },   // Level 1: 10 points for 6 hours
+        2: { points: 25, hours: 12 },  // Level 2: 25 points for 12 hours
+        3: { points: 50, hours: 24 },  // Level 3: 50 points for 24 hours
+      };
+      
+      const config = boostConfigs[boostLevel as keyof typeof boostConfigs];
+      
+      // Check user points
+      const user = await storage.getUser(userId);
+      if (!user || user.points < config.points) {
+        return res.status(400).json({ 
+          message: `Insufficient points. Need ${config.points} points for Level ${boostLevel} boost.`,
+          required: config.points,
+          current: user?.points || 0
+        });
+      }
+      
+      // Perform the boost
+      await storage.boostBounty(bountyId, userId, boostLevel, config.points, config.hours);
+      
+      res.json({
+        success: true,
+        message: `Bounty boosted to Level ${boostLevel} for ${config.hours} hours`,
+        pointsSpent: config.points,
+        duration: config.hours,
+        remainingPoints: user.points - config.points
+      });
+    } catch (error: any) {
+      console.error("Error boosting bounty:", error);
+      res.status(500).json({ message: error.message || "Failed to boost bounty" });
     }
   });
 
