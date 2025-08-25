@@ -6,6 +6,13 @@ Pocket Bounty is a full-stack social bounty platform where users can post and co
 
 Preferred communication style: Simple, everyday language.
 
+# Critical Data Protection
+
+**IMPORTANT**: User game data (points, balance, lifetime earnings) must NEVER be lost during authentication.
+- The `upsertUser` function only updates profile fields (name, email, etc.)
+- Game data fields are preserved during login/logout
+- Backup table `user_data_backups` stores periodic snapshots of critical user data
+
 # System Architecture
 
 ## Frontend Architecture

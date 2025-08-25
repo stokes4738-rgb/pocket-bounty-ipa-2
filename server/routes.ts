@@ -81,6 +81,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
+      
+      // Ensure critical data is never null
+      if (user) {
+        user.points = user.points || 0;
+        user.balance = user.balance || "0.00";
+        user.lifetimeEarned = user.lifetimeEarned || "0.00";
+      }
+      
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);

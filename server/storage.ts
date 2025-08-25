@@ -135,18 +135,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const result = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
+    // First check if user exists to preserve their game data
+    const existingUser = await this.getUser(userData.id);
+    
+    if (existingUser) {
+      // User exists - only update profile fields, never touch game data
+      const result = await db
+        .update(users)
+        .set({
+          email: userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          profileImageUrl: userData.profileImageUrl,
           updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return Array.isArray(result) ? result[0] : result;
+        })
+        .where(eq(users.id, userData.id))
+        .returning();
+      return Array.isArray(result) ? result[0] : result;
+    } else {
+      // New user - create with defaults
+      const result = await db
+        .insert(users)
+        .values(userData)
+        .returning();
+      return Array.isArray(result) ? result[0] : result;
+    }
   }
 
   async updateUserPoints(userId: string, points: number): Promise<void> {
