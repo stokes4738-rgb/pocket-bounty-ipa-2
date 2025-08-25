@@ -3,14 +3,42 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { DollarSign, Users, Shield, Zap, Star, TrendingUp } from "lucide-react";
+import { Browser } from "@capacitor/browser";
+import { Capacitor } from "@capacitor/core";
 
 export default function Landing() {
-  const handleLogin = () => {
-    window.location.href = "/login";
+  const handleLogin = async () => {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        // Use in-app browser for mobile app
+        await Browser.open({
+          url: window.location.origin + "/login",
+          windowName: "_self"
+        });
+      } else {
+        // Use normal redirect for web
+        window.location.href = "/login";
+      }
+    } catch (error) {
+      console.error('Navigation error:', error);
+    }
   };
 
-  const handleCreateAccount = () => {
-    window.location.href = "/create-account";
+  const handleCreateAccount = async () => {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        // Use in-app browser for mobile app
+        await Browser.open({
+          url: window.location.origin + "/create-account",
+          windowName: "_self"
+        });
+      } else {
+        // Use normal redirect for web
+        window.location.href = "/create-account";
+      }
+    } catch (error) {
+      console.error('Navigation error:', error);
+    }
   };
 
   return (

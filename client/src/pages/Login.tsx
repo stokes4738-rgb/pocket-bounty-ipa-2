@@ -8,16 +8,36 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { LogIn, Shield, Zap, Users } from "lucide-react";
 import Tutorial from "@/components/Tutorial";
+import { Browser } from "@capacitor/browser";
+import { Capacitor } from "@capacitor/core";
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const { toast } = useToast();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setIsLoading(true);
-    // Redirect to Replit Auth login
-    window.location.href = "/api/login";
+    try {
+      if (Capacitor.isNativePlatform()) {
+        // Use in-app browser for mobile app
+        await Browser.open({
+          url: window.location.origin + "/api/login",
+          windowName: "_self"
+        });
+      } else {
+        // Use normal redirect for web
+        window.location.href = "/api/login";
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setIsLoading(false);
+      toast({
+        title: "Login Error",
+        description: "Failed to open login. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDemoLogin = () => {

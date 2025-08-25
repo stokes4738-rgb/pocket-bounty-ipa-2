@@ -9,6 +9,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus, Shield, DollarSign, Star, ArrowRight, Check } from "lucide-react";
 import Tutorial from "@/components/Tutorial";
+import { Browser } from "@capacitor/browser";
+import { Capacitor } from "@capacitor/core";
 
 export default function CreateAccount() {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,7 +18,7 @@ export default function CreateAccount() {
   const [showTutorial, setShowTutorial] = useState(false);
   const { toast } = useToast();
 
-  const handleCreateAccount = () => {
+  const handleCreateAccount = async () => {
     if (!agreedToTerms) {
       toast({
         title: "Terms Required",
@@ -27,12 +29,43 @@ export default function CreateAccount() {
     }
 
     setIsLoading(true);
-    // Redirect to Replit Auth - account creation is handled automatically
-    window.location.href = "/api/login";
+    try {
+      if (Capacitor.isNativePlatform()) {
+        // Use in-app browser for mobile app
+        await Browser.open({
+          url: window.location.origin + "/api/login",
+          windowName: "_self"
+        });
+      } else {
+        // Use normal redirect for web
+        window.location.href = "/api/login";
+      }
+    } catch (error) {
+      console.error('Account creation error:', error);
+      setIsLoading(false);
+      toast({
+        title: "Account Creation Error",
+        description: "Failed to start account creation. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleExistingUser = () => {
-    window.location.href = "/login";
+  const handleExistingUser = async () => {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        // Use in-app browser for mobile app
+        await Browser.open({
+          url: window.location.origin + "/login",
+          windowName: "_self"
+        });
+      } else {
+        // Use normal redirect for web
+        window.location.href = "/login";
+      }
+    } catch (error) {
+      console.error('Navigation error:', error);
+    }
   };
 
   const handleDemoTutorial = () => {
