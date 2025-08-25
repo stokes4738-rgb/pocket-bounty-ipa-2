@@ -156,6 +156,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Point purchase routes
+  app.get("/api/points/packages", (req, res) => {
+    const packages = [
+      { id: "starter", points: 50, price: 0.99, label: "Starter Pack", popular: false },
+      { id: "basic", points: 100, price: 1.99, label: "Basic Pack", popular: false },
+      { id: "popular", points: 250, price: 4.99, label: "Popular Pack", popular: true },
+      { id: "premium", points: 500, price: 9.99, label: "Premium Pack", popular: false },
+      { id: "mega", points: 1000, price: 19.99, label: "Mega Pack", popular: false },
+      { id: "ultimate", points: 2500, price: 49.99, label: "Ultimate Pack", popular: false },
+      { id: "supreme", points: 5000, price: 99.99, label: "Supreme Pack", popular: false },
+    ];
+    res.json(packages);
+  });
+
+  app.post("/api/points/purchase", isAuthenticated, async (req: any, res) => {
+    if (!stripe) {
+      return res.status(500).json({ message: "Payment system not available" });
+    }
+
+    try {
+      const { packageId } = req.body;
+      const userId = req.user.claims.sub;
+
+      // Define point packages
+      const packages: { [key: string]: { points: number; price: number; label: string } } = {
+        starter: { points: 50, price: 0.99, label: "Starter Pack" },
+        basic: { points: 100, price: 1.99, label: "Basic Pack" },
+        popular: { points: 250, price: 4.99, label: "Popular Pack" },
+        premium: { points: 500, price: 9.99, label: "Premium Pack" },
+        mega: { points: 1000, price: 19.99, label: "Mega Pack" },
+        ultimate: { points: 2500, price: 49.99, label: "Ultimate Pack" },
+        supreme: { points: 5000, price: 99.99, label: "Supreme Pack" },
+      };
+
+      const selectedPackage = packages[packageId];
+      if (!selectedPackage) {
+        return res.status(400).json({ message: "Invalid package selected" });
+      }
+
+      // Create Stripe payment intent
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(selectedPackage.price * 100), // Convert to cents
+        currency: "usd",
+        metadata: {
+          userId,
+          packageId,
+          points: selectedPackage.points.toString(),
+          type: "point_purchase"
+        },
+        description: `${selectedPackage.label} - ${selectedPackage.points} points`,
+      });
+
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        package: selectedPackage
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error creating payment: " + error.message });
+    }
+  });
+
+  app.post("/api/points/confirm-purchase", isAuthenticated, async (req: any, res) => {
+    if (!stripe) {
+      return res.status(500).json({ message: "Payment system not available" });
+    }
+
+    try {
+      const { paymentIntentId } = req.body;
+      const userId = req.user.claims.sub;
+
+      // Retrieve payment intent to verify payment
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      
+      if (paymentIntent.status !== 'succeeded') {
+        return res.status(400).json({ message: "Payment not completed" });
+      }
+
+      if (paymentIntent.metadata.userId !== userId) {
+        return res.status(403).json({ message: "Payment belongs to different user" });
+      }
+
+      if (paymentIntent.metadata.type !== 'point_purchase') {
+        return res.status(400).json({ message: "Invalid payment type" });
+      }
+
+      const pointsToAward = parseInt(paymentIntent.metadata.points);
+      const packageLabel = paymentIntent.description;
+
+      // Award points to user
+      await storage.updateUserPoints(userId, pointsToAward);
+
+      // Create transaction record
+      await storage.createTransaction({
+        userId,
+        type: "point_purchase",
+        amount: (paymentIntent.amount / 100).toFixed(2),
+        description: `Purchased ${packageLabel}`,
+        status: "completed",
+      });
+
+      // Create activity
+      await storage.createActivity({
+        userId,
+        type: "points_purchased",
+        description: `Purchased ${pointsToAward} points for $${(paymentIntent.amount / 100).toFixed(2)}`,
+        metadata: { 
+          points: pointsToAward, 
+          amount: (paymentIntent.amount / 100).toFixed(2),
+          package: paymentIntent.metadata.packageId
+        },
+      });
+
+      // Create platform revenue record
+      await storage.createPlatformRevenue({
+        amount: (paymentIntent.amount / 100).toFixed(2),
+        source: "point_purchase",
+        description: `Point purchase: ${packageLabel}`,
+      });
+
+      res.json({ 
+        success: true, 
+        pointsAwarded: pointsToAward,
+        message: `Successfully purchased ${pointsToAward} points!`
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error confirming purchase: " + error.message });
+    }
+  });
+
   // Bounty routes
   app.get('/api/bounties', async (req, res) => {
     try {

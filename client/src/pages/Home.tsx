@@ -12,6 +12,7 @@ import FlappyGame from "./FlappyGame";
 import Account from "./Account";
 import CreatorDashboard from "./CreatorDashboard";
 import Referrals from "./Referrals";
+import PointsStore from "./PointsStore";
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState("board");
@@ -38,6 +39,8 @@ export default function Home() {
         return <FlappyGame />;
       case "referrals":
         return <Referrals />;
+      case "points":
+        return <PointsStore />;
       case "account":
         return <Account />;
       case "admin":
