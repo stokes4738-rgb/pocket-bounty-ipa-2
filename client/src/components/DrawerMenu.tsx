@@ -17,12 +17,11 @@ export function DrawerMenu({ isOpen, onClose, activeSection, onSectionChange }: 
   };
 
   const menuItems = [
-    { id: "bank", label: "🏦 Bank" },
     { id: "board", label: "📋 Board" },
     { id: "post", label: "➕ Post" },
     { id: "messages", label: "💬 Messages" },
-    { id: "profile", label: "👤 Profile" },
     { id: "account", label: "💳 Account" },
+    { id: "profile", label: "👤 Profile" },
     { id: "friends", label: "👥 Friends" },
     { id: "activity", label: "🔔 Activity" },
     { id: "referrals", label: "🎯 Share & Earn" },

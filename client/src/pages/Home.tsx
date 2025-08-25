@@ -21,8 +21,9 @@ export default function Home() {
 
   const renderSection = () => {
     switch (activeSection) {
-      case "bank":
-        return <Bank />;
+      case "bank": // Legacy support - redirect to account
+      case "account":
+        return <Account />;
       case "board":
         return <Board />;
       case "post":
@@ -45,8 +46,6 @@ export default function Home() {
         return <Referrals />;
       case "points":
         return <PointsStore />;
-      case "account":
-        return <Account />;
       case "admin":
         return <CreatorDashboard />;
       case "inbox":
