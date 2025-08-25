@@ -29,6 +29,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Pocket Bounty" />
     
+    <!-- PWA Input Fix -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    
     <!-- Microsoft PWA Support -->
     <meta name="msapplication-TileImage" content="/icon-192.png" />
     
@@ -38,6 +42,8 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- PWA input fixes for standalone mode -->
+    <script type="text/javascript" src="/pwa-fixes.js"></script>
     <script type="module" src="/src/main.tsx"></script>
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
