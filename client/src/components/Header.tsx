@@ -21,9 +21,14 @@ export function Header({ onMenuClick }: HeaderProps) {
         >
           ☰
         </Button>
-        <h1 className="text-lg font-semibold text-pocket-gold m-0">
-          🪙 Pocket Bounty
-        </h1>
+        <div className="text-center">
+          <h1 className="text-lg font-semibold text-pocket-gold m-0">
+            🪙 Pocket Bounty
+          </h1>
+          <div className="text-xs text-muted-foreground/50 mt-0.5 leading-none">
+            Built by Dallas Abbott
+          </div>
+        </div>
         <div className="points-pill" data-testid="display-points">
           <span className="text-base">⭐</span>
           <span>{user?.points || 0}</span>

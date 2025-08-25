@@ -32,10 +32,6 @@ export function Layout({ children, activeSection, onSectionChange }: LayoutProps
         onSectionChange={onSectionChange}
       />
       
-      {/* Subtle creator watermark */}
-      <div className="fixed bottom-2 right-2 text-xs text-muted-foreground/40 pointer-events-none select-none z-10">
-        Built by Dallas Abbott
-      </div>
     </div>
   );
 }

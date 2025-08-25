@@ -80,10 +80,6 @@ function App() {
               </div>
               <Router />
               
-              {/* Global subtle creator watermark for all pages */}
-              <div className="fixed bottom-2 right-2 text-xs text-muted-foreground/30 pointer-events-none select-none z-10">
-                Built by Dallas Abbott
-              </div>
             </div>
           </TooltipProvider>
         </ThemeProvider>
