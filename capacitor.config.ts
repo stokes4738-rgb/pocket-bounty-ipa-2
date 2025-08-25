@@ -3,7 +3,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.pocketbounty.app',
   appName: 'Pocket Bounty',
-  webDir: 'client/dist',
+  webDir: 'dist/public',
   server: {
     androidScheme: 'https'
   },
