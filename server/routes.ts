@@ -474,6 +474,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Feedback system for users to contact creator
+  app.post('/api/feedback', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { message, type } = req.body;
+      const creatorId = "46848986"; // Dallas Abbott's user ID
+
+      if (!message || !message.trim()) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      // Get or create thread between user and creator
+      const thread = await storage.getOrCreateThread(userId, creatorId);
+      
+      // Create the feedback message
+      const newMessage = await storage.createMessage({
+        threadId: thread.id,
+        senderId: userId,
+        content: message.trim(),
+      });
+
+      // Create activity for the feedback
+      await storage.createActivity({
+        userId,
+        type: "feedback_sent",
+        description: `Sent ${type || 'feedback'} to creator`,
+        metadata: { type, threadId: thread.id },
+      });
+
+      res.status(201).json({ 
+        success: true, 
+        message: "Feedback sent successfully",
+        threadId: thread.id 
+      });
+    } catch (error: any) {
+      console.error("Error sending feedback:", error);
+      res.status(500).json({ message: "Failed to send feedback" });
+    }
+  });
+
+  // Creator inbox - get all feedback threads
+  app.get('/api/creator/feedback-threads', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const creatorId = "46848986"; // Dallas Abbott's user ID
+      
+      // Only allow creator to access this endpoint
+      if (userId !== creatorId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const threads = await storage.getUserThreads(creatorId);
+      res.json(threads);
+    } catch (error) {
+      console.error("Error fetching creator feedback threads:", error);
+      res.status(500).json({ message: "Failed to fetch feedback threads" });
+    }
+  });
+
   // User search route
   app.get('/api/users/search', isAuthenticated, async (req: any, res) => {
     try {

@@ -12,6 +12,7 @@ import FlappyGame from "./FlappyGame";
 import Arcade from "./Arcade";
 import Account from "./Account";
 import CreatorDashboard from "./CreatorDashboard";
+import CreatorInbox from "./CreatorInbox";
 import Referrals from "./Referrals";
 import PointsStore from "./PointsStore";
 
@@ -48,6 +49,8 @@ export default function Home() {
         return <Account />;
       case "admin":
         return <CreatorDashboard />;
+      case "inbox":
+        return <CreatorInbox />;
       default:
         return <Board />;
     }

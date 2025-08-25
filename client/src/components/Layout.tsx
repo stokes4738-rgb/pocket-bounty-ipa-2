@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Header } from "./Header";
 import { DrawerMenu } from "./DrawerMenu";
 import { BottomNavigation } from "./BottomNavigation";
+import FeedbackButton from "./FeedbackButton";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -31,6 +32,8 @@ export function Layout({ children, activeSection, onSectionChange }: LayoutProps
         activeSection={activeSection}
         onSectionChange={onSectionChange}
       />
+      
+      <FeedbackButton />
       
     </div>
   );
