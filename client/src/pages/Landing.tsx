@@ -12,12 +12,12 @@ export default function Landing() {
       if (Capacitor.isNativePlatform()) {
         // Use in-app browser for mobile app
         await Browser.open({
-          url: window.location.origin + "/login",
+          url: window.location.origin + "/auth",
           windowName: "_self"
         });
       } else {
         // Use normal redirect for web
-        window.location.href = "/login";
+        window.location.href = "/auth";
       }
     } catch (error) {
       console.error('Navigation error:', error);
@@ -29,12 +29,12 @@ export default function Landing() {
       if (Capacitor.isNativePlatform()) {
         // Use in-app browser for mobile app
         await Browser.open({
-          url: window.location.origin + "/create-account",
+          url: window.location.origin + "/auth",
           windowName: "_self"
         });
       } else {
         // Use normal redirect for web
-        window.location.href = "/create-account";
+        window.location.href = "/auth";
       }
     } catch (error) {
       console.error('Navigation error:', error);

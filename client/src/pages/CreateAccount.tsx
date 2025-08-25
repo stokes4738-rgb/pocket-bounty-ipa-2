@@ -33,12 +33,12 @@ export default function CreateAccount() {
       if (Capacitor.isNativePlatform()) {
         // Use in-app browser for mobile app
         await Browser.open({
-          url: window.location.origin + "/api/login",
+          url: window.location.origin + "/auth",
           windowName: "_self"
         });
       } else {
         // Use normal redirect for web
-        window.location.href = "/api/login";
+        window.location.href = "/auth";
       }
     } catch (error) {
       console.error('Account creation error:', error);
@@ -56,12 +56,12 @@ export default function CreateAccount() {
       if (Capacitor.isNativePlatform()) {
         // Use in-app browser for mobile app
         await Browser.open({
-          url: window.location.origin + "/login",
+          url: window.location.origin + "/auth",
           windowName: "_self"
         });
       } else {
         // Use normal redirect for web
-        window.location.href = "/login";
+        window.location.href = "/auth";
       }
     } catch (error) {
       console.error('Navigation error:', error);
