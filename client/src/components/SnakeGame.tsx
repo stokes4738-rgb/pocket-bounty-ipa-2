@@ -285,43 +285,48 @@ export default function SnakeGame() {
   return (
     <div ref={gameContainerRef} className={`space-y-4 ${isFullscreen ? 'fixed inset-0 z-50 bg-background p-4 overflow-auto' : ''}`}>
       <div className="text-center">
-        <h2 className="text-lg font-bold mb-2">🐍 Snake Game</h2>
-        <p className="text-sm text-muted-foreground">Eat the red food to grow and earn points!</p>
+        <div className="relative inline-block">
+          <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-green-400 to-emerald-600 bg-clip-text text-transparent">🐍 Snake Game</h2>
+          <div className="absolute -inset-1 bg-gradient-to-r from-green-400 to-emerald-600 rounded-lg blur opacity-20 animate-pulse"></div>
+        </div>
+        <p className="text-sm text-muted-foreground">Eat the red food to grow and become the ultimate snake!</p>
       </div>
 
-      <Card className="theme-transition">
+      <Card className="theme-transition shadow-2xl border-2 border-green-500/20">
         <CardContent className="p-2">
-          <div className="relative bg-gradient-to-b from-gray-800 to-gray-900 rounded-lg overflow-hidden">
+          <div className="relative bg-gradient-to-br from-gray-900 via-green-900/20 to-gray-900 rounded-xl overflow-hidden shadow-inner border border-green-500/30">
             <div 
-              className="relative focus:outline-none focus:ring-2 focus:ring-pocket-red rounded"
+              className="relative focus:outline-none focus:ring-4 focus:ring-green-500/50 rounded-xl"
               tabIndex={0}
               data-testid="game-container-snake"
             >
+              <div className="absolute inset-0 bg-gradient-to-br from-green-900/10 to-transparent rounded-xl"></div>
               <canvas
                 ref={canvasRef}
                 width={CANVAS_SIZE}
                 height={CANVAS_SIZE}
-                className="w-full h-96 cursor-crosshair"
+                className="w-full h-96 cursor-crosshair relative z-10 rounded-xl"
                 data-testid="canvas-snake-game"
               />
             </div>
             
             {gameState.gameStatus !== "playing" && (
-              <div className="absolute inset-0 flex items-center justify-center text-white bg-black/50">
-                <div className="text-center">
+              <div className="absolute inset-0 flex items-center justify-center text-white bg-gradient-to-br from-black/80 via-green-900/60 to-black/80 backdrop-blur-sm rounded-xl">
+                <div className="text-center p-6 bg-black/30 rounded-2xl border border-green-500/30 backdrop-blur-md">
                   {gameState.gameStatus === "waiting" && (
                     <>
-                      <div className="text-xl mb-2">🐍 Ready to Play?</div>
-                      <div className="text-sm mb-2">Use arrow keys to move</div>
+                      <div className="text-2xl mb-4 animate-bounce">🐍 Ready to Play?</div>
+                      <div className="text-sm mb-2 text-green-300">Use arrow keys or touch controls to move</div>
+                      <div className="text-xs text-gray-400">Eat food to grow and earn points!</div>
                     </>
                   )}
                   
                   {gameState.gameStatus === "gameover" && (
                     <>
-                      <div className="text-xl mb-2">Game Over!</div>
-                      <div className="text-sm mb-2">Score: {gameState.score}</div>
+                      <div className="text-2xl mb-4 text-red-400 animate-pulse">💀 Game Over!</div>
+                      <div className="text-lg mb-2 font-bold text-green-400">Score: {gameState.score}</div>
                       {gameState.score > bestScore && (
-                        <div className="text-xs text-yellow-300 mt-1">New Best Score! 🎉</div>
+                        <div className="text-sm text-yellow-300 mt-2 animate-bounce">🏆 New Best Score! 🎉</div>
                       )}
                     </>
                   )}
@@ -333,11 +338,11 @@ export default function SnakeGame() {
       </Card>
 
       <Card className="theme-transition">
-        <CardContent className="p-3.5 flex justify-between items-center">
+        <CardContent className="p-3.5 flex justify-between items-center bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50">
           <div className="flex gap-3">
-            <Badge variant="outline">Score: {gameState.score}</Badge>
-            <Badge variant="outline">Best: {bestScore}</Badge>
-            <Badge variant="outline">Length: {gameState.snake.length}</Badge>
+            <Badge variant="outline" className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-md">Score: {gameState.score}</Badge>
+            <Badge variant="outline" className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white border-0 shadow-md">Best: {bestScore}</Badge>
+            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-md">Length: {gameState.snake.length}</Badge>
           </div>
           <div className="flex gap-2">
             <Button 

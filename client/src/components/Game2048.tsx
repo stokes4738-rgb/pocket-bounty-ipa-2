@@ -293,9 +293,12 @@ export default function Game2048() {
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <h2 className="text-lg font-bold mb-2">🔢 2048</h2>
+        <div className="relative inline-block">
+          <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-orange-400 to-red-600 bg-clip-text text-transparent">🔢 2048</h2>
+          <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 to-red-600 rounded-lg blur opacity-20 animate-pulse"></div>
+        </div>
         <p className="text-sm text-muted-foreground">
-          Combine tiles to reach 2048! Use arrow keys or swipe.
+          Merge tiles and reach the ultimate 2048 goal!
         </p>
       </div>
 
@@ -325,10 +328,10 @@ export default function Game2048() {
       </Card>
 
       {/* Game Board */}
-      <Card className="theme-transition">
-        <CardContent className="p-4">
+      <Card className="theme-transition shadow-2xl border-2 border-orange-500/20">
+        <CardContent className="p-4 bg-gradient-to-br from-orange-50/50 to-red-50/50 dark:from-orange-950/20 dark:to-red-950/20">
           <div 
-            className="grid grid-cols-4 gap-2 bg-slate-300 dark:bg-slate-700 p-2 rounded-lg max-w-80 mx-auto focus:outline-none focus:ring-2 focus:ring-pocket-red"
+            className="grid grid-cols-4 gap-3 bg-gradient-to-br from-orange-200 to-red-200 dark:from-orange-900/50 dark:to-red-900/50 p-4 rounded-xl max-w-80 mx-auto focus:outline-none focus:ring-4 focus:ring-orange-500/50 shadow-inner border border-orange-300 dark:border-orange-700"
             data-testid="board-2048"
             tabIndex={0}
             key={animationKey}

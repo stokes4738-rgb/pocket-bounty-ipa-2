@@ -356,42 +356,47 @@ export default function SpaceInvaders() {
   return (
     <div ref={gameContainerRef} className={`space-y-4 ${isFullscreen ? 'fixed inset-0 z-50 bg-background p-4 overflow-auto' : ''}`}>
       <div className="text-center">
-        <h2 className="text-lg font-bold mb-2">🚀 Space Invaders</h2>
-        <p className="text-sm text-muted-foreground">Defend Earth from alien invasion!</p>
+        <div className="relative inline-block">
+          <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-cyan-400 to-blue-600 bg-clip-text text-transparent">🚀 Space Invaders</h2>
+          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-400 to-blue-600 rounded-lg blur opacity-20 animate-pulse"></div>
+        </div>
+        <p className="text-sm text-muted-foreground">Defend Earth from the alien invasion!</p>
       </div>
 
-      <Card className="theme-transition">
+      <Card className="theme-transition shadow-2xl border-2 border-cyan-500/20">
         <CardContent className="p-2">
           <div 
-            className="relative bg-gradient-to-b from-blue-900 to-black rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-pocket-red"
+            className="relative bg-gradient-to-b from-blue-900 via-cyan-900/20 to-black rounded-xl overflow-hidden focus:outline-none focus:ring-4 focus:ring-cyan-500/50 shadow-inner border border-cyan-500/30"
             tabIndex={0}
             data-testid="game-container-space-invaders"
           >
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/10 to-transparent rounded-xl"></div>
             <canvas
               ref={canvasRef}
               width={CANVAS_WIDTH}
               height={CANVAS_HEIGHT}
-              className="w-full h-80 cursor-crosshair"
+              className="w-full h-80 cursor-crosshair relative z-10 rounded-lg"
               data-testid="canvas-space-invaders"
             />
             
             {gameState.gameStatus !== "playing" && (
-              <div className="absolute inset-0 flex items-center justify-center text-white bg-black/50">
-                <div className="text-center">
+              <div className="absolute inset-0 flex items-center justify-center text-white bg-gradient-to-br from-black/80 via-cyan-900/60 to-black/80 backdrop-blur-sm rounded-xl">
+                <div className="text-center p-6 bg-black/30 rounded-2xl border border-cyan-500/30 backdrop-blur-md">
                   {gameState.gameStatus === "waiting" && (
                     <>
-                      <div className="text-xl mb-2">🚀 Ready for Battle?</div>
-                      <div className="text-sm mb-2">Arrow keys to move, Space to shoot</div>
+                      <div className="text-2xl mb-4 animate-bounce">🚀 Ready for Battle?</div>
+                      <div className="text-sm mb-2 text-cyan-300">Arrow keys or touch controls to move</div>
+                      <div className="text-sm text-blue-300">Space bar or tap to shoot</div>
                     </>
                   )}
                   
                   {gameState.gameStatus === "gameover" && (
                     <>
-                      <div className="text-xl mb-2">Game Over!</div>
-                      <div className="text-sm mb-2">Final Score: {gameState.score}</div>
-                      <div className="text-sm mb-2">Reached Wave: {gameState.wave}</div>
+                      <div className="text-2xl mb-4 text-red-400 animate-pulse">💥 Game Over!</div>
+                      <div className="text-lg mb-2 font-bold text-cyan-400">Final Score: {gameState.score}</div>
+                      <div className="text-sm mb-2 text-blue-400">Reached Wave: {gameState.wave}</div>
                       {gameState.score > bestScore && (
-                        <div className="text-xs text-yellow-300 mt-1">New Best Score! 🎉</div>
+                        <div className="text-sm text-yellow-300 mt-2 animate-bounce">🏆 New Best Score! 🎉</div>
                       )}
                     </>
                   )}
@@ -403,12 +408,12 @@ export default function SpaceInvaders() {
       </Card>
 
       <Card className="theme-transition">
-        <CardContent className="p-3.5 flex justify-between items-center">
+        <CardContent className="p-3.5 flex justify-between items-center bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-950/50 dark:to-blue-950/50">
           <div className="flex gap-3">
-            <Badge variant="outline">Score: {gameState.score}</Badge>
-            <Badge variant="outline">Best: {bestScore}</Badge>
-            <Badge variant="outline">Wave: {gameState.wave}</Badge>
-            <Badge variant="outline">Lives: {gameState.lives}</Badge>
+            <Badge variant="outline" className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0 shadow-md">Score: {gameState.score}</Badge>
+            <Badge variant="outline" className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white border-0 shadow-md">Best: {bestScore}</Badge>
+            <Badge variant="outline" className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-md">Wave: {gameState.wave}</Badge>
+            <Badge variant="outline" className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-0 shadow-md">Lives: {gameState.lives}</Badge>
           </div>
           <div className="flex gap-2">
             <Button 

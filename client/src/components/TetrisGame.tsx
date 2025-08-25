@@ -394,45 +394,49 @@ export default function TetrisGame() {
   return (
     <div ref={gameContainerRef} className={`space-y-4 ${isFullscreen ? 'fixed inset-0 z-50 bg-background p-4 overflow-auto' : ''}`}>
       <div className="text-center">
-        <h2 className="text-lg font-bold mb-2">🧩 Tetris</h2>
-        <p className="text-sm text-muted-foreground">Clear lines by filling rows completely!</p>
+        <div className="relative inline-block">
+          <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">🧩 Tetris</h2>
+          <div className="absolute -inset-1 bg-gradient-to-r from-purple-400 to-pink-600 rounded-lg blur opacity-20 animate-pulse"></div>
+        </div>
+        <p className="text-sm text-muted-foreground">Clear lines by filling rows and reach new heights!</p>
       </div>
 
       <div className="flex gap-4 justify-center">
-        <Card className="theme-transition">
+        <Card className="theme-transition shadow-2xl border-2 border-purple-500/20">
           <CardContent className="p-2">
             <div 
-              className="relative bg-black rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-pocket-red"
+              className="relative bg-gradient-to-b from-black via-purple-900/20 to-black rounded-xl overflow-hidden focus:outline-none focus:ring-4 focus:ring-purple-500/50 shadow-inner border border-purple-500/30"
               tabIndex={0}
               data-testid="game-container-tetris"
             >
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 to-transparent rounded-xl"></div>
               <canvas
                 ref={canvasRef}
                 width={GRID_WIDTH * CELL_SIZE}
                 height={GRID_HEIGHT * CELL_SIZE}
-                className="border border-gray-600 cursor-crosshair"
+                className="border-2 border-purple-500/50 cursor-crosshair relative z-10 rounded-lg shadow-lg"
                 data-testid="canvas-tetris"
               />
               
               {gameState.gameStatus !== "playing" && (
-                <div className="absolute inset-0 flex items-center justify-center text-white bg-black/50">
-                  <div className="text-center">
+                <div className="absolute inset-0 flex items-center justify-center text-white bg-gradient-to-br from-black/80 via-purple-900/60 to-black/80 backdrop-blur-sm rounded-xl">
+                  <div className="text-center p-6 bg-black/30 rounded-2xl border border-purple-500/30 backdrop-blur-md">
                     {gameState.gameStatus === "waiting" && (
                       <>
-                        <div className="text-xl mb-2">🧩 Ready to Play Tetris?</div>
-                        <div className="text-sm mb-1">Arrow keys to move and rotate</div>
-                        <div className="text-sm">Space bar for hard drop</div>
+                        <div className="text-2xl mb-4 animate-bounce">🧩 Ready to Play Tetris?</div>
+                        <div className="text-sm mb-1 text-purple-300">Arrow keys to move and rotate</div>
+                        <div className="text-sm text-pink-300">Space bar for hard drop</div>
                       </>
                     )}
                     
                     {gameState.gameStatus === "gameover" && (
                       <>
-                        <div className="text-xl mb-2">Game Over!</div>
-                        <div className="text-sm mb-2">Final Score: {gameState.score}</div>
-                        <div className="text-sm mb-2">Level Reached: {gameState.level}</div>
-                        <div className="text-sm mb-2">Lines Cleared: {gameState.lines}</div>
+                        <div className="text-2xl mb-4 text-red-400 animate-pulse">💀 Game Over!</div>
+                        <div className="text-lg mb-2 font-bold text-purple-400">Final Score: {gameState.score}</div>
+                        <div className="text-sm mb-1 text-pink-400">Level Reached: {gameState.level}</div>
+                        <div className="text-sm mb-2 text-cyan-400">Lines Cleared: {gameState.lines}</div>
                         {gameState.score > bestScore && (
-                          <div className="text-xs text-yellow-300 mt-1">New Best Score! 🎉</div>
+                          <div className="text-sm text-yellow-300 mt-2 animate-bounce">🏆 New Best Score! 🎉</div>
                         )}
                       </>
                     )}
@@ -482,11 +486,11 @@ export default function TetrisGame() {
       </div>
 
       <Card className="theme-transition">
-        <CardContent className="p-3.5 flex justify-between items-center">
+        <CardContent className="p-3.5 flex justify-between items-center bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/50 dark:to-pink-950/50">
           <div className="flex gap-3">
-            <Badge variant="outline">Score: {gameState.score}</Badge>
-            <Badge variant="outline">Level: {gameState.level}</Badge>
-            <Badge variant="outline">Lines: {gameState.lines}</Badge>
+            <Badge variant="outline" className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-md">Score: {gameState.score}</Badge>
+            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 shadow-md">Level: {gameState.level}</Badge>
+            <Badge variant="outline" className="bg-gradient-to-r from-pink-500 to-red-500 text-white border-0 shadow-md">Lines: {gameState.lines}</Badge>
           </div>
           <div className="flex gap-2">
             <Button 

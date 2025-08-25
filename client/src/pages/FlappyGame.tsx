@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
+import { Maximize, Minimize } from "lucide-react";
 
 interface GameState {
   bird: { x: number; y: number; velocity: number };
@@ -33,6 +34,8 @@ export default function FlappyGame() {
   const [bestScore, setBestScore] = useState(() => {
     return parseInt(localStorage.getItem("flappy-best-score") || "0", 10);
   });
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const gameContainerRef = useRef<HTMLDivElement>(null);
   const [devMode, setDevMode] = useState(false);
   const [godMode, setGodMode] = useState(false);
   const [showDevButton, setShowDevButton] = useState(false);
@@ -78,6 +81,33 @@ export default function FlappyGame() {
       score: 0,
       gameStatus: "waiting",
     });
+  }, []);
+
+  const toggleFullscreen = async () => {
+    if (!gameContainerRef.current) return;
+    
+    try {
+      if (!isFullscreen) {
+        if (gameContainerRef.current.requestFullscreen) {
+          await gameContainerRef.current.requestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+      }
+    } catch (error) {
+      console.error('Fullscreen error:', error);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
   const startGame = useCallback(() => {
@@ -366,15 +396,18 @@ export default function FlappyGame() {
   ].sort((a, b) => b.score - a.score);
 
   return (
-    <div className="space-y-4">
+    <div ref={gameContainerRef} className={`space-y-4 ${isFullscreen ? 'fixed inset-0 z-50 bg-background p-4 overflow-auto' : ''}`}>
       <div className="text-center">
-        <h2 className="text-lg font-bold mb-2">🐤 Flappy Bounty</h2>
-        <p className="text-sm text-muted-foreground">Play to earn bonus points!</p>
+        <div className="relative inline-block">
+          <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-orange-600 bg-clip-text text-transparent">🐤 Flappy Bounty</h2>
+          <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-600 rounded-lg blur opacity-20 animate-pulse"></div>
+        </div>
+        <p className="text-sm text-muted-foreground">Fly through pipes and earn bonus points!</p>
       </div>
 
       {/* Game Canvas - Made larger */}
-      <Card className="theme-transition">
-        <CardContent className="p-2">
+      <Card className="theme-transition shadow-2xl border-2 border-yellow-500/20">
+        <CardContent className="p-2 bg-gradient-to-b from-sky-100 to-blue-100 dark:from-sky-950/30 dark:to-blue-950/30">
           <div className="relative w-full bg-gradient-to-b from-blue-400 to-blue-600 rounded-lg overflow-hidden">
             <canvas
               ref={canvasRef}
@@ -425,6 +458,14 @@ export default function FlappyGame() {
             </Badge>
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={toggleFullscreen}
+              className="px-2"
+            >
+              {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+            </Button>
             <Button
               variant="outline"
               onClick={resetGame}
