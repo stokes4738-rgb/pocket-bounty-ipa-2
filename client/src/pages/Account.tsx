@@ -267,12 +267,17 @@ function DepositForm({ paymentMethods }: { paymentMethods: PaymentMethodType[] }
             }
             setAmount(value);
           }}
+          onFocus={(e) => {
+            // Force keyboard to show on mobile
+            e.target.setAttribute('readonly', 'false');
+            e.target.click();
+          }}
           placeholder="Enter amount (e.g., 10.00)"
           data-testid="input-deposit-amount"
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
-          spellCheck="false"
+          spellCheck={false}
         />
       </div>
       <div>
@@ -328,7 +333,7 @@ export default function Account() {
         title: "Success",
         description: "Default payment method updated",
       });
-      refetchMethods();
+      queryClient.invalidateQueries({ queryKey: ["/api/payments/methods"] });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -359,7 +364,7 @@ export default function Account() {
         title: "Success",
         description: "Payment method removed",
       });
-      refetchMethods();
+      queryClient.invalidateQueries({ queryKey: ["/api/payments/methods"] });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -595,7 +600,7 @@ export default function Account() {
                 <AddPaymentMethodForm
                   onSuccess={() => {
                     setShowAddCard(false);
-                    refetchMethods();
+                    queryClient.invalidateQueries({ queryKey: ["/api/payments/methods"] });
                   }}
                 />
                 <Button

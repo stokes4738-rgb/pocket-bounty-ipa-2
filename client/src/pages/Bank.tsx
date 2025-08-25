@@ -263,12 +263,17 @@ export default function Bank() {
                     }
                     setPayoutAmount(value);
                   }}
+                  onFocus={(e) => {
+                    // Force keyboard to show on mobile
+                    e.target.setAttribute('readonly', 'false');
+                    e.target.click();
+                  }}
                   className="pl-8"
                   data-testid="input-payout-amount"
                   autoComplete="off"
                   autoCorrect="off"
                   autoCapitalize="off"
-                  spellCheck="false"
+                  spellCheck={false}
                 />
               </div>
               <div className="text-xs text-muted-foreground mt-1">
