@@ -74,82 +74,88 @@ export default function Game2048() {
     return board;
   }
 
-  function moveLeft(board: Board): { newBoard: Board; scoreGain: number; moved: boolean } {
+  function moveRow(row: number[], direction: 'left' | 'right'): { newRow: number[]; scoreGain: number; moved: boolean } {
     let scoreGain = 0;
     let moved = false;
-    const newBoard = board.map(row => {
-      const filteredRow = row.filter(cell => cell !== 0);
-      const mergedRow = [];
-      let i = 0;
-      
-      while (i < filteredRow.length) {
-        if (i < filteredRow.length - 1 && filteredRow[i] === filteredRow[i + 1]) {
-          const mergedValue = filteredRow[i] * 2;
-          mergedRow.push(mergedValue);
-          scoreGain += mergedValue;
-          i += 2;
-        } else {
-          mergedRow.push(filteredRow[i]);
-          i++;
-        }
-      }
-      
-      const finalRow = [...mergedRow, ...Array(BOARD_SIZE - mergedRow.length).fill(0)];
-      
-      if (JSON.stringify(row) !== JSON.stringify(finalRow)) {
-        moved = true;
-      }
-      
-      return finalRow;
-    });
     
-    return { newBoard, scoreGain, moved };
-  }
-
-  function rotateBoard(board: Board): Board {
-    return board[0].map((_, i) => board.map(row => row[i]).reverse());
+    // Filter out zeros
+    let filteredRow = row.filter(cell => cell !== 0);
+    
+    // Reverse if moving right
+    if (direction === 'right') {
+      filteredRow = filteredRow.reverse();
+    }
+    
+    // Merge tiles
+    const mergedRow = [];
+    let i = 0;
+    while (i < filteredRow.length) {
+      if (i < filteredRow.length - 1 && filteredRow[i] === filteredRow[i + 1]) {
+        const mergedValue = filteredRow[i] * 2;
+        mergedRow.push(mergedValue);
+        scoreGain += mergedValue;
+        i += 2;
+      } else {
+        mergedRow.push(filteredRow[i]);
+        i++;
+      }
+    }
+    
+    // Add zeros and reverse back if needed
+    let finalRow;
+    if (direction === 'right') {
+      finalRow = [...Array(BOARD_SIZE - mergedRow.length).fill(0), ...mergedRow.reverse()];
+    } else {
+      finalRow = [...mergedRow, ...Array(BOARD_SIZE - mergedRow.length).fill(0)];
+    }
+    
+    if (JSON.stringify(row) !== JSON.stringify(finalRow)) {
+      moved = true;
+    }
+    
+    return { newRow: finalRow, scoreGain, moved };
   }
 
   function move(direction: 'left' | 'right' | 'up' | 'down'): void {
-    let currentBoard = [...board.map(row => [...row])];
-    let rotations = 0;
+    let newBoard = [...board.map(row => [...row])];
+    let totalScore = 0;
+    let anyMoved = false;
     
-    switch (direction) {
-      case 'right':
-        rotations = 2;
-        break;
-      case 'up':
-        rotations = 3;
-        break;
-      case 'down':
-        rotations = 1;
-        break;
+    if (direction === 'left' || direction === 'right') {
+      // Move rows horizontally
+      for (let i = 0; i < BOARD_SIZE; i++) {
+        const { newRow, scoreGain, moved } = moveRow(newBoard[i], direction);
+        newBoard[i] = newRow;
+        totalScore += scoreGain;
+        if (moved) anyMoved = true;
+      }
+    } else {
+      // Move columns vertically
+      for (let j = 0; j < BOARD_SIZE; j++) {
+        const column = newBoard.map(row => row[j]);
+        const { newRow, scoreGain, moved } = moveRow(column, direction === 'up' ? 'left' : 'right');
+        for (let i = 0; i < BOARD_SIZE; i++) {
+          newBoard[i][j] = newRow[i];
+        }
+        totalScore += scoreGain;
+        if (moved) anyMoved = true;
+      }
     }
     
-    for (let i = 0; i < rotations; i++) {
-      currentBoard = rotateBoard(currentBoard);
-    }
-    
-    const { newBoard, scoreGain, moved } = moveLeft(currentBoard);
-    
-    for (let i = 0; i < (4 - rotations) % 4; i++) {
-      currentBoard = rotateBoard(newBoard);
-    }
-    
-    if (moved) {
-      addRandomTile(currentBoard);
-      setBoard(currentBoard);
+    if (anyMoved) {
+      addRandomTile(newBoard);
+      setBoard(newBoard);
       setGameStats(prev => ({
         ...prev,
-        score: prev.score + scoreGain,
+        score: prev.score + totalScore,
         moves: prev.moves + 1,
       }));
       setAnimationKey(prev => prev + 1);
       
       // Check for win condition
-      if (!gameWon && currentBoard.some(row => row.some(cell => cell >= WIN_TILE))) {
+      if (!gameWon && newBoard.some(row => row.some(cell => cell >= WIN_TILE))) {
         setGameWon(true);
-        const finalScore = gameStats.score + scoreGain;
+        const finalScore = gameStats.score + totalScore;
         const pointsEarned = Math.floor(finalScore / 50); // Better reward for winning
         if (pointsEarned > 0) {
           awardPointsMutation.mutate(pointsEarned);
@@ -161,9 +167,9 @@ export default function Game2048() {
       }
       
       // Check for game over
-      if (isGameOver(currentBoard)) {
+      if (isGameOver(newBoard)) {
         setGameOver(true);
-        const finalScore = gameStats.score + scoreGain;
+        const finalScore = gameStats.score + totalScore;
         const pointsEarned = Math.floor(finalScore / 100); // Still decent points for trying
         if (pointsEarned > 0) {
           awardPointsMutation.mutate(pointsEarned);
