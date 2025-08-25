@@ -79,7 +79,9 @@ export default function TetrisGame() {
       });
     },
     onSuccess: () => {
+      // Force immediate refetch for live updates
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Points Earned!",
         description: `You earned ${Math.floor(gameState.score / 25)} points!`,
