@@ -25,7 +25,7 @@ interface BoostOption {
 const boostOptions: BoostOption[] = [
   {
     level: 1,
-    points: 10,
+    points: 2,
     hours: 6,
     title: "Basic Boost",
     description: "2x visibility for 6 hours",
@@ -33,7 +33,7 @@ const boostOptions: BoostOption[] = [
   },
   {
     level: 2,
-    points: 25,
+    points: 5,
     hours: 12,
     title: "Power Boost",
     description: "3x visibility for 12 hours",
@@ -41,7 +41,7 @@ const boostOptions: BoostOption[] = [
   },
   {
     level: 3,
-    points: 50,
+    points: 10,
     hours: 24,
     title: "Mega Boost",
     description: "4x visibility for 24 hours",
