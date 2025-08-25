@@ -103,7 +103,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         referralCode,
         referralCount: user?.referralCount || 0,
-        shareUrl: `${req.protocol}://${req.hostname}${req.hostname === 'localhost' ? ':5000' : ''}/signup?ref=${referralCode}`
+        shareUrl: req.hostname === 'localhost' 
+          ? `http://localhost:5000/signup?ref=${referralCode}`
+          : `https://pocketbounty.life/signup?ref=${referralCode}`
       });
     } catch (error: any) {
       res.status(500).json({ message: "Error getting referral code: " + error.message });
