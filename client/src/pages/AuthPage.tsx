@@ -283,7 +283,7 @@ export default function AuthPage() {
           <div className="mt-6 p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
             <h3 className="text-yellow-200 font-semibold mb-2">🔄 Account Migration</h3>
             <p className="text-yellow-100 text-sm">
-              If you had a previous account with Replit login, please create a new account with the same email. 
+              Welcome to Pocket Bounty! Create your account to get started. 
               Your account data (points, balance, earnings) will be automatically transferred.
             </p>
           </div>

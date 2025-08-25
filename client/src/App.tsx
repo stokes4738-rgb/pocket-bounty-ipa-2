@@ -47,11 +47,11 @@ function Router() {
       <Switch>
         {!isAuthenticated ? (
           <>
-            <Route path="/" component={Landing} />
             <Route path="/auth" component={AuthPage} />
             <Route path="/login" component={AuthPage} />
             <Route path="/signup" component={AuthPage} />
             <Route path="/create-account" component={AuthPage} />
+            <Route path="/" component={AuthPage} />
           </>
         ) : (
           <>

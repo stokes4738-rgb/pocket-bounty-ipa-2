@@ -226,7 +226,7 @@ export default function Landing() {
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground">
-            Powered by Replit • Payments by Stripe • Join the future of work
+            Secure Authentication • Payments by Stripe • Join the future of work
           </p>
         </div>
       </div>
