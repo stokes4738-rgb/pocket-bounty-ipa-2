@@ -1,0 +1,1227 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="format-detection" content="telephone=no">
+    <title>Pocket Bounty — Social Bounty Platform</title>
+    
+    <!-- PWA essentials -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <meta name="theme-color" content="#cc1900">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pocket-red': '#cc1900',
+                        'pocket-red-dark': '#991200',
+                        'pocket-gold': '#ffb84d',
+                        'pocket-gold-light': '#ffdb70',
+                        'dark-bg': '#0e0e0f',
+                        'dark-panel': '#161618',
+                        'dark-card': '#1e1e22',
+                        'dark-line': '#2a2a2d',
+                        'dark-ink': '#f2f2f2',
+                        'dark-muted': '#aaa',
+                        'light-bg': '#f6f6f7',
+                        'light-panel': '#ffffff',
+                        'light-card': '#ffffff',
+                        'light-line': '#cccccc',
+                        'light-ink': '#111111',
+                        'light-muted': '#666666'
+                    },
+                    fontFamily: {
+                        'system': ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    
+    <style>
+        /* Custom CSS for theme switching and specific animations */
+        :root {
+            --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        
+        body {
+            padding-bottom: calc(66px + var(--safe-area-bottom));
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .theme-transition {
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        
+        .backdrop-blur-safari {
+            backdrop-filter: blur(6px) saturate(130%);
+            -webkit-backdrop-filter: blur(6px) saturate(130%);
+        }
+        
+        .tour-ring {
+            outline: 3px solid #ffdb70;
+            border-radius: 12px;
+            box-shadow: 0 0 0 6px rgba(255, 219, 112, 0.28);
+            animation: pulse 1.2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 6px rgba(255, 219, 112, 0.28); }
+            70% { box-shadow: 0 0 0 16px rgba(255, 219, 112, 0); }
+            100% { box-shadow: 0 0 0 6px rgba(255, 219, 112, 0.28); }
+        }
+        
+        .slide-enter {
+            transform: translateX(-100%);
+            transition: transform 0.25s ease;
+        }
+        
+        .slide-enter-active {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+
+<body class="bg-dark-bg text-dark-ink theme-transition" data-theme="dark">
+    <!-- @COMPONENT: Header [sticky navigation with menu, title, points] -->
+    <header class="sticky top-0 z-20 bg-dark-bg/90 backdrop-blur-safari border-b border-dark-line theme-transition">
+        <div class="flex items-center justify-between gap-2.5 px-4 py-3.5">
+            <button id="menuBtn" class="border border-dark-line bg-transparent px-2 py-1 rounded-lg text-dark-ink text-lg theme-transition hover:bg-dark-panel" aria-label="Open menu">
+                ☰
+            </button>
+            <h1 class="text-lg font-semibold text-pocket-gold m-0">🪙 Pocket Bounty</h1>
+            <div class="inline-flex items-center gap-1.5 bg-green-900/30 border border-green-700/50 text-green-300 px-2.5 py-1.5 rounded-full text-xs font-bold">
+                <span class="text-base">⭐</span>
+                <span id="pointsCount" data-bind="user.points">2,450</span>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <!-- @COMPONENT: DrawerMenu [slide-out navigation menu] -->
+    <div id="drawerBackdrop" class="fixed inset-0 bg-black/35 backdrop-blur-sm hidden z-25"></div>
+    <aside id="drawer" class="fixed left-0 top-0 bottom-0 w-4/5 max-w-80 bg-dark-panel border-r border-dark-line transform -translate-x-full transition-transform duration-300 ease-out z-30 flex flex-col theme-transition" aria-hidden="true">
+        <div class="flex items-center gap-2.5 p-3.5 border-b border-dark-line">
+            <div class="font-bold text-dark-ink">Menu</div>
+            <div class="text-sm text-dark-muted" data-bind="user.handle">@Dallas1221</div>
+        </div>
+        <nav class="grid p-2">
+            <button class="flex items-center gap-2.5 bg-transparent border border-transparent text-dark-ink p-2.5 rounded-lg text-left hover:border-dark-line transition-colors" data-section="bank">
+                🏦 Bank
+            </button>
+            <button class="flex items-center gap-2.5 bg-transparent border border-transparent text-dark-ink p-2.5 rounded-lg text-left hover:border-dark-line transition-colors" data-section="board">
+                📋 Board
+            </button>
+            <button class="flex items-center gap-2.5 bg-transparent border border-transparent text-dark-ink p-2.5 rounded-lg text-left hover:border-dark-line transition-colors" data-section="post">
+                ➕ Post
+            </button>
+            <button class="flex items-center gap-2.5 bg-transparent border border-transparent text-dark-ink p-2.5 rounded-lg text-left hover:border-dark-line transition-colors" data-section="messages">
+                💬 Messages
+            </button>
+            <button class="flex items-center gap-2.5 bg-transparent border border-transparent text-dark-ink p-2.5 rounded-lg text-left hover:border-dark-line transition-colors" data-section="profile">
+                👤 Profile
+            </button>
+            <button class="flex items-center gap-2.5 bg-transparent border border-transparent text-dark-ink p-2.5 rounded-lg text-left hover:border-dark-line transition-colors" data-section="friends">
+                👥 Friends
+            </button>
+            <button class="flex items-center gap-2.5 bg-transparent border border-transparent text-dark-ink p-2.5 rounded-lg text-left hover:border-dark-line transition-colors" data-section="activity">
+                🔔 Activity
+            </button>
+            <button class="flex items-center gap-2.5 bg-transparent border border-transparent text-dark-ink p-2.5 rounded-lg text-left hover:border-dark-line transition-colors" data-section="settings">
+                ⚙️ Settings
+            </button>
+            <button class="flex items-center gap-2.5 bg-transparent border border-transparent text-dark-ink p-2.5 rounded-lg text-left hover:border-dark-line transition-colors" data-section="flappy">
+                🐤 Flappy Game
+            </button>
+            <button class="flex items-center gap-2.5 bg-transparent border border-transparent text-dark-ink p-2.5 rounded-lg text-left hover:border-dark-line transition-colors" onclick="startTutorial()">
+                ❓ Tutorial
+            </button>
+        </nav>
+        <div class="mt-auto p-3 border-t border-dark-line flex justify-between items-center">
+            <div class="inline-flex items-center gap-1.5 bg-green-900/30 border border-green-700/50 text-green-300 px-2.5 py-1.5 rounded-full text-xs font-bold">
+                <span class="text-base">⭐</span>
+                <span id="pointsCountDrawer" data-bind="user.points">2,450</span>
+            </div>
+            <button class="bg-gray-700 text-dark-muted border border-dark-line px-3 py-2 rounded-lg text-xs">+10</button>
+        </div>
+    </aside>
+    <!-- @END_COMPONENT: DrawerMenu -->
+
+    <!-- @COMPONENT: InstallBanner [PWA installation prompt] -->
+    <div id="installHint" class="fixed left-3 right-3 bottom-20 bg-gradient-to-b from-gray-800 to-gray-900 text-white border border-gray-600 rounded-xl p-3 hidden z-30 shadow-2xl" style="bottom: calc(78px + var(--safe-area-bottom));">
+        <div class="flex items-center gap-2.5">
+            <div class="text-xl">📲</div>
+            <div class="text-sm flex-1">
+                <span data-mock="true">Install this app: tap <strong>Share</strong> → <strong>Add to Home Screen</strong>.</span>
+            </div>
+            <button id="a2hsBtn" class="bg-pocket-red text-white border-none px-3 py-1.5 rounded-lg font-bold text-sm hidden">Install</button>
+            <button class="bg-gray-700 text-gray-300 border border-gray-600 px-2.5 py-1.5 rounded-lg text-sm">Dismiss</button>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: InstallBanner -->
+
+    <!-- @COMPONENT: TutorialSystem [guided tour overlays] -->
+    <div id="tourMask" class="fixed inset-0 bg-transparent hidden z-40 pointer-events-none"></div>
+    <div id="tourCard" class="fixed max-w-80 bg-dark-card text-dark-ink border border-dark-line rounded-xl p-3 z-50 shadow-2xl hidden theme-transition">
+        <h3 class="text-sm font-semibold text-pocket-gold m-0 mb-1.5">Welcome to Pocket Bounty!</h3>
+        <div class="text-sm text-dark-ink mb-2.5" data-mock="true">Discover how to earn points by completing bounties and connecting with others.</div>
+        <div class="flex gap-2 justify-end">
+            <button class="bg-gray-700 text-dark-muted border border-dark-line px-3 py-1.5 rounded-lg text-xs">Skip</button>
+            <button class="bg-gray-700 text-dark-muted border border-dark-line px-3 py-1.5 rounded-lg text-xs">Back</button>
+            <button class="bg-pocket-red text-white border-none px-3 py-1.5 rounded-lg text-xs font-bold">Next</button>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: TutorialSystem -->
+
+    <main class="p-4">
+        <!-- @COMPONENT: BankSection [wallet and earnings management] -->
+        <section id="bank" class="hidden">
+            <div class="grid grid-cols-3 gap-2.5 mb-3">
+                <div class="bg-dark-panel border border-dark-line rounded-xl p-3 theme-transition">
+                    <h3 class="text-xs text-dark-muted font-semibold m-0 mb-1.5">Available Balance</h3>
+                    <div class="text-lg font-bold text-pocket-gold" data-bind="user.balance">$127.50</div>
+                </div>
+                <div class="bg-dark-panel border border-dark-line rounded-xl p-3 theme-transition">
+                    <h3 class="text-xs text-dark-muted font-semibold m-0 mb-1.5">Lifetime Earned</h3>
+                    <div class="text-lg font-bold text-pocket-gold" data-bind="user.lifetimeEarnings">$892.30</div>
+                </div>
+                <div class="bg-dark-panel border border-dark-line rounded-xl p-3 theme-transition">
+                    <h3 class="text-xs text-dark-muted font-semibold m-0 mb-1.5">Pending</h3>
+                    <div class="text-lg font-bold text-pocket-gold" data-bind="user.pendingEarnings">$45.00</div>
+                </div>
+            </div>
+
+            <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 mb-3 theme-transition">
+                <h3 class="text-sm font-semibold text-dark-ink mb-3">Recent Transactions</h3>
+                <div class="space-y-3">
+                    <!-- @MAP: transactions.map(transaction => ( -->
+                    <div class="flex justify-between items-center" data-mock="true">
+                        <div>
+                            <div class="text-sm font-medium text-dark-ink">Website Testing Bounty</div>
+                            <div class="text-xs text-dark-muted">2 hours ago</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-bold text-green-400">+$25.00</div>
+                            <div class="text-xs bg-pocket-gold text-gray-900 px-2 py-0.5 rounded-full font-bold">PAID</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center" data-mock="true">
+                        <div>
+                            <div class="text-sm font-medium text-dark-ink">Logo Design Review</div>
+                            <div class="text-xs text-dark-muted">1 day ago</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-bold text-green-400">+$15.00</div>
+                            <div class="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold">PENDING</div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center" data-mock="true">
+                        <div>
+                            <div class="text-sm font-medium text-dark-ink">App Store Review</div>
+                            <div class="text-xs text-dark-muted">3 days ago</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-bold text-green-400">+$10.00</div>
+                            <div class="text-xs bg-pocket-gold text-gray-900 px-2 py-0.5 rounded-full font-bold">PAID</div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+            </div>
+
+            <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 theme-transition">
+                <h3 class="text-sm font-semibold text-dark-ink mb-3">Cash Out</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs text-dark-muted mb-1.5">Payment Method</label>
+                        <select class="w-full p-2.5 rounded-lg border border-dark-line bg-gray-900 text-dark-ink theme-transition">
+                            <option>PayPal (****@gmail.com)</option>
+                            <option>Venmo (@username)</option>
+                            <option>Bank Transfer</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-dark-muted mb-1.5">Amount</label>
+                        <input type="number" placeholder="$0.00" class="w-full p-2.5 rounded-lg border border-dark-line bg-gray-900 text-dark-ink theme-transition" min="5" max="127.50" />
+                    </div>
+                    <button class="w-full bg-pocket-red text-white border-none p-2.5 rounded-lg font-bold hover:bg-pocket-red-dark transition-colors">
+                        Request Payout
+                    </button>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: BankSection -->
+
+        <!-- @COMPONENT: BountyBoard [main bounty listing] -->
+        <section id="board" class="block">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-dark-ink">Available Bounties</h2>
+                <div class="flex gap-2">
+                    <select class="px-3 py-1.5 rounded-lg border border-dark-line bg-gray-900 text-dark-ink text-sm theme-transition">
+                        <option>All Categories</option>
+                        <option>Design</option>
+                        <option>Testing</option>
+                        <option>Writing</option>
+                        <option>Development</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <!-- @MAP: bounties.map(bounty => ( -->
+                <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 theme-transition" data-mock="true">
+                    <div class="flex justify-between items-start gap-3">
+                        <div class="flex-1">
+                            <h3 class="text-sm font-semibold text-dark-ink mb-1.5" data-bind="bounty.title">Test Mobile App Navigation</h3>
+                            <p class="text-sm text-dark-muted mb-2" data-bind="bounty.description">We need users to test our new mobile app's navigation flow and provide feedback on usability issues.</p>
+                            <div class="flex flex-wrap gap-1.5 mb-2">
+                                <span class="inline-block bg-gray-700 text-gray-300 border border-dark-line px-2 py-0.5 rounded-full text-xs" data-bind="bounty.category">Testing</span>
+                                <span class="inline-block bg-gray-700 text-gray-300 border border-dark-line px-2 py-0.5 rounded-full text-xs">Mobile</span>
+                                <span class="inline-block bg-gray-700 text-gray-300 border border-dark-line px-2 py-0.5 rounded-full text-xs">UX</span>
+                            </div>
+                            <div class="text-xs text-gray-400">
+                                <span>Posted by </span>
+                                <span class="text-gray-300" data-bind="bounty.author">@TechStartup</span>
+                                <span> • 2 hours ago</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-pocket-gold mb-1" data-bind="bounty.reward">$35</div>
+                            <div class="inline-flex items-center gap-1 bg-purple-900/30 border border-purple-600/50 text-purple-300 px-2 py-0.5 rounded-full text-xs">
+                                <span>🚀</span>
+                                <span>Boosted</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-3">
+                        <button class="bg-pocket-red text-white border-none px-4 py-2 rounded-lg font-bold text-sm flex-1 hover:bg-pocket-red-dark transition-colors">
+                            Apply
+                        </button>
+                        <button class="bg-gray-700 text-dark-muted border border-dark-line px-3 py-2 rounded-lg text-sm">
+                            ❤️
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 theme-transition" data-mock="true">
+                    <div class="flex justify-between items-start gap-3">
+                        <div class="flex-1">
+                            <h3 class="text-sm font-semibold text-dark-ink mb-1.5">Review Restaurant Website Copy</h3>
+                            <p class="text-sm text-dark-muted mb-2">Looking for someone to proofread and provide feedback on our restaurant's new website content.</p>
+                            <div class="flex flex-wrap gap-1.5 mb-2">
+                                <span class="inline-block bg-gray-700 text-gray-300 border border-dark-line px-2 py-0.5 rounded-full text-xs">Writing</span>
+                                <span class="inline-block bg-gray-700 text-gray-300 border border-dark-line px-2 py-0.5 rounded-full text-xs">Review</span>
+                            </div>
+                            <div class="text-xs text-gray-400">
+                                <span>Posted by </span>
+                                <span class="text-gray-300">@FoodiePlace</span>
+                                <span> • 4 hours ago</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-pocket-gold">$20</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-3">
+                        <button class="bg-pocket-red text-white border-none px-4 py-2 rounded-lg font-bold text-sm flex-1 hover:bg-pocket-red-dark transition-colors">
+                            Apply
+                        </button>
+                        <button class="bg-gray-700 text-dark-muted border border-dark-line px-3 py-2 rounded-lg text-sm">
+                            ❤️
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 theme-transition" data-mock="true">
+                    <div class="flex justify-between items-start gap-3">
+                        <div class="flex-1">
+                            <h3 class="text-sm font-semibold text-dark-ink mb-1.5">Create Simple Logo Icon</h3>
+                            <p class="text-sm text-dark-muted mb-2">Need a minimalist logo design for a productivity app. Black and white preferred.</p>
+                            <div class="flex flex-wrap gap-1.5 mb-2">
+                                <span class="inline-block bg-gray-700 text-gray-300 border border-dark-line px-2 py-0.5 rounded-full text-xs">Design</span>
+                                <span class="inline-block bg-gray-700 text-gray-300 border border-dark-line px-2 py-0.5 rounded-full text-xs">Logo</span>
+                                <span class="inline-block bg-gray-700 text-gray-300 border border-dark-line px-2 py-0.5 rounded-full text-xs">Branding</span>
+                            </div>
+                            <div class="text-xs text-gray-400">
+                                <span>Posted by </span>
+                                <span class="text-gray-300">@ProductivityCo</span>
+                                <span> • 1 day ago</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-pocket-gold">$50</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-3">
+                        <button class="bg-pocket-red text-white border-none px-4 py-2 rounded-lg font-bold text-sm flex-1 hover:bg-pocket-red-dark transition-colors">
+                            Apply
+                        </button>
+                        <button class="bg-gray-700 text-dark-muted border border-dark-line px-3 py-2 rounded-lg text-sm">
+                            ❤️
+                        </button>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+        </section>
+        <!-- @END_COMPONENT: BountyBoard -->
+
+        <!-- @COMPONENT: PostBounty [form to create new bounties] -->
+        <section id="post" class="hidden">
+            <h2 class="text-lg font-bold text-dark-ink mb-4">Post a New Bounty</h2>
+            
+            <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 theme-transition">
+                <form class="space-y-4">
+                    <div>
+                        <label class="block text-xs text-dark-muted mb-1.5">Bounty Title</label>
+                        <input type="text" placeholder="What do you need done?" class="w-full p-2.5 rounded-lg border border-dark-line bg-gray-900 text-dark-ink theme-transition" data-implementation="Validate title length and content" />
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs text-dark-muted mb-1.5">Description</label>
+                        <textarea placeholder="Describe the task in detail..." rows="4" class="w-full p-2.5 rounded-lg border border-dark-line bg-gray-900 text-dark-ink theme-transition resize-none"></textarea>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-dark-muted mb-1.5">Category</label>
+                            <select class="w-full p-2.5 rounded-lg border border-dark-line bg-gray-900 text-dark-ink theme-transition">
+                                <option value="">Select category</option>
+                                <option value="design">Design</option>
+                                <option value="testing">Testing</option>
+                                <option value="writing">Writing</option>
+                                <option value="development">Development</option>
+                                <option value="marketing">Marketing</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-dark-muted mb-1.5">Reward Amount</label>
+                            <input type="number" placeholder="$0" min="5" max="500" class="w-full p-2.5 rounded-lg border border-dark-line bg-gray-900 text-dark-ink theme-transition" />
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs text-dark-muted mb-1.5">Tags (comma separated)</label>
+                        <input type="text" placeholder="mobile, testing, feedback" class="w-full p-2.5 rounded-lg border border-dark-line bg-gray-900 text-dark-ink theme-transition" />
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs text-dark-muted mb-1.5">Duration</label>
+                        <select class="w-full p-2.5 rounded-lg border border-dark-line bg-gray-900 text-dark-ink theme-transition">
+                            <option value="1">1 day</option>
+                            <option value="3">3 days</option>
+                            <option value="7">1 week</option>
+                            <option value="14">2 weeks</option>
+                            <option value="30">1 month</option>
+                        </select>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <button type="submit" class="w-full bg-pocket-red text-white border-none p-3 rounded-lg font-bold hover:bg-pocket-red-dark transition-colors" data-event="click:handleSubmitBounty">
+                            Post Bounty ($5 fee)
+                        </button>
+                        <div class="text-xs text-dark-muted text-center">
+                            Your bounty will be visible to all users immediately
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: PostBounty -->
+
+        <!-- @COMPONENT: MessagingSystem [user communication] -->
+        <section id="messages" class="hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-dark-ink">Messages</h2>
+                <button class="bg-pocket-red text-white border-none px-3 py-1.5 rounded-lg font-bold text-sm">
+                    + New
+                </button>
+            </div>
+
+            <div class="space-y-2.5">
+                <!-- @MAP: messageThreads.map(thread => ( -->
+                <div class="flex gap-2.5 items-center bg-dark-card border border-dark-line rounded-xl p-2.5 theme-transition cursor-pointer hover:bg-gray-800/50" data-mock="true">
+                    <div class="w-9 h-9 rounded-full bg-gray-700 flex items-center justify-center font-bold text-sm" data-bind="thread.avatar">TS</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-semibold text-sm text-dark-ink" data-bind="thread.name">TechStartup</div>
+                        <div class="text-xs text-dark-muted truncate" data-bind="thread.lastMessage">Thanks for applying! When can you start testing?</div>
+                    </div>
+                    <div class="text-xs text-dark-muted">2h</div>
+                </div>
+
+                <div class="flex gap-2.5 items-center bg-dark-card border border-dark-line rounded-xl p-2.5 theme-transition cursor-pointer hover:bg-gray-800/50" data-mock="true">
+                    <div class="w-9 h-9 rounded-full bg-purple-600 flex items-center justify-center font-bold text-sm">FP</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-semibold text-sm text-dark-ink">FoodiePlace</div>
+                        <div class="text-xs text-dark-muted truncate">Perfect! The copy looks great, sending payment now.</div>
+                    </div>
+                    <div class="text-xs text-dark-muted">1d</div>
+                </div>
+
+                <div class="flex gap-2.5 items-center bg-dark-card border border-dark-line rounded-xl p-2.5 theme-transition cursor-pointer hover:bg-gray-800/50" data-mock="true">
+                    <div class="w-9 h-9 rounded-full bg-green-600 flex items-center justify-center font-bold text-sm">PC</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-semibold text-sm text-dark-ink">ProductivityCo</div>
+                        <div class="text-xs text-dark-muted truncate">Can you make the logo a bit more minimalist?</div>
+                    </div>
+                    <div class="text-xs text-dark-muted">2d</div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+
+            <!-- @FUNCTIONALITY: Chat interface should support real-time messaging -->
+            <div id="chatView" class="hidden mt-4 bg-dark-card border border-dark-line rounded-xl p-3.5 theme-transition">
+                <div class="flex items-center gap-2.5 mb-4 pb-3 border-b border-dark-line">
+                    <button class="text-dark-muted text-lg">←</button>
+                    <div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center font-bold text-sm">TS</div>
+                    <div class="font-semibold text-sm text-dark-ink">TechStartup</div>
+                </div>
+                
+                <div class="space-y-2 mb-4 max-h-64 overflow-y-auto">
+                    <div class="max-w-4/5 self-start">
+                        <div class="bg-gray-700 border border-dark-line p-2.5 rounded-xl text-sm text-dark-ink" data-mock="true">
+                            Hi! I saw your application for the mobile app testing bounty. When would you be available to start?
+                        </div>
+                        <div class="text-xs text-dark-muted mt-1">2 hours ago</div>
+                    </div>
+                    
+                    <div class="max-w-4/5 self-end ml-auto">
+                        <div class="bg-gray-800 border border-dark-line p-2.5 rounded-xl text-sm text-dark-ink text-right" data-mock="true">
+                            I can start right away! I have experience with mobile UX testing.
+                        </div>
+                        <div class="text-xs text-dark-muted mt-1 text-right">1 hour ago</div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-2">
+                    <input type="text" placeholder="Type a message..." class="flex-1 p-2.5 rounded-lg border border-dark-line bg-gray-900 text-dark-ink theme-transition" />
+                    <button class="bg-pocket-red text-white border-none px-4 py-2.5 rounded-lg font-bold">Send</button>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: MessagingSystem -->
+
+        <!-- @COMPONENT: UserProfile [profile management and stats] -->
+        <section id="profile" class="hidden">
+            <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 mb-4 theme-transition">
+                <div class="flex gap-3 items-center mb-4">
+                    <!-- Profile photo placeholder with implementation note -->
+                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&h=150" alt="User profile photo" class="w-16 h-16 rounded-full border-2 border-dark-line object-cover" data-mock-image="true" data-implementation="Use FileUpload component for profile photo" />
+                    <div class="flex-1">
+                        <h2 class="text-lg font-bold text-dark-ink mb-1" data-bind="user.name">Dallas Thompson</h2>
+                        <div class="text-sm text-dark-muted mb-2" data-bind="user.handle">@Dallas1221</div>
+                        <div class="text-xs text-pocket-gold-light font-bold" data-bind="user.rating">⭐ 4.8 Rating (127 reviews)</div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-4 gap-2.5">
+                    <div class="bg-dark-panel border border-dark-line rounded-xl p-2.5 text-center theme-transition">
+                        <div class="text-lg font-bold text-pocket-gold" data-bind="user.completedBounties">42</div>
+                        <div class="text-xs text-dark-muted">Completed</div>
+                    </div>
+                    <div class="bg-dark-panel border border-dark-line rounded-xl p-2.5 text-center theme-transition">
+                        <div class="text-lg font-bold text-pocket-gold" data-bind="user.activeBounties">3</div>
+                        <div class="text-xs text-dark-muted">Active</div>
+                    </div>
+                    <div class="bg-dark-panel border border-dark-line rounded-xl p-2.5 text-center theme-transition">
+                        <div class="text-lg font-bold text-pocket-gold" data-bind="user.totalEarned">$892</div>
+                        <div class="text-xs text-dark-muted">Total</div>
+                    </div>
+                    <div class="bg-dark-panel border border-dark-line rounded-xl p-2.5 text-center theme-transition">
+                        <div class="text-lg font-bold text-pocket-gold" data-bind="user.level">12</div>
+                        <div class="text-xs text-dark-muted">Level</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 mb-4 theme-transition">
+                <h3 class="text-sm font-semibold text-dark-ink mb-3">Skills & Expertise</h3>
+                <div class="flex flex-wrap gap-1.5">
+                    <span class="bg-blue-900/30 border border-blue-600/50 text-blue-300 px-2 py-1 rounded-full text-xs font-medium" data-mock="true">Mobile Testing</span>
+                    <span class="bg-green-900/30 border border-green-600/50 text-green-300 px-2 py-1 rounded-full text-xs font-medium" data-mock="true">UX Design</span>
+                    <span class="bg-purple-900/30 border border-purple-600/50 text-purple-300 px-2 py-1 rounded-full text-xs font-medium" data-mock="true">Content Writing</span>
+                    <span class="bg-orange-900/30 border border-orange-600/50 text-orange-300 px-2 py-1 rounded-full text-xs font-medium" data-mock="true">App Reviews</span>
+                </div>
+            </div>
+
+            <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 theme-transition">
+                <h3 class="text-sm font-semibold text-dark-ink mb-3">Recent Reviews</h3>
+                <div class="space-y-3">
+                    <div class="pb-3 border-b border-dark-line last:border-b-0" data-mock="true">
+                        <div class="flex justify-between items-start mb-1">
+                            <div class="font-medium text-sm text-dark-ink">TechStartup</div>
+                            <div class="text-pocket-gold-light text-sm">⭐⭐⭐⭐⭐</div>
+                        </div>
+                        <p class="text-sm text-dark-muted">"Excellent testing feedback! Very thorough and delivered on time."</p>
+                        <div class="text-xs text-gray-400 mt-1">Mobile App Testing • 2 days ago</div>
+                    </div>
+                    
+                    <div class="pb-3 border-b border-dark-line last:border-b-0" data-mock="true">
+                        <div class="flex justify-between items-start mb-1">
+                            <div class="font-medium text-sm text-dark-ink">FoodiePlace</div>
+                            <div class="text-pocket-gold-light text-sm">⭐⭐⭐⭐⭐</div>
+                        </div>
+                        <p class="text-sm text-dark-muted">"Great attention to detail in the copy review. Highly recommended!"</p>
+                        <div class="text-xs text-gray-400 mt-1">Website Copy Review • 1 week ago</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: UserProfile -->
+
+        <!-- @COMPONENT: FriendsSystem [social connections] -->
+        <section id="friends" class="hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-dark-ink">Friends</h2>
+                <button class="bg-pocket-red text-white border-none px-3 py-1.5 rounded-lg font-bold text-sm">
+                    Find Friends
+                </button>
+            </div>
+
+            <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 mb-4 theme-transition">
+                <div class="relative">
+                    <input type="text" placeholder="Search friends..." class="w-full p-2.5 rounded-lg border border-dark-line bg-gray-900 text-dark-ink theme-transition pl-10" />
+                    <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-muted">🔍</div>
+                </div>
+            </div>
+
+            <div class="space-y-2.5">
+                <!-- @MAP: friends.map(friend => ( -->
+                <div class="flex gap-2.5 items-center bg-dark-card border border-dark-line rounded-xl p-2.5 theme-transition" data-mock="true">
+                    <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm" data-bind="friend.avatar">JD</div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-sm text-dark-ink" data-bind="friend.name">Jane Designer</div>
+                        <div class="text-xs text-dark-muted">@janedesigns • Level 15 • ⭐ 4.9</div>
+                    </div>
+                    <button class="bg-gray-700 text-dark-muted border border-dark-line px-3 py-1.5 rounded-lg text-xs">
+                        Message
+                    </button>
+                </div>
+
+                <div class="flex gap-2.5 items-center bg-dark-card border border-dark-line rounded-xl p-2.5 theme-transition" data-mock="true">
+                    <div class="w-9 h-9 rounded-full bg-green-600 flex items-center justify-center font-bold text-sm">MT</div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-sm text-dark-ink">Mike Tester</div>
+                        <div class="text-xs text-dark-muted">@miketest • Level 8 • ⭐ 4.7</div>
+                    </div>
+                    <button class="bg-gray-700 text-dark-muted border border-dark-line px-3 py-1.5 rounded-lg text-xs">
+                        Message
+                    </button>
+                </div>
+
+                <div class="flex gap-2.5 items-center bg-dark-card border border-dark-line rounded-xl p-2.5 theme-transition" data-mock="true">
+                    <div class="w-9 h-9 rounded-full bg-purple-600 flex items-center justify-center font-bold text-sm">SW</div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-sm text-dark-ink">Sarah Writer</div>
+                        <div class="text-xs text-dark-muted">@sarahwrites • Level 11 • ⭐ 5.0</div>
+                    </div>
+                    <button class="bg-gray-700 text-dark-muted border border-dark-line px-3 py-1.5 rounded-lg text-xs">
+                        Message
+                    </button>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+
+            <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 mt-4 theme-transition">
+                <h3 class="text-sm font-semibold text-dark-ink mb-3">Friend Recommendations</h3>
+                <div class="space-y-2.5">
+                    <div class="flex gap-2.5 items-center" data-mock="true">
+                        <div class="w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center font-bold text-sm">AC</div>
+                        <div class="flex-1">
+                            <div class="font-medium text-sm text-dark-ink">Alex Coder</div>
+                            <div class="text-xs text-dark-muted">Similar skills • 3 mutual friends</div>
+                        </div>
+                        <button class="bg-pocket-red text-white border-none px-3 py-1 rounded-lg text-xs font-bold">
+                            Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: FriendsSystem -->
+
+        <!-- @COMPONENT: ActivityFeed [user activity and notifications] -->
+        <section id="activity" class="hidden">
+            <h2 class="text-lg font-bold text-dark-ink mb-4">Activity Feed</h2>
+
+            <div class="space-y-3">
+                <!-- @MAP: activities.map(activity => ( -->
+                <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 theme-transition" data-mock="true">
+                    <div class="flex gap-2.5">
+                        <div class="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white text-sm font-bold">💰</div>
+                        <div class="flex-1">
+                            <div class="text-sm text-dark-ink"><strong>Payment received</strong> for Website Testing Bounty</div>
+                            <div class="text-xs text-dark-muted">$25.00 added to your balance • 2 hours ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 theme-transition" data-mock="true">
+                    <div class="flex gap-2.5">
+                        <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold">👥</div>
+                        <div class="flex-1">
+                            <div class="text-sm text-dark-ink"><strong>Jane Designer</strong> sent you a friend request</div>
+                            <div class="text-xs text-dark-muted">3 hours ago</div>
+                            <div class="flex gap-2 mt-2">
+                                <button class="bg-pocket-red text-white border-none px-3 py-1 rounded-lg text-xs font-bold">Accept</button>
+                                <button class="bg-gray-700 text-dark-muted border border-dark-line px-3 py-1 rounded-lg text-xs">Decline</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 theme-transition" data-mock="true">
+                    <div class="flex gap-2.5">
+                        <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-bold">⭐</div>
+                        <div class="flex-1">
+                            <div class="text-sm text-dark-ink"><strong>Level up!</strong> You reached Level 12</div>
+                            <div class="text-xs text-dark-muted">+50 bonus points earned • 1 day ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 theme-transition" data-mock="true">
+                    <div class="flex gap-2.5">
+                        <div class="w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center text-white text-sm font-bold">📝</div>
+                        <div class="flex-1">
+                            <div class="text-sm text-dark-ink"><strong>New review</strong> from TechStartup</div>
+                            <div class="text-xs text-dark-muted">⭐⭐⭐⭐⭐ "Excellent work!" • 2 days ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 theme-transition" data-mock="true">
+                    <div class="flex gap-2.5">
+                        <div class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white text-sm font-bold">🚀</div>
+                        <div class="flex-1">
+                            <div class="text-sm text-dark-ink"><strong>New bounty posted</strong> in your skill area</div>
+                            <div class="text-xs text-dark-muted">"Mobile App Icon Design" • $75 reward • 3 days ago</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+        </section>
+        <!-- @END_COMPONENT: ActivityFeed -->
+
+        <!-- @COMPONENT: SettingsPanel [app configuration] -->
+        <section id="settings" class="hidden">
+            <h2 class="text-lg font-bold text-dark-ink mb-4">Settings</h2>
+
+            <div class="space-y-4">
+                <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 theme-transition">
+                    <h3 class="text-sm font-semibold text-dark-ink mb-3">Appearance</h3>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <div class="text-sm text-dark-ink">Dark Mode</div>
+                            <div class="text-xs text-dark-muted">Switch between light and dark themes</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer" checked id="themeToggle" />
+                            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pocket-red"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 theme-transition">
+                    <h3 class="text-sm font-semibold text-dark-ink mb-3">Notifications</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <div class="text-sm text-dark-ink">New bounties</div>
+                            <input type="checkbox" class="w-4 h-4" checked />
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="text-sm text-dark-ink">Messages</div>
+                            <input type="checkbox" class="w-4 h-4" checked />
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="text-sm text-dark-ink">Payment updates</div>
+                            <input type="checkbox" class="w-4 h-4" checked />
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="text-sm text-dark-ink">Friend requests</div>
+                            <input type="checkbox" class="w-4 h-4" checked />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 theme-transition">
+                    <h3 class="text-sm font-semibold text-dark-ink mb-3">Privacy</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <div class="text-sm text-dark-ink">Show online status</div>
+                            <input type="checkbox" class="w-4 h-4" checked />
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="text-sm text-dark-ink">Public profile</div>
+                            <input type="checkbox" class="w-4 h-4" checked />
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="text-sm text-dark-ink">Show earnings</div>
+                            <input type="checkbox" class="w-4 h-4" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 theme-transition">
+                    <h3 class="text-sm font-semibold text-dark-ink mb-3">Account</h3>
+                    <div class="space-y-2">
+                        <button class="w-full text-left p-2 text-sm text-dark-ink hover:bg-gray-800/50 rounded-lg transition-colors">
+                            Edit Profile
+                        </button>
+                        <button class="w-full text-left p-2 text-sm text-dark-ink hover:bg-gray-800/50 rounded-lg transition-colors">
+                            Payment Methods
+                        </button>
+                        <button class="w-full text-left p-2 text-sm text-dark-ink hover:bg-gray-800/50 rounded-lg transition-colors">
+                            Privacy Policy
+                        </button>
+                        <button class="w-full text-left p-2 text-sm text-dark-ink hover:bg-gray-800/50 rounded-lg transition-colors">
+                            Terms of Service
+                        </button>
+                        <button class="w-full text-left p-2 text-sm text-red-400 hover:bg-red-900/20 rounded-lg transition-colors">
+                            Sign Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: SettingsPanel -->
+
+        <!-- @COMPONENT: FlappyGame [mini-game for earning points] -->
+        <section id="flappy" class="hidden">
+            <div class="text-center mb-4">
+                <h2 class="text-lg font-bold text-dark-ink mb-2">🐤 Flappy Bounty</h2>
+                <p class="text-sm text-dark-muted">Play to earn bonus points!</p>
+            </div>
+
+            <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 mb-4 theme-transition">
+                <!-- @FUNCTIONALITY: This should implement a simple Flappy Bird-style game using canvas -->
+                <div class="relative w-full h-64 bg-gradient-to-b from-blue-400 to-blue-600 rounded-lg overflow-hidden">
+                    <canvas id="flappyCanvas" width="300" height="256" class="w-full h-full"></canvas>
+                    <div class="absolute inset-0 flex items-center justify-center text-white text-xl font-bold bg-black/30" id="gameOverlay">
+                        <div class="text-center">
+                            <div class="mb-2">🐤 Tap to Play</div>
+                            <div class="text-sm">Score: <span id="gameScore">0</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-dark-card border border-dark-line rounded-xl p-3.5 theme-transition">
+                <h3 class="text-sm font-semibold text-dark-ink mb-3">Leaderboard</h3>
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center" data-mock="true">
+                        <div class="flex items-center gap-2">
+                            <span class="text-pocket-gold font-bold">🥇</span>
+                            <span class="text-sm text-dark-ink">Sarah Writer</span>
+                        </div>
+                        <span class="text-sm text-dark-muted">156 pts</span>
+                    </div>
+                    <div class="flex justify-between items-center" data-mock="true">
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-400 font-bold">🥈</span>
+                            <span class="text-sm text-dark-ink">Mike Tester</span>
+                        </div>
+                        <span class="text-sm text-dark-muted">142 pts</span>
+                    </div>
+                    <div class="flex justify-between items-center" data-mock="true">
+                        <div class="flex items-center gap-2">
+                            <span class="text-orange-500 font-bold">🥉</span>
+                            <span class="text-sm text-dark-ink">Jane Designer</span>
+                        </div>
+                        <span class="text-sm text-dark-muted">138 pts</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-pocket-red/20 p-2 rounded-lg" data-mock="true">
+                        <div class="flex items-center gap-2">
+                            <span class="text-dark-muted font-bold">4th</span>
+                            <span class="text-sm text-dark-ink font-bold">You</span>
+                        </div>
+                        <span class="text-sm text-pocket-gold font-bold">95 pts</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: FlappyGame -->
+    </main>
+
+    <!-- @COMPONENT: BottomNavigation [main app navigation] -->
+    <footer class="fixed left-0 right-0 bottom-0 h-16 bg-dark-panel border-t border-dark-line flex justify-around items-center theme-transition z-10" style="padding-bottom: var(--safe-area-bottom);">
+        <button class="flex-1 border-none bg-transparent text-dark-muted text-xs flex flex-col items-center gap-0.5 pt-1.5 nav-tab" data-section="bank">
+            <span class="text-xl leading-none">🏦</span>
+            <span>Bank</span>
+        </button>
+        <button class="flex-1 border-none bg-transparent text-pocket-red text-xs flex flex-col items-center gap-0.5 pt-1.5 font-bold nav-tab active" data-section="board">
+            <span class="text-xl leading-none">📋</span>
+            <span>Board</span>
+        </button>
+        <button class="flex-1 border-none bg-transparent text-dark-muted text-xs flex flex-col items-center gap-0.5 pt-1.5 nav-tab" data-section="post">
+            <span class="text-xl leading-none">➕</span>
+            <span>Post</span>
+        </button>
+        <button class="flex-1 border-none bg-transparent text-dark-muted text-xs flex flex-col items-center gap-0.5 pt-1.5 nav-tab" data-section="messages">
+            <span class="text-xl leading-none">💬</span>
+            <span>Messages</span>
+        </button>
+        <button class="flex-1 border-none bg-transparent text-dark-muted text-xs flex flex-col items-center gap-0.5 pt-1.5 nav-tab" data-section="profile">
+            <span class="text-xl leading-none">👤</span>
+            <span>Profile</span>
+        </button>
+    </footer>
+    <!-- @END_COMPONENT: BottomNavigation -->
+
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        
+        (function() {
+            // Theme management
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            
+            function toggleTheme() {
+                const isDark = body.getAttribute('data-theme') === 'dark';
+                const newTheme = isDark ? 'light' : 'dark';
+                
+                body.setAttribute('data-theme', newTheme);
+                body.className = body.className.replace(/bg-(dark|light)-\w+|text-(dark|light)-\w+/g, '');
+                
+                if (newTheme === 'light') {
+                    body.classList.add('bg-light-bg', 'text-light-ink');
+                } else {
+                    body.classList.add('bg-dark-bg', 'text-dark-ink');
+                }
+                
+                localStorage.setItem('theme', newTheme);
+            }
+            
+            if (themeToggle) {
+                themeToggle.addEventListener('change', toggleTheme);
+            }
+            
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme && savedTheme !== 'dark') {
+                themeToggle.checked = false;
+                toggleTheme();
+            }
+            
+            // Navigation management
+            const sections = document.querySelectorAll('section[id]');
+            const navTabs = document.querySelectorAll('.nav-tab');
+            const drawerNavButtons = document.querySelectorAll('#drawer .nav button');
+            
+            function showSection(sectionId) {
+                sections.forEach(section => {
+                    section.classList.toggle('hidden', section.id !== sectionId);
+                    section.style.display = section.id === sectionId ? 'block' : 'none';
+                });
+                
+                navTabs.forEach(tab => {
+                    const isActive = tab.getAttribute('data-section') === sectionId;
+                    tab.classList.toggle('active', isActive);
+                    tab.classList.toggle('text-pocket-red', isActive);
+                    tab.classList.toggle('font-bold', isActive);
+                    tab.classList.toggle('text-dark-muted', !isActive);
+                });
+            }
+            
+            // Navigation event listeners
+            navTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const section = tab.getAttribute('data-section');
+                    showSection(section);
+                });
+            });
+            
+            drawerNavButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const section = button.getAttribute('data-section');
+                    if (section) {
+                        showSection(section);
+                        closeDrawer();
+                    }
+                });
+            });
+            
+            // Drawer management
+            const menuBtn = document.getElementById('menuBtn');
+            const drawer = document.getElementById('drawer');
+            const drawerBackdrop = document.getElementById('drawerBackdrop');
+            
+            function openDrawer() {
+                drawer.classList.remove('-translate-x-full');
+                drawer.classList.add('translate-x-0');
+                drawerBackdrop.classList.remove('hidden');
+                drawer.setAttribute('aria-hidden', 'false');
+            }
+            
+            function closeDrawer() {
+                drawer.classList.add('-translate-x-full');
+                drawer.classList.remove('translate-x-0');
+                drawerBackdrop.classList.add('hidden');
+                drawer.setAttribute('aria-hidden', 'true');
+            }
+            
+            menuBtn.addEventListener('click', openDrawer);
+            drawerBackdrop.addEventListener('click', closeDrawer);
+            
+            // Tutorial system
+            let currentTutorialStep = 0;
+            const tutorialSteps = [
+                {
+                    title: 'Welcome to Pocket Bounty!',
+                    text: 'Earn money by completing simple tasks and bounties.',
+                    target: null
+                },
+                {
+                    title: 'Browse Bounties',
+                    text: 'Find tasks that match your skills in the Board section.',
+                    target: 'board'
+                },
+                {
+                    title: 'Post Your Own',
+                    text: 'Create bounties for others to complete.',
+                    target: 'post'
+                },
+                {
+                    title: 'Manage Earnings',
+                    text: 'Track your balance and request payouts.',
+                    target: 'bank'
+                }
+            ];
+            
+            function startTutorial() {
+                currentTutorialStep = 0;
+                showTutorialStep();
+            }
+            
+            function showTutorialStep() {
+                const step = tutorialSteps[currentTutorialStep];
+                const tourCard = document.getElementById('tourCard');
+                const tourMask = document.getElementById('tourMask');
+                
+                document.getElementById('tourTitle').textContent = step.title;
+                document.getElementById('tourText').textContent = step.text;
+                
+                tourCard.classList.remove('hidden');
+                tourMask.classList.remove('hidden');
+                
+                if (step.target) {
+                    const targetElement = document.querySelector(`[data-section="${step.target}"]`);
+                    if (targetElement) {
+                        targetElement.classList.add('tour-ring');
+                    }
+                }
+                
+                // Position tour card
+                tourCard.style.top = '50%';
+                tourCard.style.left = '50%';
+                tourCard.style.transform = 'translate(-50%, -50%)';
+            }
+            
+            function nextTutorialStep() {
+                // Remove previous ring
+                document.querySelectorAll('.tour-ring').forEach(el => {
+                    el.classList.remove('tour-ring');
+                });
+                
+                currentTutorialStep++;
+                if (currentTutorialStep < tutorialSteps.length) {
+                    showTutorialStep();
+                } else {
+                    closeTutorial();
+                }
+            }
+            
+            function closeTutorial() {
+                document.getElementById('tourCard').classList.add('hidden');
+                document.getElementById('tourMask').classList.add('hidden');
+                document.querySelectorAll('.tour-ring').forEach(el => {
+                    el.classList.remove('tour-ring');
+                });
+            }
+            
+            // Tutorial button handlers
+            document.getElementById('tourNext').addEventListener('click', nextTutorialStep);
+            document.getElementById('tourSkip').addEventListener('click', closeTutorial);
+            document.getElementById('tourBack').addEventListener('click', () => {
+                if (currentTutorialStep > 0) {
+                    document.querySelectorAll('.tour-ring').forEach(el => {
+                        el.classList.remove('tour-ring');
+                    });
+                    currentTutorialStep--;
+                    showTutorialStep();
+                }
+            });
+            
+            // Simple Flappy Bird game implementation
+            const canvas = document.getElementById('flappyCanvas');
+            const ctx = canvas ? canvas.getContext('2d') : null;
+            const gameOverlay = document.getElementById('gameOverlay');
+            const gameScoreElement = document.getElementById('gameScore');
+            
+            if (canvas && ctx) {
+                let gameState = 'waiting'; // waiting, playing, gameover
+                let bird = { x: 50, y: 128, velocity: 0 };
+                let pipes = [];
+                let score = 0;
+                let lastTime = 0;
+                
+                function resetGame() {
+                    bird = { x: 50, y: 128, velocity: 0 };
+                    pipes = [];
+                    score = 0;
+                    gameState = 'waiting';
+                    gameScoreElement.textContent = score;
+                    gameOverlay.style.display = 'flex';
+                }
+                
+                function startGame() {
+                    gameState = 'playing';
+                    gameOverlay.style.display = 'none';
+                    bird.velocity = -5;
+                }
+                
+                function gameLoop(currentTime) {
+                    const deltaTime = currentTime - lastTime;
+                    lastTime = currentTime;
+                    
+                    if (gameState === 'playing') {
+                        // Update bird physics
+                        bird.velocity += 0.5; // gravity
+                        bird.y += bird.velocity;
+                        
+                        // Generate pipes
+                        if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 150) {
+                            const gap = 80;
+                            const pipeHeight = Math.random() * (canvas.height - gap - 40) + 20;
+                            pipes.push({
+                                x: canvas.width,
+                                topHeight: pipeHeight,
+                                bottomY: pipeHeight + gap,
+                                bottomHeight: canvas.height - pipeHeight - gap,
+                                scored: false
+                            });
+                        }
+                        
+                        // Update pipes
+                        pipes.forEach(pipe => {
+                            pipe.x -= 2;
+                            
+                            // Score
+                            if (!pipe.scored && pipe.x + 30 < bird.x) {
+                                score++;
+                                pipe.scored = true;
+                                gameScoreElement.textContent = score;
+                            }
+                        });
+                        
+                        // Remove off-screen pipes
+                        pipes = pipes.filter(pipe => pipe.x > -30);
+                        
+                        // Collision detection
+                        if (bird.y < 0 || bird.y > canvas.height - 20) {
+                            gameState = 'gameover';
+                            gameOverlay.innerHTML = `
+                                <div class="text-center">
+                                    <div class="mb-2">Game Over!</div>
+                                    <div class="text-sm mb-2">Score: ${score}</div>
+                                    <div class="text-xs">Tap to play again</div>
+                                </div>
+                            `;
+                            gameOverlay.style.display = 'flex';
+                        }
+                        
+                        // Pipe collision
+                        pipes.forEach(pipe => {
+                            if (bird.x + 20 > pipe.x && bird.x < pipe.x + 30) {
+                                if (bird.y < pipe.topHeight || bird.y + 20 > pipe.bottomY) {
+                                    gameState = 'gameover';
+                                    gameOverlay.innerHTML = `
+                                        <div class="text-center">
+                                            <div class="mb-2">Game Over!</div>
+                                            <div class="text-sm mb-2">Score: ${score}</div>
+                                            <div class="text-xs">Tap to play again</div>
+                                        </div>
+                                    `;
+                                    gameOverlay.style.display = 'flex';
+                                }
+                            }
+                        });
+                    }
+                    
+                    // Render
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw background
+                    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                    gradient.addColorStop(0, '#60a5fa');
+                    gradient.addColorStop(1, '#2563eb');
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw pipes
+                    ctx.fillStyle = '#22c55e';
+                    pipes.forEach(pipe => {
+                        // Top pipe
+                        ctx.fillRect(pipe.x, 0, 30, pipe.topHeight);
+                        // Bottom pipe
+                        ctx.fillRect(pipe.x, pipe.bottomY, 30, pipe.bottomHeight);
+                    });
+                    
+                    // Draw bird
+                    ctx.fillStyle = '#fbbf24';
+                    ctx.fillRect(bird.x, bird.y, 20, 20);
+                    
+                    requestAnimationFrame(gameLoop);
+                }
+                
+                // Game input
+                canvas.addEventListener('click', () => {
+                    if (gameState === 'waiting' || gameState === 'gameover') {
+                        if (gameState === 'gameover') {
+                            resetGame();
+                        }
+                        startGame();
+                    } else if (gameState === 'playing') {
+                        bird.velocity = -8;
+                    }
+                });
+                
+                // Start game loop
+                resetGame();
+                requestAnimationFrame(gameLoop);
+            }
+            
+            // PWA installation
+            let deferredPrompt = null;
+            
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                document.getElementById('installHint').classList.remove('hidden');
+                document.getElementById('a2hsBtn').classList.remove('hidden');
+            });
+            
+            document.getElementById('a2hsBtn').addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const result = await deferredPrompt.userChoice;
+                    deferredPrompt = null;
+                    document.getElementById('installHint').classList.add('hidden');
+                }
+            });
+            
+            // Initialize app
+            showSection('board');
+        })();
+    </script>
+</body>
+</html>

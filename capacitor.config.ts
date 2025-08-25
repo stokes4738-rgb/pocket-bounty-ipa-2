@@ -1,15 +1,18 @@
-import { CapacitorConfig } from '@capacitor/cli';
+import type { CapacitorConfig } from '@capacitor/core';
 
 const config: CapacitorConfig = {
   appId: 'com.pocketbounty.app',
   appName: 'Pocket Bounty',
   webDir: 'dist/public',
   server: {
-    androidScheme: 'https'
+    url: 'http://192.168.1.216', // 
+    cleartext: true
   },
   plugins: {
-    Browser: {
-      presentationStyle: 'popover'
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: "#000000",
+      showSpinner: false,
     }
   }
 };
