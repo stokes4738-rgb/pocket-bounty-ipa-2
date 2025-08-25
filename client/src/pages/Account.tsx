@@ -156,11 +156,11 @@ function AddPaymentMethodForm({ onSuccess }: { onSuccess: () => void }) {
 interface PaymentMethodType {
   id: string;
   stripePaymentMethodId: string;
-  brand: string;
-  last4: string;
-  isDefault: boolean;
-  expiryMonth: number;
-  expiryYear: number;
+  brand: string | null;
+  last4: string | null;
+  isDefault: boolean | null;
+  expiryMonth: number | null;
+  expiryYear: number | null;
 }
 
 function DepositForm({ paymentMethods }: { paymentMethods: PaymentMethodType[] }) {
@@ -667,7 +667,7 @@ export default function Account() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setDefaultMutation.mutate(method.stripePaymentMethodId)}
+                          onClick={() => setDefaultMutation.mutate(method.id)}
                           disabled={setDefaultMutation.isPending}
                           data-testid={`button-set-default-${method.last4}`}
                         >
@@ -677,7 +677,7 @@ export default function Account() {
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => deleteMutation.mutate(method.stripePaymentMethodId)}
+                        onClick={() => deleteMutation.mutate(method.id)}
                         disabled={deleteMutation.isPending}
                         data-testid={`button-delete-${method.last4}`}
                       >

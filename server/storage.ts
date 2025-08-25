@@ -164,7 +164,7 @@ export class DatabaseStorage implements IStorage {
 
   // Bounty operations
   async createBounty(bounty: InsertBounty): Promise<Bounty> {
-    const [newBounty] = await db.insert(bounties).values(bounty).returning();
+    const [newBounty] = await db.insert(bounties).values([bounty]).returning();
     return newBounty;
   }
 
