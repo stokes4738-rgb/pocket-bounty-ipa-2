@@ -372,6 +372,52 @@ export default function Breakout() {
           </ul>
         </CardContent>
       </Card>
+
+      {/* Mobile Controls */}
+      <div className="flex justify-center gap-4 sm:hidden">
+        <Button
+          variant="outline"
+          size="lg"
+          className="h-16 px-8 touch-none select-none"
+          onTouchStart={(e) => {
+            e.preventDefault();
+            setGameState(prev => ({
+              ...prev,
+              paddle: { x: Math.max(0, prev.paddle.x - 30), y: prev.paddle.y }
+            }));
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            setGameState(prev => ({
+              ...prev,
+              paddle: { x: Math.max(0, prev.paddle.x - 30), y: prev.paddle.y }
+            }));
+          }}
+        >
+          ← LEFT
+        </Button>
+        <Button
+          variant="outline"
+          size="lg"
+          className="h-16 px-8 touch-none select-none"
+          onTouchStart={(e) => {
+            e.preventDefault();
+            setGameState(prev => ({
+              ...prev,
+              paddle: { x: Math.min(CANVAS_WIDTH - PADDLE_WIDTH, prev.paddle.x + 30), y: prev.paddle.y }
+            }));
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            setGameState(prev => ({
+              ...prev,
+              paddle: { x: Math.min(CANVAS_WIDTH - PADDLE_WIDTH, prev.paddle.x + 30), y: prev.paddle.y }
+            }));
+          }}
+        >
+          RIGHT →
+        </Button>
+      </div>
     </div>
   );
 }

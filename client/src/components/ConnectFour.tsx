@@ -285,8 +285,14 @@ export default function ConnectFour() {
                   <button
                     key={`${row}-${col}`}
                     onClick={() => dropPiece(col)}
+                    onTouchStart={(e) => {
+                      e.preventDefault();
+                      if (gameState.gameStatus === "playing" && gameState.currentPlayer === PLAYER) {
+                        dropPiece(col);
+                      }
+                    }}
                     disabled={gameState.gameStatus !== "playing" || gameState.currentPlayer !== PLAYER}
-                    className={`aspect-square rounded-full border-2 border-blue-800 transition-all duration-200 ${
+                    className={`aspect-square rounded-full border-2 border-blue-800 transition-all duration-200 touch-none select-none ${
                       gameState.board[row][col] === PLAYER
                         ? `bg-red-500 ${isWinningCell(row, col) ? 'ring-4 ring-yellow-400' : ''}`
                         : gameState.board[row][col] === AI

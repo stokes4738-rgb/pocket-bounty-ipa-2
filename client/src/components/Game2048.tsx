@@ -257,7 +257,7 @@ export default function Game2048() {
   }, [gameStats.score, gameStats.bestScore]);
 
   // Handle movement for both keyboard and mobile
-  const handleMove = useCallback((direction: string) => {
+  const handleMove = useCallback((direction: "left" | "right" | "up" | "down") => {
     if (gameOver) return;
     move(direction);
   }, [gameOver]);

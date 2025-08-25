@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
+import { Maximize, Minimize } from "lucide-react";
 
 interface GameState {
   sequence: number[];
@@ -41,6 +42,8 @@ export default function SimonSays() {
   const [bestScore, setBestScore] = useState(() => {
     return parseInt(localStorage.getItem("simon-says-best-score") || "0", 10);
   });
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const gameContainerRef = useRef<HTMLDivElement>(null);
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -150,6 +153,33 @@ export default function SimonSays() {
     }, 100);
   }, [resetGame, addToSequence]);
 
+  const toggleFullscreen = async () => {
+    if (!gameContainerRef.current) return;
+    
+    try {
+      if (!isFullscreen) {
+        if (gameContainerRef.current.requestFullscreen) {
+          await gameContainerRef.current.requestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+      }
+    } catch (error) {
+      console.error('Fullscreen error:', error);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   const handleButtonPress = useCallback((colorId: number) => {
     if (gameState.gameStatus !== "playing") return;
     
@@ -221,7 +251,7 @@ export default function SimonSays() {
   }, [gameState.gameStatus, gameState.score, bestScore, awardPointsMutation]);
 
   return (
-    <div className="space-y-4">
+    <div ref={gameContainerRef} className={`space-y-4 ${isFullscreen ? 'fixed inset-0 z-50 bg-background p-4 overflow-auto' : ''}`}>
       <div className="text-center">
         <h2 className="text-lg font-bold mb-2">🎵 Simon Says</h2>
         <p className="text-sm text-muted-foreground">Repeat the color sequence to earn points!</p>
@@ -234,8 +264,14 @@ export default function SimonSays() {
               <button
                 key={color.id}
                 onClick={() => handleButtonPress(color.id)}
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  if (gameState.gameStatus === "playing") {
+                    handleButtonPress(color.id);
+                  }
+                }}
                 disabled={gameState.gameStatus !== "playing"}
-                className={`aspect-square rounded-2xl transition-all duration-200 border-4 border-gray-300 dark:border-gray-600 ${
+                className={`aspect-square rounded-2xl transition-all duration-200 border-4 border-gray-300 dark:border-gray-600 touch-none select-none ${
                   activeButtons.includes(color.id)
                     ? `${color.activeColor} scale-95 border-white`
                     : `${color.color} hover:scale-105 shadow-lg`
@@ -302,6 +338,14 @@ export default function SimonSays() {
             <Badge variant="outline">Best: {bestScore}</Badge>
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={toggleFullscreen}
+              className="px-2"
+            >
+              {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+            </Button>
             <Button variant="outline" onClick={resetGame}>Reset</Button>
             <Button
               onClick={gameState.gameStatus === "waiting" ? startGame : resetGame}

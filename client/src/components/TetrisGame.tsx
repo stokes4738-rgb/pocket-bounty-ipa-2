@@ -364,6 +364,23 @@ export default function TetrisGame() {
     setGameState(prev => ({ ...prev, gameStatus: "playing" }));
   };
 
+  const handleMobileMove = (direction: { x: number; y: number }) => {
+    if (gameState.gameStatus !== "playing") return;
+    movePiece(direction);
+  };
+
+  const handleMobileRotate = () => {
+    if (gameState.gameStatus !== "playing" || !gameState.currentPiece) return;
+    setGameState(prev => {
+      if (!prev.currentPiece) return prev;
+      const rotated = rotatePiece(prev.currentPiece);
+      if (isValidPosition(rotated, prev.grid)) {
+        return { ...prev, currentPiece: rotated };
+      }
+      return prev;
+    });
+  };
+
   const toggleFullscreen = async () => {
     if (!gameContainerRef.current) return;
     

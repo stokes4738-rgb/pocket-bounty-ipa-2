@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
+import { Maximize, Minimize } from "lucide-react";
 
 interface Mole {
   id: number;
@@ -42,6 +43,8 @@ export default function WhackAMole() {
   const [bestScore, setBestScore] = useState(() => {
     return parseInt(localStorage.getItem("whack-a-mole-best-score") || "0", 10);
   });
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const gameContainerRef = useRef<HTMLDivElement>(null);
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -191,6 +194,33 @@ export default function WhackAMole() {
     setGameState(prev => ({ ...prev, gameStatus: "playing" }));
   };
 
+  const toggleFullscreen = async () => {
+    if (!gameContainerRef.current) return;
+    
+    try {
+      if (!isFullscreen) {
+        if (gameContainerRef.current.requestFullscreen) {
+          await gameContainerRef.current.requestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+      }
+    } catch (error) {
+      console.error('Fullscreen error:', error);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -198,7 +228,7 @@ export default function WhackAMole() {
   };
 
   return (
-    <div className="space-y-4">
+    <div ref={gameContainerRef} className={`space-y-4 ${isFullscreen ? 'fixed inset-0 z-50 bg-background p-4 overflow-auto' : ''}`}>
       <div className="text-center">
         <h2 className="text-lg font-bold mb-2">🔨 Whack-a-Mole</h2>
         <p className="text-sm text-muted-foreground">Hit the moles as fast as you can!</p>
@@ -211,8 +241,14 @@ export default function WhackAMole() {
               <button
                 key={mole.id}
                 onClick={() => whackMole(mole.id)}
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  if (gameState.gameStatus === "playing") {
+                    whackMole(mole.id);
+                  }
+                }}
                 disabled={gameState.gameStatus !== "playing"}
-                className={`aspect-square rounded-full text-4xl font-bold transition-all duration-200 relative overflow-hidden ${
+                className={`aspect-square rounded-full text-4xl font-bold transition-all duration-200 relative overflow-hidden touch-none select-none ${
                   mole.isActive
                     ? "bg-brown-500 dark:bg-brown-600 hover:bg-brown-600 dark:hover:bg-brown-700 transform scale-110"
                     : "bg-gray-300 dark:bg-gray-700"
@@ -275,6 +311,14 @@ export default function WhackAMole() {
             <Badge variant="outline">Best: {bestScore}</Badge>
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={toggleFullscreen}
+              className="px-2"
+            >
+              {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+            </Button>
             <Button variant="outline" onClick={resetGame}>Reset</Button>
             <Button
               onClick={gameState.gameStatus === "waiting" ? startGame : resetGame}
