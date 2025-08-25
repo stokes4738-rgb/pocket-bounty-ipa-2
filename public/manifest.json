@@ -1,0 +1,41 @@
+{
+  "name": "Pocket Bounty",
+  "short_name": "Pocket Bounty",
+  "description": "The social bounty platform where you earn real money by completing tasks",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#d84315",
+  "background_color": "#1a1a2e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png", 
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "finance", "social"],
+  "shortcuts": [
+    {
+      "name": "Browse Bounties",
+      "short_name": "Browse",
+      "description": "Find new tasks to complete",
+      "url": "/?shortcut=browse",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Create Bounty",
+      "short_name": "Create", 
+      "description": "Post a new task",
+      "url": "/?shortcut=create",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

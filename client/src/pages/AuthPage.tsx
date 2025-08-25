@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation } from "wouter";
+import { Capacitor } from "@capacitor/core";
 
 const loginSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -57,7 +58,14 @@ export default function AuthPage() {
       });
       // Invalidate and refetch user data
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      setLocation("/");
+      
+      // Handle navigation for both web and mobile
+      if (Capacitor.isNativePlatform()) {
+        // For mobile apps, use window.location to avoid routing issues
+        window.location.href = "/";
+      } else {
+        setLocation("/");
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -84,7 +92,14 @@ export default function AuthPage() {
       });
       // Invalidate and refetch user data
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      setLocation("/");
+      
+      // Handle navigation for both web and mobile
+      if (Capacitor.isNativePlatform()) {
+        // For mobile apps, use window.location to avoid routing issues
+        window.location.href = "/";
+      } else {
+        setLocation("/");
+      }
     },
     onError: (error: Error) => {
       toast({

@@ -48,7 +48,7 @@ export function setupAuth(app: Express) {
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Allow cross-origin for mobile
       maxAge: sessionTtl,
     },
   };
