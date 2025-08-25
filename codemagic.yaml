@@ -1,0 +1,112 @@
+workflows:
+  ios-automatic-code-signing:
+    name: iOS Automatic Code Signing
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    integrations:
+      app_store_connect: codemagic
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.pocketbounty.app
+      vars:
+        BUNDLE_ID: "com.pocketbounty.app"
+        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        XCODE_SCHEME: "App"
+      node: 18.17.0
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Set up keychain to be used for codesigning using Codemagic CLI 'keychain' command
+        script: keychain initialize
+      - name: Install npm dependencies
+        script: |
+          npm ci
+      - name: Build web application
+        script: |
+          npm run build
+      - name: Update dependencies and copy web assets to native project
+        script: |
+          npx cap sync ios
+      - name: Set up code signing settings on Xcode project
+        script: xcode-project use-profiles
+      - name: Build ipa for distribution
+        script: |
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+    publishing:
+      email:
+        recipients:
+          - user@example.com
+        notify:
+          success: true
+          failure: false
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: false
+        beta_groups: # Specify the names of beta tester groups that will get access to the build once it has passed beta review.
+          - group name 1
+          - group name 2
+
+  ios-manual-code-signing:
+    name: iOS Manual Code Signing  
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.pocketbounty.app
+      vars:
+        BUNDLE_ID: "com.pocketbounty.app"
+        XCODE_WORKSPACE: "ios/App/App.xcworkspace" 
+        XCODE_SCHEME: "App"
+        # Add your certificate and provisioning profile variables here
+        # CM_CERTIFICATE: Encrypted(PASTE_CERTIFICATE_HERE)
+        # CM_CERTIFICATE_PASSWORD: Encrypted(PASTE_PASSWORD_HERE)
+        # CM_PROVISIONING_PROFILE: Encrypted(PASTE_PROVISIONING_PROFILE_HERE)
+      node: 18.17.0
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Set up keychain to be used for codesigning using Codemagic CLI 'keychain' command
+        script: keychain initialize
+      - name: Install npm dependencies
+        script: |
+          npm ci
+      - name: Build web application  
+        script: |
+          npm run build
+      - name: Update dependencies and copy web assets to native project
+        script: |
+          npx cap sync ios
+      - name: Set up signing certificate
+        script: |
+          echo $CM_CERTIFICATE | base64 --decode > /tmp/certificate.p12
+          keychain add-certificates --certificate /tmp/certificate.p12 --certificate-password $CM_CERTIFICATE_PASSWORD
+      - name: Set up provisioning profile
+        script: |
+          echo $CM_PROVISIONING_PROFILE | base64 --decode > /tmp/profile.mobileprovision
+          profiles install /tmp/profile.mobileprovision
+      - name: Build ipa for distribution
+        script: |
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+    publishing:
+      email:
+        recipients:
+          - user@example.com
+        notify:
+          success: true
+          failure: false
