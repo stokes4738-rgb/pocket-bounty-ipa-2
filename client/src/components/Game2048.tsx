@@ -149,13 +149,14 @@ export default function Game2048() {
       // Check for win condition
       if (!gameWon && currentBoard.some(row => row.some(cell => cell >= WIN_TILE))) {
         setGameWon(true);
-        const pointsEarned = Math.floor((gameStats.score + scoreGain) / 100);
+        const finalScore = gameStats.score + scoreGain;
+        const pointsEarned = Math.floor(finalScore / 50); // Better reward for winning
         if (pointsEarned > 0) {
           awardPointsMutation.mutate(pointsEarned);
         }
         toast({
           title: "🎉 You Won!",
-          description: "You reached 2048! Keep playing for a higher score.",
+          description: `You reached 2048! Earned ${pointsEarned} points! Keep playing for more.`,
         });
       }
       
@@ -163,10 +164,14 @@ export default function Game2048() {
       if (isGameOver(currentBoard)) {
         setGameOver(true);
         const finalScore = gameStats.score + scoreGain;
-        const pointsEarned = Math.floor(finalScore / 200); // Fewer points if you lose
+        const pointsEarned = Math.floor(finalScore / 100); // Still decent points for trying
         if (pointsEarned > 0) {
           awardPointsMutation.mutate(pointsEarned);
         }
+        toast({
+          title: "Game Over",
+          description: `Final score: ${finalScore}. You earned ${pointsEarned} points!`,
+        });
       }
     }
   }
@@ -409,7 +414,7 @@ export default function Game2048() {
           <div className="text-xs text-muted-foreground text-center space-y-1">
             <div><strong>HOW TO PLAY:</strong> Use arrow keys to move tiles.</div>
             <div>When two tiles with the same number touch, they merge into one!</div>
-            <div><strong>POINTS:</strong> Win = 1 point per 100 score, Lose = 1 point per 200 score</div>
+            <div><strong>POINTS:</strong> Win = 1 point per 50 score, Game Over = 1 point per 100 score</div>
           </div>
         </CardContent>
       </Card>

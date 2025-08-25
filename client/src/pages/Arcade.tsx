@@ -68,7 +68,7 @@ export default function Arcade() {
                 </p>
                 <div className="flex gap-2 mt-2">
                   <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
-                    1 point per 10 score
+                    1 point per 5 score
                   </span>
                   <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
                     Arcade Classic
@@ -97,8 +97,8 @@ export default function Arcade() {
                   Combine number tiles to reach 2048 and earn big points!
                 </p>
                 <div className="flex gap-2 mt-2">
-                  <span className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded">
-                    Strategy Game
+                  <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
+                    Win: 1 point per 50 score
                   </span>
                   <span className="text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded">
                     Brain Training

@@ -15,11 +15,11 @@ interface GameState {
   gameStatus: "waiting" | "playing" | "gameover";
 }
 
-const GRAVITY = 0.5;
-const FLAP_STRENGTH = -8;
+const GRAVITY = 0.4; // Reduced gravity for easier play
+const FLAP_STRENGTH = -10; // Stronger flap for easier control
 const PIPE_WIDTH = 40; // Made wider for larger canvas
-const PIPE_GAP = 100; // Made larger gap
-const PIPE_SPEED = 2;
+const PIPE_GAP = 120; // Even larger gap for easier navigation
+const PIPE_SPEED = 1.5; // Slower pipes for easier timing
 
 export default function FlappyGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -53,7 +53,7 @@ export default function FlappyGame() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Points Earned!",
-        description: `You earned ${Math.floor(gameState.score / 10)} points for your score!`,
+        description: `You earned ${Math.floor(gameState.score / 5)} points for your score!`,
       });
     },
     onError: (error) => {
@@ -103,8 +103,8 @@ export default function FlappyGame() {
         localStorage.setItem("flappy-best-score", newBestScore.toString());
       }
       
-      // Award points (1 point per 10 score points)
-      const pointsEarned = Math.floor(prev.score / 10);
+      // Award points (1 point per 5 score points - better rewards!)
+      const pointsEarned = Math.floor(prev.score / 5);
       if (pointsEarned > 0) {
         awardPointsMutation.mutate(pointsEarned);
       }
