@@ -1279,9 +1279,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { type } = req.params;
       
-      // Check if user is creator
+      // Check if user is creator (app creator or admin)
       const user = await storage.getUser(userId);
-      if (!user || !user.isCreator) {
+      const isAppCreator = userId === '46848986'; // App creator
+      const isAdmin = user?.email?.includes('admin') || user?.email?.includes('creator');
+      
+      if (!user || (!isAppCreator && !isAdmin)) {
         return res.status(403).json({ message: "Creator access required" });
       }
       
