@@ -70,14 +70,21 @@ function App() {
       <DemoProvider>
         <ThemeProvider>
           <TooltipProvider>
-            <Toaster />
-            <DemoIndicator />
-            <div className="fixed top-4 left-4 right-4 z-50 pointer-events-none">
-              <div className="pointer-events-auto">
-                <PWAInstallPrompt />
+            <div className="relative">
+              <Toaster />
+              <DemoIndicator />
+              <div className="fixed top-4 left-4 right-4 z-50 pointer-events-none">
+                <div className="pointer-events-auto">
+                  <PWAInstallPrompt />
+                </div>
+              </div>
+              <Router />
+              
+              {/* Global subtle creator watermark for all pages */}
+              <div className="fixed bottom-2 right-2 text-xs text-muted-foreground/30 pointer-events-none select-none z-10">
+                Built by Dallas Abbott
               </div>
             </div>
-            <Router />
           </TooltipProvider>
         </ThemeProvider>
       </DemoProvider>
