@@ -7,7 +7,7 @@ workflows:
     environment:
       vars:
         BUNDLE_ID: "com.pocketbounty.app"
-        XCODE_WORKSPACE: "ios/App/App.xcworkspace" 
+        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
         NODE_ENV: "production"
       node: 20.11.0
@@ -29,9 +29,9 @@ workflows:
         script: |
           echo "Installing dependencies..."
           npm ci --verbose
-          echo "Dependencies installed successfully"      - name: Build web application  
+          echo "Dependencies installed successfully"
+      - name: Build web application
         script: |
-          # Ensure NODE_ENV is set
           export NODE_ENV=production
           echo "Building with NODE_ENV=$NODE_ENV"
           echo "Building frontend with Vite..."
@@ -41,7 +41,11 @@ workflows:
           echo "Build completed successfully"
       - name: Update dependencies and copy web assets to native project
         script: |
-          npx cap sync ios
+          echo "Installing Capacitor CLI globally for sync..."
+          npm install -g @capacitor/cli
+          echo "Running Capacitor sync..."
+          npx @capacitor/cli sync ios
+          echo "Capacitor sync completed successfully"
       - name: Create export options for unsigned build
         script: |
           cd ios/App
@@ -64,7 +68,6 @@ workflows:
       - name: Disable all code signing in Xcode project
         script: |
           cd ios/App
-          # Disable code signing completely
           sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' App.xcodeproj/project.pbxproj
           sed -i '' 's/DEVELOPMENT_TEAM = .*;/DEVELOPMENT_TEAM = "";/g' App.xcodeproj/project.pbxproj
           sed -i '' 's/CODE_SIGN_IDENTITY = .*/CODE_SIGN_IDENTITY = "";/g' App.xcodeproj/project.pbxproj
