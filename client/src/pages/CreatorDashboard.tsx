@@ -215,7 +215,7 @@ export default function CreatorDashboard() {
       </div>
 
       {/* Key Metrics Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <Card className="theme-transition">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Platform Revenue</CardTitle>
@@ -258,6 +258,21 @@ export default function CreatorDashboard() {
             </div>
             <p className="text-xs text-muted-foreground">
               {stats.bounties.completionRate}% completion rate
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="theme-transition">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Points Sales</CardTitle>
+            <CreditCard className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              ${parseFloat(stats.spending.pointPurchases.total).toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {stats.spending.pointPurchases.count} sales made
             </p>
           </CardContent>
         </Card>
@@ -353,6 +368,50 @@ export default function CreatorDashboard() {
                 <span className="font-bold text-purple-600">
                   ${parseFloat(stats.bounties.totalValue).toLocaleString()}
                 </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Points Sales Analysis */}
+      <div className="mb-6">
+        <Card className="theme-transition">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Points Sales Analytics
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Total Sales</p>
+                <p className="text-2xl font-bold text-blue-600">${parseFloat(stats.spending.pointPurchases.total).toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">All time</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Total Transactions</p>
+                <p className="text-2xl font-bold">{stats.spending.pointPurchases.count}</p>
+                <p className="text-xs text-muted-foreground">Point purchases</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Average Sale</p>
+                <p className="text-2xl font-bold">${stats.spending.pointPurchases.avgPurchase}</p>
+                <p className="text-xs text-muted-foreground">Per transaction</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Last 30 Days</p>
+                <p className="text-2xl font-bold text-green-600">${parseFloat(stats.spending.last30Days.pointPurchases).toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">Recent sales</p>
+              </div>
+            </div>
+            <div className="pt-4 border-t">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Points sales represent direct platform revenue</span>
+                <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">
+                  Direct Revenue
+                </Badge>
               </div>
             </div>
           </CardContent>
