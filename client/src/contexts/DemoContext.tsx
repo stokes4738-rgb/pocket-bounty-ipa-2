@@ -228,7 +228,13 @@ const demoPaymentMethods = [
 ];
 
 export function DemoProvider({ children }: { children: ReactNode }) {
-  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(() => {
+    // Check localStorage on initialization
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('pocketbounty_demo_mode') === 'true';
+    }
+    return false;
+  });
 
   const setDemoMode = (enabled: boolean) => {
     setIsDemoMode(enabled);
@@ -237,6 +243,8 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('pocketbounty_demo_mode', 'true');
     } else {
       localStorage.removeItem('pocketbounty_demo_mode');
+      // Force a refresh of user data when exiting demo mode
+      window.location.reload();
     }
   };
 
