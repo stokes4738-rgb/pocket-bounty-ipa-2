@@ -1268,6 +1268,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get detailed creator data for modals
+  app.get('/api/creator/details/:type', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { type } = req.params;
+      
+      // Check if user is creator
+      const user = await storage.getUser(userId);
+      if (!user || !user.isCreator) {
+        return res.status(403).json({ message: "Creator access required" });
+      }
+      
+      switch (type) {
+        case 'users': {
+          const users = await storage.getAllUsers();
+          const sortedUsers = users
+            .sort((a, b) => b.points - a.points)
+            .slice(0, 100) // Top 100 users
+            .map(u => ({
+              id: u.id,
+              firstName: u.firstName,
+              lastName: u.lastName,
+              email: u.email,
+              handle: u.handle,
+              points: u.points,
+              balance: u.balance,
+              lifetimeEarned: u.lifetimeEarned,
+              createdAt: u.createdAt
+            }));
+          res.json({ users: sortedUsers });
+          break;
+        }
+        
+        case 'revenue': {
+          const revenue = await storage.getPlatformRevenue();
+          const transactions = revenue
+            .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+            .slice(0, 100) // Recent 100 transactions
+            .map(async r => {
+              let userName = 'Platform';
+              if (r.bountyId) {
+                const bounty = await storage.getBounty(r.bountyId);
+                if (bounty) {
+                  const user = await storage.getUser(bounty.claimedBy || bounty.authorId);
+                  userName = user ? `${user.firstName} ${user.lastName}`.trim() || user.email : 'Unknown';
+                }
+              }
+              return {
+                id: r.id,
+                amount: r.amount,
+                source: r.source,
+                description: r.description,
+                userName,
+                createdAt: r.createdAt
+              };
+            });
+          res.json({ transactions: await Promise.all(transactions) });
+          break;
+        }
+        
+        case 'points': {
+          const transactions = await storage.getAllTransactions();
+          const pointPurchases = transactions
+            .filter(t => t.type === 'deposit' && t.status === 'completed')
+            .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+            .slice(0, 100);
+          
+          const purchases = await Promise.all(pointPurchases.map(async p => {
+            const user = await storage.getUser(p.userId);
+            return {
+              id: p.id,
+              amount: p.amount,
+              points: parseInt(p.amount) * 1000, // Assuming 1000 points per dollar
+              userName: user ? `${user.firstName} ${user.lastName}`.trim() || user.handle || 'Unknown' : 'Unknown',
+              userEmail: user?.email || '',
+              createdAt: p.createdAt
+            };
+          }));
+          res.json({ purchases });
+          break;
+        }
+        
+        case 'bounties': {
+          const bounties = await storage.getAllBounties();
+          const sortedBounties = bounties
+            .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+            .slice(0, 100);
+          
+          const detailedBounties = await Promise.all(sortedBounties.map(async b => {
+            const author = await storage.getUser(b.authorId);
+            return {
+              id: b.id,
+              title: b.title,
+              description: b.description,
+              reward: b.reward,
+              status: b.status,
+              boostLevel: b.boostLevel || 0,
+              authorName: author ? `${author.firstName} ${author.lastName}`.trim() || author.handle || author.email : 'Unknown',
+              createdAt: b.createdAt
+            };
+          }));
+          res.json({ bounties: detailedBounties });
+          break;
+        }
+        
+        case 'spending': {
+          const transactions = await storage.getAllTransactions();
+          const spendingData = transactions
+            .filter(t => ['withdrawal', 'deposit', 'earning', 'refund', 'purchase'].includes(t.type))
+            .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+            .slice(0, 100);
+          
+          const spending = await Promise.all(spendingData.map(async s => {
+            const user = await storage.getUser(s.userId);
+            return {
+              id: s.id,
+              type: s.type,
+              amount: s.amount,
+              description: s.description || s.type,
+              userName: user ? `${user.firstName} ${user.lastName}`.trim() || user.handle || user.email : 'Unknown',
+              createdAt: s.createdAt
+            };
+          }));
+          res.json({ spending });
+          break;
+        }
+        
+        default:
+          res.status(400).json({ message: "Invalid detail type" });
+      }
+    } catch (error) {
+      console.error(`Error fetching creator details for ${req.params.type}:`, error);
+      res.status(500).json({ message: "Failed to fetch details" });
+    }
+  });
+
   // Bounty completion with platform fee
   app.post('/api/bounties/:id/complete', isAuthenticated, async (req: any, res) => {
     try {

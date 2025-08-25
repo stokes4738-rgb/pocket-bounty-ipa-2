@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { CreatorStatsModal } from "@/components/CreatorStatsModal";
 import { 
   DollarSign, 
   TrendingUp, 
@@ -88,6 +89,15 @@ interface CreatorStats {
 
 export default function CreatorDashboard() {
   const { toast } = useToast();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<'users' | 'revenue' | 'bounties' | 'points' | 'spending' | null>(null);
+  const [modalTitle, setModalTitle] = useState("");
+
+  const openDetailsModal = (type: 'users' | 'revenue' | 'bounties' | 'points' | 'spending', title: string) => {
+    setModalType(type);
+    setModalTitle(title);
+    setModalOpen(true);
+  };
 
   const { data: stats, isLoading, error } = useQuery<CreatorStats>({
     queryKey: ["/api/creator/stats"],
@@ -231,7 +241,10 @@ export default function CreatorDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="theme-transition">
+        <Card 
+          className="theme-transition cursor-pointer hover:shadow-lg transition-all"
+          onClick={() => openDetailsModal('users', 'User Details')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
             <Users className="h-4 w-4 text-blue-600" />
@@ -244,10 +257,14 @@ export default function CreatorDashboard() {
               <span className="text-muted-foreground">{stats.users.active} active</span>
               {formatGrowthRate(stats.users.growthRate)}
             </div>
+            <p className="text-xs text-blue-600 mt-1">Click for details →</p>
           </CardContent>
         </Card>
 
-        <Card className="theme-transition">
+        <Card 
+          className="theme-transition cursor-pointer hover:shadow-lg transition-all"
+          onClick={() => openDetailsModal('bounties', 'Bounty Details')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Bounties</CardTitle>
             <Target className="h-4 w-4 text-purple-600" />
@@ -259,10 +276,14 @@ export default function CreatorDashboard() {
             <p className="text-xs text-muted-foreground">
               {stats.bounties.completionRate}% completion rate
             </p>
+            <p className="text-xs text-blue-600 mt-1">Click for details →</p>
           </CardContent>
         </Card>
 
-        <Card className="theme-transition">
+        <Card 
+          className="theme-transition cursor-pointer hover:shadow-lg transition-all"
+          onClick={() => openDetailsModal('points', 'Points Purchase Details')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Points Sales</CardTitle>
             <CreditCard className="h-4 w-4 text-blue-600" />
@@ -274,10 +295,14 @@ export default function CreatorDashboard() {
             <p className="text-xs text-muted-foreground">
               {stats.spending.pointPurchases.count} sales made
             </p>
+            <p className="text-xs text-blue-600 mt-1">Click for details →</p>
           </CardContent>
         </Card>
 
-        <Card className="theme-transition">
+        <Card 
+          className="theme-transition cursor-pointer hover:shadow-lg transition-all"
+          onClick={() => openDetailsModal('spending', 'User Spending Details')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">User Spending</CardTitle>
             <ShoppingCart className="h-4 w-4 text-red-600" />
@@ -289,6 +314,7 @@ export default function CreatorDashboard() {
             <p className="text-xs text-muted-foreground">
               Total money spent by users
             </p>
+            <p className="text-xs text-blue-600 mt-1">Click for details →</p>
           </CardContent>
         </Card>
       </div>
@@ -588,6 +614,17 @@ export default function CreatorDashboard() {
           )}
         </CardContent>
       </Card>
+      
+      {/* Stats Detail Modal */}
+      <CreatorStatsModal 
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setModalType(null);
+        }}
+        type={modalType}
+        title={modalTitle}
+      />
     </div>
   );
 }
