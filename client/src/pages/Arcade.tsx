@@ -20,8 +20,8 @@ export default function Arcade() {
 
   if (activeGame === "flappy") {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="min-h-screen">
+        <div className="flex items-center justify-between p-4">
           <Button
             variant="outline"
             onClick={() => setActiveGame("overview")}
@@ -37,8 +37,8 @@ export default function Arcade() {
 
   if (activeGame === "2048") {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="min-h-screen">
+        <div className="flex items-center justify-between p-4">
           <Button
             variant="outline"
             onClick={() => setActiveGame("overview")}
@@ -54,8 +54,8 @@ export default function Arcade() {
 
   if (activeGame === "snake") {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="min-h-screen">
+        <div className="flex items-center justify-between p-4">
           <Button
             variant="outline"
             onClick={() => setActiveGame("overview")}
@@ -71,8 +71,8 @@ export default function Arcade() {
 
   if (activeGame === "space-invaders") {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="min-h-screen">
+        <div className="flex items-center justify-between p-4">
           <Button
             variant="outline"
             onClick={() => setActiveGame("overview")}
@@ -88,8 +88,8 @@ export default function Arcade() {
 
   if (activeGame === "memory-match") {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="min-h-screen">
+        <div className="flex items-center justify-between p-4">
           <Button
             variant="outline"
             onClick={() => setActiveGame("overview")}
@@ -105,8 +105,8 @@ export default function Arcade() {
 
   if (activeGame === "breakout") {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="min-h-screen">
+        <div className="flex items-center justify-between p-4">
           <Button
             variant="outline"
             onClick={() => setActiveGame("overview")}
@@ -122,8 +122,8 @@ export default function Arcade() {
 
   if (activeGame === "whack-a-mole") {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="min-h-screen">
+        <div className="flex items-center justify-between p-4">
           <Button
             variant="outline"
             onClick={() => setActiveGame("overview")}
@@ -139,8 +139,8 @@ export default function Arcade() {
 
   if (activeGame === "tetris") {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="min-h-screen">
+        <div className="flex items-center justify-between p-4">
           <Button
             variant="outline"
             onClick={() => setActiveGame("overview")}
@@ -156,8 +156,8 @@ export default function Arcade() {
 
   if (activeGame === "simon-says") {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="min-h-screen">
+        <div className="flex items-center justify-between p-4">
           <Button
             variant="outline"
             onClick={() => setActiveGame("overview")}
@@ -173,8 +173,8 @@ export default function Arcade() {
 
   if (activeGame === "connect-four") {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="min-h-screen">
+        <div className="flex items-center justify-between p-4">
           <Button
             variant="outline"
             onClick={() => setActiveGame("overview")}
@@ -190,8 +190,8 @@ export default function Arcade() {
 
   if (activeGame === "asteroids") {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="min-h-screen">
+        <div className="flex items-center justify-between p-4">
           <Button
             variant="outline"
             onClick={() => setActiveGame("overview")}
@@ -207,8 +207,8 @@ export default function Arcade() {
 
   if (activeGame === "pacman") {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="min-h-screen">
+        <div className="flex items-center justify-between p-4">
           <Button
             variant="outline"
             onClick={() => setActiveGame("overview")}
@@ -224,8 +224,8 @@ export default function Arcade() {
 
   if (activeGame === "racing") {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="min-h-screen">
+        <div className="flex items-center justify-between p-4">
           <Button
             variant="outline"
             onClick={() => setActiveGame("overview")}

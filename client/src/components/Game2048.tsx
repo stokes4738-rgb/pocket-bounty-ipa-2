@@ -222,6 +222,33 @@ export default function Game2048() {
     setAnimationKey(0);
   }
 
+  const toggleFullscreen = async () => {
+    if (!gameContainerRef.current) return;
+    
+    try {
+      if (!isFullscreen) {
+        if (gameContainerRef.current.requestFullscreen) {
+          await gameContainerRef.current.requestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+      }
+    } catch (error) {
+      console.error('Fullscreen error:', error);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   // Save best score to localStorage
   useEffect(() => {
     if (gameStats.score > gameStats.bestScore) {
@@ -229,48 +256,52 @@ export default function Game2048() {
     }
   }, [gameStats.score, gameStats.bestScore]);
 
+  // Handle movement for both keyboard and mobile
+  const handleMove = useCallback((direction: string) => {
+    if (gameOver) return;
+    move(direction);
+  }, [gameOver]);
+
+  const handleKeyPress = useCallback((e: { key: string }) => {
+    if (gameOver) return;
+    
+    switch (e.key) {
+      case 'ArrowLeft':
+      case 'a':
+      case 'A':
+        handleMove('left');
+        break;
+      case 'ArrowRight':
+      case 'd':
+      case 'D':
+        handleMove('right');
+        break;
+      case 'ArrowUp':
+      case 'w':
+      case 'W':
+        handleMove('up');
+        break;
+      case 'ArrowDown':
+      case 's':
+      case 'S':
+        handleMove('down');
+        break;
+    }
+  }, [gameOver, handleMove]);
+
   // Keyboard controls
   useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (gameOver) return;
-      
-      switch (e.key) {
-        case 'ArrowLeft':
-        case 'a':
-        case 'A':
-          e.preventDefault();
-          e.stopPropagation();
-          move('left');
-          break;
-        case 'ArrowRight':
-        case 'd':
-        case 'D':
-          e.preventDefault();
-          e.stopPropagation();
-          move('right');
-          break;
-        case 'ArrowUp':
-        case 'w':
-        case 'W':
-          e.preventDefault();
-          e.stopPropagation();
-          move('up');
-          break;
-        case 'ArrowDown':
-        case 's':
-        case 'S':
-          e.preventDefault();
-          e.stopPropagation();
-          move('down');
-          break;
-      }
+    const keyboardHandler = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handleKeyPress({ key: e.key });
     };
 
     if (!gameOver) {
-      document.addEventListener('keydown', handleKeyPress, { capture: true });
-      return () => document.removeEventListener('keydown', handleKeyPress, { capture: true });
+      document.addEventListener('keydown', keyboardHandler, { capture: true });
+      return () => document.removeEventListener('keydown', keyboardHandler, { capture: true });
     }
-  }, [gameOver]);
+  }, [gameOver, handleKeyPress]);
 
   function getTileColor(value: number): string {
     const colors: Record<number, string> = {
