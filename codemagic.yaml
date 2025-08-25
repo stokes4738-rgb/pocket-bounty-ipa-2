@@ -29,14 +29,7 @@ workflows:
         script: |
           echo "Installing dependencies..."
           npm ci --verbose
-          echo "Dependencies installed successfully"
-          echo "Ensuring TypeScript is available for Capacitor..."
-          npm install typescript --save-dev || echo "TypeScript already available"
-          echo "Checking vite installation..."
-          npx vite --version || echo "Vite not found in local installation"
-        script: |
-          npm ci
-      - name: Build web application  
+          echo "Dependencies installed successfully"      - name: Build web application  
         script: |
           # Ensure NODE_ENV is set
           export NODE_ENV=production
