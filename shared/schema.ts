@@ -26,7 +26,7 @@ export const sessions = pgTable(
 );
 
 // User storage table for Replit Auth
-export const users = pgTable("users", {
+export const users: any = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
@@ -45,7 +45,7 @@ export const users = pgTable("users", {
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
   referralCode: varchar("referral_code").unique(),
-  referredBy: varchar("referred_by").references(() => users.id),
+  referredBy: varchar("referred_by").references((): any => users.id),
   referralCount: integer("referral_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
