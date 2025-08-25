@@ -25,6 +25,7 @@ export function DrawerMenu({ isOpen, onClose, activeSection, onSectionChange }: 
     { id: "account", label: "💳 Account" },
     { id: "friends", label: "👥 Friends" },
     { id: "activity", label: "🔔 Activity" },
+    { id: "referrals", label: "🎯 Share & Earn" },
     { id: "admin", label: "👑 Creator Analytics" },
     { id: "settings", label: "⚙️ Settings" },
     { id: "flappy", label: "🐤 Flappy Game" },

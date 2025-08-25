@@ -44,12 +44,17 @@ export const users = pgTable("users", {
   lastSeen: timestamp("last_seen").defaultNow(),
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
+  referralCode: varchar("referral_code").unique(),
+  referredBy: varchar("referred_by").references(() => users.id),
+  referralCount: integer("referral_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("idx_users_email").on(table.email),
   index("idx_users_created_at").on(table.createdAt),
   index("idx_users_last_seen").on(table.lastSeen),
+  index("idx_users_referral_code").on(table.referralCode),
+  index("idx_users_referred_by").on(table.referredBy),
 ]);
 
 export const bounties = pgTable("bounties", {

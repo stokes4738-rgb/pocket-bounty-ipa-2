@@ -110,6 +110,13 @@ export interface IStorage {
   
   // Profile update operations  
   updateUserProfile(userId: string, profileData: { firstName?: string; lastName?: string; handle?: string; bio?: string; skills?: string; experience?: string }): Promise<void>;
+  
+  // Referral operations
+  generateReferralCode(userId: string): Promise<string>;
+  getUserByReferralCode(referralCode: string): Promise<User | undefined>;
+  processReferralSignup(newUserId: string, referralCode: string): Promise<void>;
+  getUserReferrals(userId: string): Promise<User[]>;
+  updateReferralCount(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -620,6 +627,93 @@ export class DatabaseStorage implements IStorage {
       .update(users)
       .set(updateData)
       .where(eq(users.id, userId));
+  }
+
+  // Referral operations
+  async generateReferralCode(userId: string): Promise<string> {
+    // Generate a unique 8-character referral code
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    
+    while (true) {
+      code = '';
+      for (let i = 0; i < 8; i++) {
+        code += characters.charAt(Math.floor(Math.random() * characters.length));
+      }
+      
+      // Check if code already exists
+      const existing = await db.select().from(users).where(eq(users.referralCode, code)).limit(1);
+      if (existing.length === 0) break;
+    }
+    
+    // Update user with the referral code
+    await db
+      .update(users)
+      .set({ referralCode: code, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+    
+    return code;
+  }
+
+  async getUserByReferralCode(referralCode: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.referralCode, referralCode));
+    return user;
+  }
+
+  async processReferralSignup(newUserId: string, referralCode: string): Promise<void> {
+    const referrer = await this.getUserByReferralCode(referralCode);
+    if (!referrer) return;
+
+    // Set the new user's referredBy field
+    await db
+      .update(users)
+      .set({ referredBy: referrer.id, updatedAt: new Date() })
+      .where(eq(users.id, newUserId));
+
+    // Update referrer's count and award points
+    await this.updateReferralCount(referrer.id);
+  }
+
+  async getUserReferrals(userId: string): Promise<User[]> {
+    return db
+      .select()
+      .from(users)
+      .where(eq(users.referredBy, userId))
+      .orderBy(desc(users.createdAt));
+  }
+
+  async updateReferralCount(userId: string): Promise<void> {
+    // Count current referrals
+    const [countResult] = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(users)
+      .where(eq(users.referredBy, userId));
+    
+    const newCount = countResult.count || 0;
+    const user = await this.getUser(userId);
+    const oldCount = user?.referralCount || 0;
+
+    // Update referral count
+    await db
+      .update(users)
+      .set({ referralCount: newCount, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+
+    // Award milestone points
+    const milestones = [1, 5, 10, 20];
+    for (const milestone of milestones) {
+      if (newCount >= milestone && oldCount < milestone) {
+        const pointsToAward = milestone === 1 ? 10 : milestone === 5 ? 50 : milestone === 10 ? 100 : 200;
+        
+        await this.updateUserPoints(userId, pointsToAward);
+        await this.createActivity({
+          userId,
+          type: "referral_milestone",
+          description: `Reached ${milestone} referral${milestone > 1 ? 's' : ''}! Earned ${pointsToAward} bonus points!`,
+          metadata: { milestone, pointsEarned: pointsToAward, totalReferrals: newCount },
+        });
+      }
+    }
   }
 }
 

@@ -88,6 +88,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Referral routes
+  app.get("/api/referral/code", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      let referralCode = user?.referralCode;
+      if (!referralCode) {
+        // Generate a new referral code
+        referralCode = await storage.generateReferralCode(userId);
+      }
+      
+      res.json({ 
+        referralCode,
+        referralCount: user?.referralCount || 0,
+        shareUrl: `${req.protocol}://${req.hostname}${req.hostname === 'localhost' ? ':5000' : ''}/signup?ref=${referralCode}`
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error getting referral code: " + error.message });
+    }
+  });
+
+  app.get("/api/referral/stats", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      const referrals = await storage.getUserReferrals(userId);
+      
+      const referralCount = user?.referralCount || 0;
+      const milestones = [
+        { count: 1, points: 10, reached: referralCount >= 1 },
+        { count: 5, points: 50, reached: referralCount >= 5 },
+        { count: 10, points: 100, reached: referralCount >= 10 },
+        { count: 20, points: 200, reached: referralCount >= 20 }
+      ];
+      
+      res.json({ 
+        referralCount,
+        referrals: referrals.map(r => ({
+          id: r.id,
+          firstName: r.firstName,
+          lastName: r.lastName,
+          handle: r.handle,
+          createdAt: r.createdAt
+        })),
+        milestones
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error getting referral stats: " + error.message });
+    }
+  });
+
+  app.post("/api/referral/signup", isAuthenticated, async (req: any, res) => {
+    try {
+      const { referralCode } = req.body;
+      if (!referralCode) {
+        return res.status(400).json({ message: "Referral code is required" });
+      }
+
+      const userId = req.user.claims.sub;
+      await storage.processReferralSignup(userId, referralCode);
+      
+      res.json({ message: "Referral processed successfully" });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error processing referral: " + error.message });
+    }
+  });
+
   // Bounty routes
   app.get('/api/bounties', async (req, res) => {
     try {

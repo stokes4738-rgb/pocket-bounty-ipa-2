@@ -11,6 +11,7 @@ import Settings from "./Settings";
 import FlappyGame from "./FlappyGame";
 import Account from "./Account";
 import CreatorDashboard from "./CreatorDashboard";
+import Referrals from "./Referrals";
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState("board");
@@ -35,6 +36,8 @@ export default function Home() {
         return <Settings />;
       case "flappy":
         return <FlappyGame />;
+      case "referrals":
+        return <Referrals />;
       case "account":
         return <Account />;
       case "admin":
