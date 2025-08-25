@@ -159,7 +159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Point purchase routes
   app.get("/api/points/packages", (req, res) => {
     const packages = [
-      { id: "test", points: 1, price: 0.01, label: "Test Pack", popular: false },
+      { id: "test", points: 25, price: 0.50, label: "Test Pack", popular: false },
       { id: "starter", points: 50, price: 0.99, label: "Starter Pack", popular: false },
       { id: "basic", points: 100, price: 1.99, label: "Basic Pack", popular: false },
       { id: "popular", points: 250, price: 4.99, label: "Popular Pack", popular: true },
@@ -182,7 +182,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Define point packages
       const packages: { [key: string]: { points: number; price: number; label: string } } = {
-        test: { points: 1, price: 0.01, label: "Test Pack" },
+        test: { points: 25, price: 0.50, label: "Test Pack" },
         starter: { points: 50, price: 0.99, label: "Starter Pack" },
         basic: { points: 100, price: 1.99, label: "Basic Pack" },
         popular: { points: 250, price: 4.99, label: "Popular Pack" },
