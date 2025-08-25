@@ -817,7 +817,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         payment_method: paymentMethodId,
         confirm: true,
         automatic_payment_methods: {
-          enabled: false,
+          enabled: true,
         },
         return_url: `${req.protocol}://${req.get('host')}/account`,
       });
