@@ -156,6 +156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+
   // Point purchase routes
   app.get("/api/points/packages", (req, res) => {
     const packages = [
@@ -220,20 +221,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/points/confirm-purchase", isAuthenticated, async (req: any, res) => {
-    console.log("CONFIRMATION ENDPOINT CALLED!");
-    console.log("Request body:", req.body);
-    console.log("User from session:", req.user?.claims?.sub);
-    
     if (!stripe) {
-      console.error("Stripe not available for purchase confirmation");
       return res.status(500).json({ message: "Payment system not available" });
     }
 
     try {
       const { paymentIntentId } = req.body;
       const userId = req.user.claims.sub;
-
-      console.log(`Confirming purchase for user ${userId}, payment intent: ${paymentIntentId}`);
 
       // Retrieve payment intent to verify payment
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);

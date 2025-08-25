@@ -67,14 +67,10 @@ const CheckoutForm = ({ selectedPackage, onSuccess, onCancel }: {
 
   const confirmPurchaseMutation = useMutation({
     mutationFn: async (paymentIntentId: string) => {
-      console.log("Confirming purchase with payment intent:", paymentIntentId);
       const response = await apiRequest("POST", "/api/points/confirm-purchase", { paymentIntentId });
-      const data = await response.json();
-      console.log("Purchase confirmation response:", data);
-      return data;
+      return response.json();
     },
     onSuccess: (data: any) => {
-      console.log("Purchase confirmed successfully:", data);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Purchase Successful! 🎉",
@@ -83,10 +79,9 @@ const CheckoutForm = ({ selectedPackage, onSuccess, onCancel }: {
       onSuccess();
     },
     onError: (error: any) => {
-      console.error("Purchase confirmation failed:", error);
       toast({
         title: "Purchase Failed",
-        description: error.message || "Failed to complete purchase. Please contact support if points were not added.",
+        description: error.message || "Failed to complete purchase",
         variant: "destructive",
       });
     }
