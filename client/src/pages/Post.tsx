@@ -28,8 +28,34 @@ type PostBountyForm = z.infer<typeof postBountySchema>;
 
 export default function Post() {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const queryClient = useQueryClient();
+
+  // Show login prompt if not authenticated
+  if (!isLoading && !user) {
+    return (
+      <div className="text-center space-y-4 mt-8">
+        <div className="text-6xl">🔒</div>
+        <h2 className="text-lg font-bold">Please Log In</h2>
+        <p className="text-muted-foreground">You need to be logged in to post bounties.</p>
+        <Button 
+          onClick={() => window.location.href = "/api/login"}
+          className="bg-pocket-red hover:bg-pocket-red-dark"
+        >
+          Log In to Post Bounties
+        </Button>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="text-center space-y-4 mt-8">
+        <div className="text-4xl">⏳</div>
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
 
   const form = useForm<PostBountyForm>({
     resolver: zodResolver(postBountySchema),
