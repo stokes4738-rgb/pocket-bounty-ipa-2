@@ -34,6 +34,8 @@ const PackageIcon = ({ packageId }: { packageId: string }) => {
   const iconProps = { className: "h-6 w-6" };
   
   switch (packageId) {
+    case "test":
+      return <Star {...iconProps} className="h-6 w-6 text-gray-500" />;
     case "starter":
       return <Star {...iconProps} className="h-6 w-6 text-yellow-500" />;
     case "basic":
