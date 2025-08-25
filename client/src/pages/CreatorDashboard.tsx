@@ -509,15 +509,16 @@ export default function CreatorDashboard() {
               <div className="space-y-2">
                 <p className="text-sm font-medium">Withdrawals</p>
                 <p className="text-2xl font-bold text-red-600">${parseFloat(stats.spending.withdrawals.total).toLocaleString()}</p>
-                <p className="text-xs text-muted-foreground">{stats.spending.withdrawals.count} withdrawals</p>
+                <p className="text-xs text-muted-foreground">{stats.spending.withdrawals.count} actual withdrawals</p>
               </div>
               <div className="space-y-2">
                 <p className="text-sm font-medium">Avg Point Purchase</p>
                 <p className="text-2xl font-bold">${stats.spending.pointPurchases.avgPurchase}</p>
               </div>
               <div className="space-y-2">
-                <p className="text-sm font-medium">Avg Withdrawal</p>
-                <p className="text-2xl font-bold">${stats.spending.withdrawals.avgWithdrawal}</p>
+                <p className="text-sm font-medium">Boost Spending</p>
+                <p className="text-2xl font-bold text-purple-600">${parseFloat(stats.spending.boosts?.total || '0').toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">{stats.spending.boosts?.count || 0} bounty boosts</p>
               </div>
             </div>
             <div className="pt-4 border-t space-y-3">

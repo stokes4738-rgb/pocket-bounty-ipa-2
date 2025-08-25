@@ -1164,7 +1164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Calculate transaction statistics
       const deposits = allTransactions.filter(t => t.type === 'earning');
-      const withdrawals = allTransactions.filter(t => t.type === 'spending');
+      const withdrawals = allTransactions.filter(t => t.type === 'withdrawal'); // Fix: use 'withdrawal' not 'spending'
       const totalVolume = allTransactions.reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
 
       // Calculate comprehensive spending analytics
@@ -1246,9 +1246,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             avgPurchase: pointPurchases.length > 0 ? (totalPointPurchases / pointPurchases.length).toFixed(2) : '0'
           },
           withdrawals: {
+            total: withdrawals.reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0).toFixed(2),
+            count: withdrawals.length,
+            avgWithdrawal: withdrawals.length > 0 ? (withdrawals.reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0) / withdrawals.length).toFixed(2) : '0'
+          },
+          boosts: {
             total: totalSpending.toFixed(2),
             count: spendingTransactions.length,
-            avgWithdrawal: spendingTransactions.length > 0 ? (totalSpending / spendingTransactions.length).toFixed(2) : '0'
+            avgBoost: spendingTransactions.length > 0 ? (totalSpending / spendingTransactions.length).toFixed(2) : '0'
           },
           refunds: {
             total: totalRefunds.toFixed(2),

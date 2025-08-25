@@ -24,22 +24,33 @@ interface StatsModalProps {
   title: string;
 }
 
+interface ModalDetailsData {
+  users?: any[];
+  transactions?: any[];
+  purchases?: any[];
+  bounties?: any[];
+  spending?: any[];
+}
+
 export function CreatorStatsModal({ isOpen, onClose, type, title }: StatsModalProps) {
   const [activeTab, setActiveTab] = useState("list");
 
-  const { data: details, isLoading } = useQuery({
+  const { data: details, isLoading, error } = useQuery<ModalDetailsData | null>({
     queryKey: [`/api/creator/details/${type}`],
     enabled: isOpen && type !== null,
     queryFn: async () => {
       if (!type) return null;
-      return apiRequest("GET", `/api/creator/details/${type}`, {});
-    }
+      const response = await apiRequest("GET", `/api/creator/details/${type}`, {}) as ModalDetailsData;
+      console.log(`Modal data for ${type}:`, response);
+      return response;
+    },
+    retry: false
   });
 
   if (!type) return null;
 
   const renderUsersList = () => {
-    if (!details?.users) return null;
+    if (!details?.users) return <div className="text-center p-6 text-muted-foreground">No users found</div>;
     return (
       <div className="space-y-2">
         {details.users.map((user: any) => (
@@ -67,7 +78,7 @@ export function CreatorStatsModal({ isOpen, onClose, type, title }: StatsModalPr
   };
 
   const renderRevenueList = () => {
-    if (!details?.transactions) return null;
+    if (!details?.transactions) return <div className="text-center p-6 text-muted-foreground">No transactions found</div>;
     return (
       <div className="space-y-2">
         {details.transactions.map((transaction: any) => (
@@ -100,7 +111,7 @@ export function CreatorStatsModal({ isOpen, onClose, type, title }: StatsModalPr
   };
 
   const renderPointsPurchases = () => {
-    if (!details?.purchases) return null;
+    if (!details?.purchases) return <div className="text-center p-6 text-muted-foreground">No purchases found</div>;
     return (
       <div className="space-y-2">
         {details.purchases.map((purchase: any) => (
@@ -130,7 +141,7 @@ export function CreatorStatsModal({ isOpen, onClose, type, title }: StatsModalPr
   };
 
   const renderBountiesList = () => {
-    if (!details?.bounties) return null;
+    if (!details?.bounties) return <div className="text-center p-6 text-muted-foreground">No bounties found</div>;
     return (
       <div className="space-y-2">
         {details.bounties.map((bounty: any) => (
@@ -164,7 +175,7 @@ export function CreatorStatsModal({ isOpen, onClose, type, title }: StatsModalPr
   };
 
   const renderSpendingBreakdown = () => {
-    if (!details?.spending) return null;
+    if (!details?.spending) return <div className="text-center p-6 text-muted-foreground">No spending found</div>;
     return (
       <div className="space-y-2">
         {details.spending.map((spend: any) => (
@@ -210,6 +221,24 @@ export function CreatorStatsModal({ isOpen, onClose, type, title }: StatsModalPr
       return (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="flex flex-col items-center justify-center h-64 text-center">
+          <div className="text-red-500 mb-2">❌ Error loading data</div>
+          <div className="text-sm text-muted-foreground">{error.message}</div>
+          <div className="text-xs text-muted-foreground mt-2">Make sure you're logged in as a creator</div>
+        </div>
+      );
+    }
+
+    if (!details) {
+      return (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-muted-foreground">No data available</div>
         </div>
       );
     }
