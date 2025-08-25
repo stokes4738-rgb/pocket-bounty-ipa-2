@@ -11,7 +11,7 @@ let stripe: Stripe | null = null;
 if (process.env.STRIPE_SECRET_KEY) {
   try {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2023-10-16",
+      apiVersion: "2025-07-30.basil",
     });
     console.log("Stripe initialized successfully");
   } catch (error) {
@@ -856,7 +856,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Create withdrawal transaction record
-      const methodNames = {
+      const methodNames: Record<string, string> = {
         'bank_transfer': 'bank transfer',
         'debit_card': 'instant debit',
         'cash_app': 'Cash App',
@@ -869,10 +869,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         amount: amount,
         description: `Withdrawal via ${methodNames[method] || method}`,
         status: "pending",
-        metadata: {
-          stripeTransferId: transfer.id,
-          withdrawalMethod: method,
-        },
       });
 
       // Deduct amount from user balance

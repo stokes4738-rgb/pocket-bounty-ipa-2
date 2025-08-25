@@ -127,7 +127,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
+    const result = await db
       .insert(users)
       .values(userData)
       .onConflictDoUpdate({
@@ -138,7 +138,7 @@ export class DatabaseStorage implements IStorage {
         },
       })
       .returning();
-    return user;
+    return Array.isArray(result) ? result[0] : result;
   }
 
   async updateUserPoints(userId: string, points: number): Promise<void> {

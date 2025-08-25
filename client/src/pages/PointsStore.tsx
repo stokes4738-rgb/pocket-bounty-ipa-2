@@ -65,13 +65,14 @@ const CheckoutForm = ({ selectedPackage, onSuccess, onCancel }: {
 
   const confirmPurchaseMutation = useMutation({
     mutationFn: async (paymentIntentId: string) => {
-      return apiRequest("POST", "/api/points/confirm-purchase", { paymentIntentId });
+      const response = await apiRequest("POST", "/api/points/confirm-purchase", { paymentIntentId });
+      return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Purchase Successful! 🎉",
-        description: data.message,
+        description: data.message || "Points added successfully!",
       });
       onSuccess();
     },
@@ -179,9 +180,10 @@ export default function PointsStore() {
     enabled: !!user,
   });
 
-  const purchaseMutation = useMutation({
+  const purchaseMutation = useMutation<PurchaseResponse, Error, string>({
     mutationFn: async (packageId: string) => {
-      return apiRequest("POST", "/api/points/purchase", { packageId });
+      const response = await apiRequest("POST", "/api/points/purchase", { packageId });
+      return response.json();
     },
     onSuccess: (data: PurchaseResponse) => {
       setPurchaseData(data);
