@@ -1,6 +1,6 @@
 # Overview
 
-Pocket Bounty is a full-stack social bounty platform where users can post and complete tasks for monetary rewards. It features a mobile-first React frontend with Express.js backend, real-time messaging via WebSockets, and comprehensive user management with points/rewards system. The application uses Replit Auth for authentication and includes gamification elements like a Flappy Bird mini-game.
+Pocket Bounty is a full-stack social bounty platform where users can post and complete tasks for monetary rewards. It features a mobile-first React frontend with Express.js backend, real-time messaging via WebSockets, and comprehensive user management with points/rewards system. The application uses custom username/password authentication and includes gamification elements like a Flappy Bird mini-game.
 
 # User Preferences
 
@@ -34,11 +34,11 @@ The server follows Express.js patterns with modular route organization:
 
 ## Authentication & Authorization
 
-Uses Replit's OpenID Connect (OIDC) authentication system:
+Uses custom username/password authentication system:
 - **Session Management**: PostgreSQL-based session storage with connect-pg-simple
-- **User Management**: Automatic user creation/updates on login
+- **User Management**: Secure user registration and login with password hashing
 - **Route Protection**: Middleware-based authentication checks on protected endpoints
-- **Token Handling**: OAuth2 tokens managed server-side with refresh capabilities
+- **Password Security**: Bcrypt-based password hashing with salt
 
 ## Database Design
 
@@ -81,7 +81,7 @@ Progressive Web App capabilities:
 # External Dependencies
 
 ## Authentication Service
-- **Replit OIDC**: Primary authentication provider using OpenID Connect
+- **Custom Authentication**: Self-hosted username/password authentication system
 - **Session Storage**: PostgreSQL-based session management
 
 ## Database Service
