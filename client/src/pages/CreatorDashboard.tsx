@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { CreatorStatsModal } from "@/components/CreatorStatsModal";
@@ -19,7 +20,12 @@ import {
   Crown,
   CreditCard,
   Wallet,
-  ShoppingCart
+  ShoppingCart,
+  Gamepad2,
+  Trophy,
+  UserCheck,
+  RefreshCw,
+  Download
 } from "lucide-react";
 
 interface CreatorStats {
@@ -72,11 +78,55 @@ interface CreatorStats {
       total: string;
       count: number;
     };
+    boosts?: {
+      total: string;
+      count: number;
+    };
     breakdown: Record<string, number>;
     last30Days: {
       pointPurchases: string;
       spending: string;
     };
+  };
+  gameStats?: {
+    totalGamesPlayed: number;
+    totalPointsEarned: number;
+    mostPopularGames: Array<{
+      name: string;
+      plays: number;
+      pointsEarned: number;
+    }>;
+    recentGameActivity: Array<{
+      game: string;
+      points: number;
+      userId: string;
+      timestamp: string;
+    }>;
+  };
+  topPerformers?: {
+    topEarners: Array<{
+      id: string;
+      name: string;
+      earned: string;
+    }>;
+    topSpenders: Array<{
+      id: string;
+      name: string;
+      spent: string;
+    }>;
+    mostActive: Array<{
+      id: string;
+      name: string;
+      actions: number;
+    }>;
+  };
+  engagement?: {
+    dailyActiveUsers: number;
+    weeklyActiveUsers: number;
+    monthlyActiveUsers: number;
+    retentionRate: string;
+    avgSessionLength: string;
+    bounceRate: string;
   };
   activity: Array<{
     id: string;
@@ -223,6 +273,65 @@ export default function CreatorDashboard() {
           Creator Access
         </Badge>
       </div>
+
+      {/* Quick Stats Summary */}
+      {stats && (
+        <Card className="theme-transition bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20">
+          <CardContent className="p-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 text-center">
+              <div>
+                <p className="text-2xl font-bold text-green-600">${parseFloat(stats.revenue.total).toFixed(0)}</p>
+                <p className="text-xs text-muted-foreground">Revenue</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{stats.users.total}</p>
+                <p className="text-xs text-muted-foreground">Users</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{stats.bounties.active}</p>
+                <p className="text-xs text-muted-foreground">Active Bounties</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-blue-600">${parseFloat(stats.spending.pointPurchases.total).toFixed(0)}</p>
+                <p className="text-xs text-muted-foreground">Points Sales</p>
+              </div>
+              {stats.gameStats && (
+                <div>
+                  <p className="text-2xl font-bold text-purple-600">{stats.gameStats.totalGamesPlayed}</p>
+                  <p className="text-xs text-muted-foreground">Games Played</p>
+                </div>
+              )}
+              {stats.engagement && (
+                <div>
+                  <p className="text-2xl font-bold">{stats.engagement.dailyActiveUsers}</p>
+                  <p className="text-xs text-muted-foreground">Daily Active</p>
+                </div>
+              )}
+              {stats.engagement && (
+                <div>
+                  <p className="text-2xl font-bold">{stats.engagement.retentionRate}%</p>
+                  <p className="text-xs text-muted-foreground">Retention</p>
+                </div>
+              )}
+              <div>
+                <p className="text-2xl font-bold">{stats.bounties.completionRate}%</p>
+                <p className="text-xs text-muted-foreground">Completion</p>
+              </div>
+            </div>
+            <div className="mt-4 flex justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.location.reload()}
+                className="gap-2"
+              >
+                <RefreshCw className="h-3 w-3" />
+                Refresh All Stats
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Key Metrics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
@@ -515,11 +624,13 @@ export default function CreatorDashboard() {
                 <p className="text-sm font-medium">Avg Point Purchase</p>
                 <p className="text-2xl font-bold">${stats.spending.pointPurchases.avgPurchase}</p>
               </div>
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Boost Spending</p>
-                <p className="text-2xl font-bold text-purple-600">${parseFloat(stats.spending.boosts?.total || '0').toLocaleString()}</p>
-                <p className="text-xs text-muted-foreground">{stats.spending.boosts?.count || 0} bounty boosts</p>
-              </div>
+              {stats.spending.boosts && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Boost Spending</p>
+                  <p className="text-2xl font-bold text-purple-600">${parseFloat(stats.spending.boosts.total || '0').toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">{stats.spending.boosts.count || 0} bounty boosts</p>
+                </div>
+              )}
             </div>
             <div className="pt-4 border-t space-y-3">
               <div className="flex justify-between items-center">
@@ -575,13 +686,197 @@ export default function CreatorDashboard() {
         </Card>
       </div>
 
+      {/* Game Analytics */}
+      {stats.gameStats && (
+        <Card className="theme-transition">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Gamepad2 className="h-5 w-5" />
+              Arcade Game Analytics
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Total Games Played</p>
+                <p className="text-2xl font-bold">{stats.gameStats.totalGamesPlayed.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">Across all arcade games</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Points Earned from Games</p>
+                <p className="text-2xl font-bold text-purple-600">{stats.gameStats.totalPointsEarned.toLocaleString()} ⭐</p>
+                <p className="text-xs text-muted-foreground">Total points awarded</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Most Popular Game</p>
+                <p className="text-2xl font-bold">{stats.gameStats.mostPopularGames[0]?.name || 'N/A'}</p>
+                <p className="text-xs text-muted-foreground">{stats.gameStats.mostPopularGames[0]?.plays || 0} plays</p>
+              </div>
+            </div>
+            {stats.gameStats.mostPopularGames.length > 0 && (
+              <div className="pt-4 border-t">
+                <h4 className="text-sm font-semibold mb-3">Top 5 Games</h4>
+                <div className="space-y-2">
+                  {stats.gameStats.mostPopularGames.slice(0, 5).map((game, index) => (
+                    <div key={game.name} className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="w-6 h-6 p-0 flex items-center justify-center">
+                          {index + 1}
+                        </Badge>
+                        <span className="font-medium">{game.name}</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold">{game.plays} plays</p>
+                        <p className="text-xs text-muted-foreground">{game.pointsEarned} pts earned</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Top Performers */}
+      {stats.topPerformers && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="theme-transition">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Trophy className="h-4 w-4 text-yellow-500" />
+                Top Earners
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {stats.topPerformers.topEarners.slice(0, 5).map((user, index) => (
+                  <div key={user.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`}</span>
+                      <span className="text-sm font-medium truncate max-w-[120px]">{user.name}</span>
+                    </div>
+                    <Badge variant="outline" className="text-green-600">
+                      ${user.earned}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="theme-transition">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Wallet className="h-4 w-4 text-blue-500" />
+                Top Spenders
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {stats.topPerformers.topSpenders.slice(0, 5).map((user, index) => (
+                  <div key={user.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`}</span>
+                      <span className="text-sm font-medium truncate max-w-[120px]">{user.name}</span>
+                    </div>
+                    <Badge variant="outline" className="text-blue-600">
+                      ${user.spent}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="theme-transition">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <UserCheck className="h-4 w-4 text-purple-500" />
+                Most Active Users
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {stats.topPerformers.mostActive.slice(0, 5).map((user, index) => (
+                  <div key={user.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`}</span>
+                      <span className="text-sm font-medium truncate max-w-[120px]">{user.name}</span>
+                    </div>
+                    <Badge variant="outline" className="text-purple-600">
+                      {user.actions} actions
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* User Engagement Metrics */}
+      {stats.engagement && (
+        <Card className="theme-transition">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              User Engagement Metrics
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Daily Active</p>
+                <p className="text-2xl font-bold">{stats.engagement.dailyActiveUsers}</p>
+                <p className="text-xs text-muted-foreground">users today</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Weekly Active</p>
+                <p className="text-2xl font-bold">{stats.engagement.weeklyActiveUsers}</p>
+                <p className="text-xs text-muted-foreground">last 7 days</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Monthly Active</p>
+                <p className="text-2xl font-bold">{stats.engagement.monthlyActiveUsers}</p>
+                <p className="text-xs text-muted-foreground">last 30 days</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Retention Rate</p>
+                <p className="text-2xl font-bold">{stats.engagement.retentionRate}%</p>
+                <p className="text-xs text-muted-foreground">7-day retention</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Avg Session</p>
+                <p className="text-2xl font-bold">{stats.engagement.avgSessionLength}</p>
+                <p className="text-xs text-muted-foreground">minutes</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Bounce Rate</p>
+                <p className="text-2xl font-bold">{stats.engagement.bounceRate}%</p>
+                <p className="text-xs text-muted-foreground">single page visits</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Recent Activity Feed */}
       <Card className="theme-transition">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5" />
             Recent Platform Activity
           </CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.location.reload()}
+            className="gap-2"
+          >
+            <RefreshCw className="h-3 w-3" />
+            Refresh
+          </Button>
         </CardHeader>
         <CardContent>
           {stats.activity.length === 0 ? (

@@ -1199,6 +1199,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Growth metrics (comparing last 30 days vs previous 30 days)
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
       const newUsersLast30 = allUsers.filter(u => new Date(u.createdAt) > thirtyDaysAgo).length;
       const newUsersPrevious30 = allUsers.filter(u => 
@@ -1208,6 +1210,150 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userGrowthRate = newUsersPrevious30 > 0 
         ? ((newUsersLast30 - newUsersPrevious30) / newUsersPrevious30 * 100).toFixed(1)
         : newUsersLast30 > 0 ? '100' : '0';
+
+      // Game Analytics
+      const gameTransactions = allTransactions.filter(t => 
+        t.type === 'earning' && 
+        t.description && 
+        (t.description.includes('game') || 
+         t.description.includes('Snake') ||
+         t.description.includes('Tetris') ||
+         t.description.includes('Space Invaders') ||
+         t.description.includes('2048') ||
+         t.description.includes('Flappy') ||
+         t.description.includes('Simon Says') ||
+         t.description.includes('Memory Match') ||
+         t.description.includes('Whack-a-Mole') ||
+         t.description.includes('Connect Four') ||
+         t.description.includes('Asteroids') ||
+         t.description.includes('Pac-Man') ||
+         t.description.includes('Racing') ||
+         t.description.includes('Breakout'))
+      );
+
+      const gameStats = {
+        totalGamesPlayed: gameTransactions.length,
+        totalPointsEarned: gameTransactions.reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0),
+        mostPopularGames: (() => {
+          const gameCount: Record<string, { plays: number; points: number }> = {};
+          gameTransactions.forEach(t => {
+            const desc = t.description || '';
+            let gameName = 'Unknown';
+            
+            if (desc.includes('Snake')) gameName = 'Snake';
+            else if (desc.includes('Tetris')) gameName = 'Tetris';
+            else if (desc.includes('Space Invaders')) gameName = 'Space Invaders';
+            else if (desc.includes('2048')) gameName = '2048';
+            else if (desc.includes('Flappy')) gameName = 'Flappy Bird';
+            else if (desc.includes('Simon Says')) gameName = 'Simon Says';
+            else if (desc.includes('Memory Match')) gameName = 'Memory Match';
+            else if (desc.includes('Whack-a-Mole')) gameName = 'Whack-a-Mole';
+            else if (desc.includes('Connect Four')) gameName = 'Connect Four';
+            else if (desc.includes('Asteroids')) gameName = 'Asteroids';
+            else if (desc.includes('Pac-Man')) gameName = 'Pac-Man';
+            else if (desc.includes('Racing')) gameName = 'Racing';
+            else if (desc.includes('Breakout')) gameName = 'Breakout';
+            
+            if (!gameCount[gameName]) {
+              gameCount[gameName] = { plays: 0, points: 0 };
+            }
+            gameCount[gameName].plays++;
+            gameCount[gameName].points += parseFloat(t.amount || '0');
+          });
+          
+          return Object.entries(gameCount)
+            .map(([name, data]) => ({
+              name,
+              plays: data.plays,
+              pointsEarned: data.points
+            }))
+            .sort((a, b) => b.plays - a.plays);
+        })(),
+        recentGameActivity: gameTransactions
+          .slice(-10)
+          .map(t => ({
+            game: t.description?.split(' - ')[0] || 'Unknown',
+            points: parseFloat(t.amount || '0'),
+            userId: t.userId,
+            timestamp: t.createdAt
+          }))
+      };
+
+      // Top Performers
+      const userEarnings: Record<string, { earned: number; spent: number; actions: number; name: string }> = {};
+      
+      allUsers.forEach(user => {
+        userEarnings[user.id] = {
+          earned: 0,
+          spent: 0,
+          actions: 0,
+          name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email
+        };
+      });
+
+      allTransactions.forEach(t => {
+        if (!userEarnings[t.userId]) {
+          userEarnings[t.userId] = { earned: 0, spent: 0, actions: 0, name: 'Unknown User' };
+        }
+        
+        if (t.type === 'earning') {
+          userEarnings[t.userId].earned += parseFloat(t.amount || '0');
+        } else if (t.type === 'spending' || t.type === 'point_purchase') {
+          userEarnings[t.userId].spent += parseFloat(t.amount || '0');
+        }
+        userEarnings[t.userId].actions++;
+      });
+
+      const topPerformers = {
+        topEarners: Object.entries(userEarnings)
+          .map(([id, data]) => ({ id, name: data.name, earned: data.earned.toFixed(2) }))
+          .sort((a, b) => parseFloat(b.earned) - parseFloat(a.earned))
+          .slice(0, 10),
+        topSpenders: Object.entries(userEarnings)
+          .map(([id, data]) => ({ id, name: data.name, spent: data.spent.toFixed(2) }))
+          .sort((a, b) => parseFloat(b.spent) - parseFloat(a.spent))
+          .slice(0, 10),
+        mostActive: Object.entries(userEarnings)
+          .map(([id, data]) => ({ id, name: data.name, actions: data.actions }))
+          .sort((a, b) => b.actions - a.actions)
+          .slice(0, 10)
+      };
+
+      // User Engagement Metrics
+      const dailyActiveUsers = allUsers.filter(u => 
+        new Date(u.lastLogin || u.createdAt) > oneDayAgo
+      ).length;
+      
+      const weeklyActiveUsers = allUsers.filter(u => 
+        new Date(u.lastLogin || u.createdAt) > sevenDaysAgo
+      ).length;
+      
+      const monthlyActiveUsers = allUsers.filter(u => 
+        new Date(u.lastLogin || u.createdAt) > thirtyDaysAgo
+      ).length;
+
+      // Calculate retention rate (users who returned after 7 days)
+      const usersFromLastWeek = allUsers.filter(u => {
+        const createdDate = new Date(u.createdAt);
+        return createdDate < sevenDaysAgo && createdDate > new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+      });
+      
+      const retainedUsers = usersFromLastWeek.filter(u => 
+        new Date(u.lastLogin || u.createdAt) > sevenDaysAgo
+      ).length;
+      
+      const retentionRate = usersFromLastWeek.length > 0 
+        ? ((retainedUsers / usersFromLastWeek.length) * 100).toFixed(1)
+        : '0';
+
+      const engagement = {
+        dailyActiveUsers,
+        weeklyActiveUsers,
+        monthlyActiveUsers,
+        retentionRate,
+        avgSessionLength: '12.5', // Placeholder - would need session tracking
+        bounceRate: '35' // Placeholder - would need analytics tracking
+      };
 
       res.json({ 
         revenue: {
@@ -1264,6 +1410,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             spending: spendingTransactions.filter(t => t.createdAt && new Date(t.createdAt) > thirtyDaysAgo).reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0).toFixed(2)
           }
         },
+        gameStats,
+        topPerformers,
+        engagement,
         activity: recentActivity
       });
     } catch (error) {
