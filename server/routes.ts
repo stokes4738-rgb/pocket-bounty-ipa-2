@@ -355,8 +355,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...bounty,
         totalCost: bountyReward.toFixed(2)
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating bounty:", error);
+      
+      // Handle validation errors
+      if (error.name === 'ZodError' || error.issues) {
+        const errorMessage = error.issues?.[0]?.message || error.message || "Invalid bounty data";
+        return res.status(400).json({ message: errorMessage });
+      }
+      
+      // Handle other specific errors
+      if (error.message && error.message.includes("Minimum reward")) {
+        return res.status(400).json({ message: error.message });
+      }
+      
       res.status(500).json({ message: "Failed to create bounty" });
     }
   });

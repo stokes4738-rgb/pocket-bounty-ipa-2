@@ -19,7 +19,7 @@ const postBountySchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(255, "Title too long"),
   description: z.string().min(20, "Description must be at least 20 characters"),
   category: z.string().min(1, "Please select a category"),
-  reward: z.string().refine((val) => parseFloat(val) >= 1, "Minimum reward is $1"),
+  reward: z.string().refine((val) => parseFloat(val) >= 5, "Minimum reward is $5"),
   tags: z.string().optional(),
   duration: z.string().min(1, "Please select a duration"),
 });
@@ -37,7 +37,7 @@ export default function Post() {
       title: "",
       description: "",
       category: "",
-      reward: "10",
+      reward: "5",
       tags: "",
       duration: "7",
     },
@@ -62,7 +62,7 @@ export default function Post() {
       queryClient.invalidateQueries({ queryKey: ["/api/bounties"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
@@ -74,15 +74,26 @@ export default function Post() {
         }, 500);
         return;
       }
+      
+      // Parse error message from backend
+      let errorMessage = "Failed to post bounty. Please try again.";
+      if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = error.message;
+      } else if (error && error.response && error.response.data && error.response.data.message) {
+        errorMessage = error.response.data.message;
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to post bounty. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = (data: PostBountyForm) => {
+    const reward = parseFloat(data.reward);
+    
     if ((user?.points || 0) < 5) {
       toast({
         title: "Insufficient Points",
@@ -91,6 +102,16 @@ export default function Post() {
       });
       return;
     }
+
+    if ((parseFloat(user?.balance || "0")) < reward) {
+      toast({
+        title: "Insufficient Balance",
+        description: `You need $${reward.toFixed(2)} in your account balance to post this bounty. Your current balance: $${parseFloat(user?.balance || "0").toFixed(2)}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     postMutation.mutate(data);
   };
 
@@ -185,6 +206,7 @@ export default function Post() {
                           type="number" 
                           min="5" 
                           max="500"
+                          step="0.01"
                           {...field}
                           data-testid="input-bounty-reward"
                         />
@@ -246,17 +268,22 @@ export default function Post() {
                 <Button 
                   type="submit" 
                   className="w-full bg-pocket-red hover:bg-pocket-red-dark text-white"
-                  disabled={postMutation.isPending || (user?.points || 0) < 5}
+                  disabled={postMutation.isPending || (user?.points || 0) < 5 || (parseFloat(user?.balance || "0")) < parseFloat(form.watch("reward") || "5")}
                   data-testid="button-post-bounty"
                 >
                   {postMutation.isPending ? "Posting..." : "Post Bounty"}
                 </Button>
                 <div className="text-xs text-muted-foreground text-center">
-                  💰 Full amount held in escrow. Auto-refunds in 3 days minus {parseFloat(form.watch("reward") || "0") >= 250 ? "3.5%" : "5%"} fee if unclaimed.
+                  💰 Full amount held in escrow. Auto-refunds in 3 days minus {parseFloat(form.watch("reward") || "5") >= 250 ? "3.5%" : "5%"} fee if unclaimed.
                 </div>
                 {(user?.points || 0) < 5 && (
                   <div className="text-xs text-destructive text-center">
                     You need at least 5 points to post a bounty
+                  </div>
+                )}
+                {(parseFloat(user?.balance || "0")) < parseFloat(form.watch("reward") || "5") && (
+                  <div className="text-xs text-destructive text-center">
+                    Insufficient balance: Need ${parseFloat(form.watch("reward") || "5").toFixed(2)}, have ${parseFloat(user?.balance || "0").toFixed(2)}
                   </div>
                 )}
               </div>

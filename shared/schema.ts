@@ -214,6 +214,22 @@ export const insertBountySchema = createInsertSchema(bounties).omit({
   status: true,
   claimedBy: true,
   completedAt: true,
+}).extend({
+  title: z.string().min(5, "Title must be at least 5 characters").max(255, "Title too long"),
+  description: z.string().min(20, "Description must be at least 20 characters"),
+  category: z.string().min(1, "Please select a category"),
+  reward: z.union([z.string(), z.number()]).transform((val) => {
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    if (num < 5) throw new Error("Minimum reward is $5");
+    if (num > 500) throw new Error("Maximum reward is $500");
+    return num;
+  }),
+  duration: z.union([z.string(), z.number()]).transform((val) => {
+    const num = typeof val === 'string' ? parseInt(val) : val;
+    if (num < 1) throw new Error("Duration must be at least 1 day");
+    if (num > 30) throw new Error("Maximum duration is 30 days");
+    return num;
+  }),
 });
 
 export const insertMessageSchema = createInsertSchema(messages).omit({
