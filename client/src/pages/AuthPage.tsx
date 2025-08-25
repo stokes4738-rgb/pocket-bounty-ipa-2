@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 
 const loginSchema = z.object({
@@ -55,8 +55,9 @@ export default function AuthPage() {
         title: "Welcome back!",
         description: "You've successfully logged in to Pocket Bounty.",
       });
+      // Invalidate and refetch user data
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       setLocation("/");
-      window.location.reload();
     },
     onError: (error: Error) => {
       toast({
@@ -81,8 +82,9 @@ export default function AuthPage() {
         title: "Welcome to Pocket Bounty!",
         description: "Your account has been created successfully. You got 50 welcome bonus points!",
       });
+      // Invalidate and refetch user data
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       setLocation("/");
-      window.location.reload();
     },
     onError: (error: Error) => {
       toast({
@@ -147,7 +149,7 @@ export default function AuthPage() {
                         placeholder="John"
                         data-testid="input-first-name"
                       />
-                      {errors.firstName && (
+                      {!isLogin && errors.firstName && (
                         <p className="text-red-300 text-sm mt-1">
                           {errors.firstName.message}
                         </p>
@@ -166,7 +168,7 @@ export default function AuthPage() {
                         placeholder="Doe"
                         data-testid="input-last-name"
                       />
-                      {errors.lastName && (
+                      {!isLogin && errors.lastName && (
                         <p className="text-red-300 text-sm mt-1">
                           {errors.lastName.message}
                         </p>
@@ -207,7 +209,7 @@ export default function AuthPage() {
                       placeholder="john@example.com"
                       data-testid="input-email"
                     />
-                    {errors.email && (
+                    {!isLogin && errors.email && (
                       <p className="text-red-300 text-sm mt-1">
                         {errors.email.message}
                       </p>
