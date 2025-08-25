@@ -51,6 +51,7 @@ function Router() {
             <Route path="/" component={Landing} />
             <Route path="/login" component={Login} />
             <Route path="/create-account" component={CreateAccount} />
+            <Route path="/signup" component={CreateAccount} />
           </>
         ) : (
           <>
