@@ -337,6 +337,79 @@ export default function SnakeGame() {
         </CardContent>
       </Card>
 
+      {/* Mobile Controls */}
+      <div className="sm:hidden flex flex-col items-center gap-4">
+        <div className="grid grid-cols-3 gap-2 w-48">
+          <div></div>
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900 border-2 border-green-300 dark:border-green-700 active:bg-green-200 dark:active:bg-green-800"
+            onTouchStart={(e) => {
+              e.preventDefault();
+              handleDirectionChange({ x: 0, y: -1 });
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              handleDirectionChange({ x: 0, y: -1 });
+            }}
+          >
+            <span className="text-2xl text-green-600 dark:text-green-400">↑</span>
+          </Button>
+          <div></div>
+          
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900 border-2 border-green-300 dark:border-green-700 active:bg-green-200 dark:active:bg-green-800"
+            onTouchStart={(e) => {
+              e.preventDefault();
+              handleDirectionChange({ x: -1, y: 0 });
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              handleDirectionChange({ x: -1, y: 0 });
+            }}
+          >
+            <span className="text-2xl text-green-600 dark:text-green-400">←</span>
+          </Button>
+          <div></div>
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900 border-2 border-green-300 dark:border-green-700 active:bg-green-200 dark:active:bg-green-800"
+            onTouchStart={(e) => {
+              e.preventDefault();
+              handleDirectionChange({ x: 1, y: 0 });
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              handleDirectionChange({ x: 1, y: 0 });
+            }}
+          >
+            <span className="text-2xl text-green-600 dark:text-green-400">→</span>
+          </Button>
+          
+          <div></div>
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900 border-2 border-green-300 dark:border-green-700 active:bg-green-200 dark:active:bg-green-800"
+            onTouchStart={(e) => {
+              e.preventDefault();
+              handleDirectionChange({ x: 0, y: 1 });
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              handleDirectionChange({ x: 0, y: 1 });
+            }}
+          >
+            <span className="text-2xl text-green-600 dark:text-green-400">↓</span>
+          </Button>
+          <div></div>
+        </div>
+      </div>
+
       <Card className="theme-transition">
         <CardContent className="p-3.5 flex justify-between items-center bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50">
           <div className="flex gap-3">
@@ -364,60 +437,6 @@ export default function SnakeGame() {
         </CardContent>
       </Card>
 
-      {/* Mobile Controls */}
-      <div className="flex justify-center gap-8 sm:hidden">
-        {/* Directional Pad */}
-        <div className="relative">
-          <div className="grid grid-cols-3 gap-1 w-32 h-32">
-            {/* Top */}
-            <div></div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-10 w-10 p-0"
-              onTouchStart={() => handleDirectionChange({ x: 0, y: -1 })}
-              onClick={() => handleDirectionChange({ x: 0, y: -1 })}
-            >
-              ↑
-            </Button>
-            <div></div>
-            
-            {/* Middle */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-10 w-10 p-0"
-              onTouchStart={() => handleDirectionChange({ x: -1, y: 0 })}
-              onClick={() => handleDirectionChange({ x: -1, y: 0 })}
-            >
-              ←
-            </Button>
-            <div className="w-10 h-10"></div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-10 w-10 p-0"
-              onTouchStart={() => handleDirectionChange({ x: 1, y: 0 })}
-              onClick={() => handleDirectionChange({ x: 1, y: 0 })}
-            >
-              →
-            </Button>
-            
-            {/* Bottom */}
-            <div></div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-10 w-10 p-0"
-              onTouchStart={() => handleDirectionChange({ x: 0, y: 1 })}
-              onClick={() => handleDirectionChange({ x: 0, y: 1 })}
-            >
-              ↓
-            </Button>
-            <div></div>
-          </div>
-        </div>
-      </div>
 
       <Card className="theme-transition">
         <CardContent className="p-3.5">
