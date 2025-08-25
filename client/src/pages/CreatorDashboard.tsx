@@ -15,7 +15,10 @@ import {
   Percent,
   ArrowUpRight,
   ArrowDownRight,
-  Crown
+  Crown,
+  CreditCard,
+  Wallet,
+  ShoppingCart
 } from "lucide-react";
 
 interface CreatorStats {
@@ -51,6 +54,28 @@ interface CreatorStats {
     deposits: number;
     withdrawals: number;
     avgTransactionSize: string;
+  };
+  spending: {
+    totalUserSpent: string;
+    pointPurchases: {
+      total: string;
+      count: number;
+      avgPurchase: string;
+    };
+    withdrawals: {
+      total: string;
+      count: number;
+      avgWithdrawal: string;
+    };
+    refunds: {
+      total: string;
+      count: number;
+    };
+    breakdown: Record<string, number>;
+    last30Days: {
+      pointPurchases: string;
+      spending: string;
+    };
   };
   activity: Array<{
     id: string;
@@ -239,15 +264,15 @@ export default function CreatorDashboard() {
 
         <Card className="theme-transition">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Transaction Volume</CardTitle>
-            <BarChart3 className="h-4 w-4 text-orange-600" />
+            <CardTitle className="text-sm font-medium">User Spending</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              ${parseFloat(stats.transactions.totalVolume).toLocaleString()}
+            <div className="text-2xl font-bold text-red-600">
+              ${parseFloat(stats.spending.totalUserSpent).toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              {stats.transactions.total} total transactions
+              Total money spent by users
             </p>
           </CardContent>
         </Card>
@@ -334,8 +359,8 @@ export default function CreatorDashboard() {
         </Card>
       </div>
 
-      {/* Revenue & Transactions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Revenue & Spending Analysis */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Revenue Breakdown */}
         <Card className="theme-transition">
           <CardHeader>
@@ -376,6 +401,52 @@ export default function CreatorDashboard() {
               <div className="flex justify-between items-center">
                 <span className="font-medium">Average Fee per Transaction</span>
                 <span className="font-bold text-green-600">${stats.revenue.avgPerTransaction}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* User Spending Analytics */}
+        <Card className="theme-transition">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5" />
+              User Spending Analytics
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Point Purchases</p>
+                <p className="text-2xl font-bold text-blue-600">${parseFloat(stats.spending.pointPurchases.total).toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">{stats.spending.pointPurchases.count} purchases</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Withdrawals</p>
+                <p className="text-2xl font-bold text-red-600">${parseFloat(stats.spending.withdrawals.total).toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">{stats.spending.withdrawals.count} withdrawals</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Avg Point Purchase</p>
+                <p className="text-2xl font-bold">${stats.spending.pointPurchases.avgPurchase}</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Avg Withdrawal</p>
+                <p className="text-2xl font-bold">${stats.spending.withdrawals.avgWithdrawal}</p>
+              </div>
+            </div>
+            <div className="pt-4 border-t space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Total User Spending</span>
+                <span className="font-bold text-red-600">${parseFloat(stats.spending.totalUserSpent).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Last 30 Days - Points</span>
+                <span className="font-bold text-blue-600">${parseFloat(stats.spending.last30Days.pointPurchases).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Last 30 Days - Other</span>
+                <span className="font-bold text-red-600">${parseFloat(stats.spending.last30Days.spending).toLocaleString()}</span>
               </div>
             </div>
           </CardContent>

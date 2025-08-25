@@ -1004,6 +1004,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const withdrawals = allTransactions.filter(t => t.type === 'spending');
       const totalVolume = allTransactions.reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
 
+      // Calculate comprehensive spending analytics
+      const pointPurchases = allTransactions.filter(t => t.type === 'point_purchase');
+      const totalPointPurchases = pointPurchases.reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
+      
+      const spendingTransactions = allTransactions.filter(t => t.type === 'spending');
+      const totalSpending = spendingTransactions.reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
+      
+      const refundTransactions = allTransactions.filter(t => t.type === 'refund');
+      const totalRefunds = refundTransactions.reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
+      
+      // Calculate total money users have spent across all categories
+      const totalUserSpent = totalPointPurchases + totalSpending;
+      
+      // Break down spending by category
+      const spendingByCategory = spendingTransactions.reduce((acc, t) => {
+        const description = t.description || '';
+        let category = 'other';
+        
+        if (description.toLowerCase().includes('withdrawal')) {
+          category = 'withdrawals';
+        } else if (description.toLowerCase().includes('bounty')) {
+          category = 'bounty_related';
+        } else if (description.toLowerCase().includes('fee')) {
+          category = 'fees';
+        }
+        
+        acc[category] = (acc[category] || 0) + parseFloat(t.amount || '0');
+        return acc;
+      }, {} as Record<string, number>);
+
       // Growth metrics (comparing last 30 days vs previous 30 days)
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
@@ -1044,6 +1074,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           deposits: deposits.length,
           withdrawals: withdrawals.length,
           avgTransactionSize: allTransactions.length > 0 ? (totalVolume / allTransactions.length).toFixed(2) : '0'
+        },
+        spending: {
+          totalUserSpent: totalUserSpent.toFixed(2),
+          pointPurchases: {
+            total: totalPointPurchases.toFixed(2),
+            count: pointPurchases.length,
+            avgPurchase: pointPurchases.length > 0 ? (totalPointPurchases / pointPurchases.length).toFixed(2) : '0'
+          },
+          withdrawals: {
+            total: totalSpending.toFixed(2),
+            count: spendingTransactions.length,
+            avgWithdrawal: spendingTransactions.length > 0 ? (totalSpending / spendingTransactions.length).toFixed(2) : '0'
+          },
+          refunds: {
+            total: totalRefunds.toFixed(2),
+            count: refundTransactions.length
+          },
+          breakdown: spendingByCategory,
+          last30Days: {
+            pointPurchases: pointPurchases.filter(t => t.createdAt && new Date(t.createdAt) > thirtyDaysAgo).reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0).toFixed(2),
+            spending: spendingTransactions.filter(t => t.createdAt && new Date(t.createdAt) > thirtyDaysAgo).reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0).toFixed(2)
+          }
         },
         activity: recentActivity
       });
