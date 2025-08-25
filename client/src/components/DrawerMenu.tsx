@@ -29,7 +29,7 @@ export function DrawerMenu({ isOpen, onClose, activeSection, onSectionChange }: 
     { id: "points", label: "⭐ Buy Points" },
     { id: "admin", label: "👑 Creator Analytics" },
     { id: "settings", label: "⚙️ Settings" },
-    { id: "flappy", label: "🐤 Flappy Game" },
+    { id: "arcade", label: "🎮 Arcade" },
   ];
 
   return (

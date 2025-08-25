@@ -7,11 +7,11 @@ interface BottomNavigationProps {
 
 export function BottomNavigation({ activeSection, onSectionChange }: BottomNavigationProps) {
   const navItems = [
-    { id: "bank", icon: "🏦", label: "Bank" },
     { id: "board", icon: "📋", label: "Board" },
+    { id: "arcade", icon: "🎮", label: "Arcade" },
     { id: "post", icon: "➕", label: "Post" },
     { id: "messages", icon: "💬", label: "Messages" },
-    { id: "account", icon: "💳", label: "Account" },
+    { id: "bank", icon: "🏦", label: "Bank" },
   ];
 
   return (

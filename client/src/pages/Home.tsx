@@ -9,6 +9,7 @@ import Friends from "./Friends";
 import Activity from "./Activity";
 import Settings from "./Settings";
 import FlappyGame from "./FlappyGame";
+import Arcade from "./Arcade";
 import Account from "./Account";
 import CreatorDashboard from "./CreatorDashboard";
 import Referrals from "./Referrals";
@@ -37,6 +38,8 @@ export default function Home() {
         return <Settings />;
       case "flappy":
         return <FlappyGame />;
+      case "arcade":
+        return <Arcade />;
       case "referrals":
         return <Referrals />;
       case "points":
