@@ -1,58 +1,4 @@
 workflows:
-  ios-automatic-code-signing:
-    name: iOS Automatic Code Signing
-    max_build_duration: 60
-    instance_type: mac_mini_m1
-    integrations:
-      app_store_connect: codemagic
-    environment:
-      ios_signing:
-        distribution_type: ad_hoc
-        bundle_identifier: com.pocketbounty.app
-      vars:
-        BUNDLE_ID: "com.pocketbounty.app"
-        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
-        XCODE_SCHEME: "App"
-      node: 18.17.0
-      xcode: latest
-      cocoapods: default
-    scripts:
-      - name: Set up keychain to be used for codesigning using Codemagic CLI 'keychain' command
-        script: keychain initialize
-      - name: Install npm dependencies
-        script: |
-          npm ci
-      - name: Build web application
-        script: |
-          npm run build
-      - name: Update dependencies and copy web assets to native project
-        script: |
-          npx cap sync ios
-      - name: Set up code signing settings on Xcode project
-        script: xcode-project use-profiles
-      - name: Build ipa for distribution
-        script: |
-          xcode-project build-ipa \
-            --workspace "$XCODE_WORKSPACE" \
-            --scheme "$XCODE_SCHEME"
-    artifacts:
-      - build/ios/ipa/*.ipa
-      - /tmp/xcodebuild_logs/*.log
-      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
-      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
-    publishing:
-      email:
-        recipients:
-          - user@example.com
-        notify:
-          success: true
-          failure: false
-      app_store_connect:
-        auth: integration
-        submit_to_testflight: false
-        beta_groups: # Specify the names of beta tester groups that will get access to the build once it has passed beta review.
-          - group name 1
-          - group name 2
 
   ios-unsigned-build:
     name: iOS Unsigned Build (for esign)
@@ -67,8 +13,6 @@ workflows:
       xcode: latest
       cocoapods: default
     scripts:
-      - name: Set up keychain
-        script: keychain initialize
       - name: Install npm dependencies
         script: |
           npm ci
@@ -78,30 +22,7 @@ workflows:
       - name: Update dependencies and copy web assets to native project
         script: |
           npx cap sync ios
-      - name: Disable automatic code signing
-        script: |
-          cd ios/App
-          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' App.xcodeproj/project.pbxproj
-          sed -i '' 's/DEVELOPMENT_TEAM = .*;/DEVELOPMENT_TEAM = "";/g' App.xcodeproj/project.pbxproj
-          sed -i '' 's/CODE_SIGN_IDENTITY = .*/CODE_SIGN_IDENTITY = "";/g' App.xcodeproj/project.pbxproj
-      - name: Build unsigned ipa
-        script: |
-          cd ios/App
-          xcodebuild -workspace App.xcworkspace \
-            -scheme App \
-            -configuration Release \
-            -destination generic/platform=iOS \
-            -archivePath App.xcarchive \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            archive
-          
-          xcodebuild -exportArchive \
-            -archivePath App.xcarchive \
-            -exportPath ./build \
-            -exportOptionsPlist ExportOptions.plist
-      - name: Create export options
+      - name: Create export options for unsigned build
         script: |
           cd ios/App
           cat > ExportOptions.plist << EOF
@@ -115,9 +36,39 @@ workflows:
               <false/>
               <key>signingStyle</key>
               <string>manual</string>
+              <key>stripSwiftSymbols</key>
+              <true/>
           </dict>
           </plist>
           EOF
+      - name: Disable all code signing in Xcode project
+        script: |
+          cd ios/App
+          # Disable code signing completely
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' App.xcodeproj/project.pbxproj
+          sed -i '' 's/DEVELOPMENT_TEAM = .*;/DEVELOPMENT_TEAM = "";/g' App.xcodeproj/project.pbxproj
+          sed -i '' 's/CODE_SIGN_IDENTITY = .*/CODE_SIGN_IDENTITY = "";/g' App.xcodeproj/project.pbxproj
+          sed -i '' 's/PROVISIONING_PROFILE_SPECIFIER = .*/PROVISIONING_PROFILE_SPECIFIER = "";/g' App.xcodeproj/project.pbxproj
+      - name: Build unsigned app archive
+        script: |
+          cd ios/App
+          xcodebuild -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -destination generic/platform=iOS \
+            -archivePath App.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            PROVISIONING_PROFILE="" \
+            archive
+      - name: Export unsigned IPA
+        script: |
+          cd ios/App
+          xcodebuild -exportArchive \
+            -archivePath App.xcarchive \
+            -exportPath ./build \
+            -exportOptionsPlist ExportOptions.plist
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
