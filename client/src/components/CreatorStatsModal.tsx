@@ -40,9 +40,10 @@ export function CreatorStatsModal({ isOpen, onClose, type, title }: StatsModalPr
     enabled: isOpen && type !== null,
     queryFn: async () => {
       if (!type) return null;
-      const response = await apiRequest("GET", `/api/creator/details/${type}`) as ModalDetailsData;
-      console.log(`Modal data for ${type}:`, response);
-      return response;
+      const response = await apiRequest("GET", `/api/creator/details/${type}`);
+      const data = await response.json() as ModalDetailsData;
+      console.log(`Modal data for ${type}:`, data);
+      return data;
     },
     retry: false
   });
