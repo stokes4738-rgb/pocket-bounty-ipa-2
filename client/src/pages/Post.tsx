@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import PWAInputFix from "@/components/PWAInputFix";
+import PWAInput from "@/components/PWAInput";
 
 const postBountySchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(255, "Title too long"),
@@ -230,15 +231,13 @@ export default function Post() {
                         Reward Amount ($)
                       </FormLabel>
                       <FormControl>
-                        <input 
+                        <PWAInput 
                           type="text"
                           inputMode="decimal"
                           pattern="[0-9]*\.?[0-9]*"
                           placeholder="5.00"
                           {...field}
                           data-testid="input-bounty-reward"
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          autoComplete="off"
                         />
                       </FormControl>
                       <FormMessage />

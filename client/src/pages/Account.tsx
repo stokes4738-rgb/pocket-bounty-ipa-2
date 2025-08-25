@@ -16,6 +16,7 @@ import { apiRequest } from "@/lib/queryClient";
 import DemoLockOverlay from "@/components/DemoLockOverlay";
 import { CreditCard, Plus, Trash2, Star, DollarSign, History, Shield, Lock } from "lucide-react";
 import PWAInputFix from "@/components/PWAInputFix";
+import PWAInput from "@/components/PWAInput";
 
 // Stripe setup
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLIC_KEY ? 
@@ -252,7 +253,7 @@ function DepositForm({ paymentMethods }: { paymentMethods: PaymentMethodType[] }
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <Label htmlFor="amount">Amount ($)</Label>
-        <input
+        <PWAInput
           id="amount"
           type="text"
           inputMode="decimal"
@@ -261,8 +262,6 @@ function DepositForm({ paymentMethods }: { paymentMethods: PaymentMethodType[] }
           onChange={(e) => setAmount(e.target.value)}
           placeholder="Enter amount (e.g., 10.00)"
           data-testid="input-deposit-amount"
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          autoComplete="off"
         />
       </div>
       <div>
@@ -461,7 +460,7 @@ export default function Account() {
                 <Label htmlFor="amount">Amount (USD)</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                  <input
+                  <PWAInput
                     id="amount"
                     type="text"
                     inputMode="decimal"
@@ -469,9 +468,8 @@ export default function Account() {
                     placeholder="100.00"
                     value={testDepositAmount}
                     onChange={(e) => setTestDepositAmount(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-8"
+                    className="pl-8"
                     data-testid="input-deposit-amount"
-                    autoComplete="off"
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">

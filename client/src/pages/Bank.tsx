@@ -15,6 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import DemoLockOverlay from "@/components/DemoLockOverlay";
 import PWAInputFix from "@/components/PWAInputFix";
+import PWAInput from "@/components/PWAInput";
 import type { Transaction } from "@shared/schema";
 
 export default function Bank() {
@@ -249,16 +250,15 @@ export default function Bank() {
               </Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <input 
+                <PWAInput 
                   type="text"
                   inputMode="decimal"
                   pattern="[0-9]*\.?[0-9]*"
                   placeholder="5.00" 
                   value={payoutAmount}
                   onChange={(e) => setPayoutAmount(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-8"
+                  className="pl-8"
                   data-testid="input-payout-amount"
-                  autoComplete="off"
                 />
               </div>
               <div className="text-xs text-muted-foreground mt-1">
