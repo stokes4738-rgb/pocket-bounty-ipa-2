@@ -478,15 +478,32 @@ export default function Account() {
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                   <Input
                     id="amount"
-                    type="number"
-                    min="1"
-                    max="1000"
-                    step="0.01"
+                    type="text"
+                    inputMode="decimal"
+                    pattern="[0-9]*\.?[0-9]*"
                     placeholder="100.00"
                     value={testDepositAmount}
-                    onChange={(e) => setTestDepositAmount(e.target.value)}
+                    onChange={(e) => {
+                      // Only allow numbers and decimal point
+                      const value = e.target.value.replace(/[^0-9.]/g, '');
+                      // Prevent multiple decimal points
+                      const parts = value.split('.');
+                      if (parts.length > 2) {
+                        return; // Don't update if more than one decimal point
+                      }
+                      setTestDepositAmount(value);
+                    }}
+                    onFocus={(e) => {
+                      // Force keyboard to show on mobile
+                      e.target.setAttribute('readonly', 'false');
+                      e.target.click();
+                    }}
                     className="pl-8"
                     data-testid="input-deposit-amount"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -650,7 +667,7 @@ export default function Account() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setDefaultMutation.mutate(method.id)}
+                          onClick={() => setDefaultMutation.mutate(method.stripePaymentMethodId)}
                           disabled={setDefaultMutation.isPending}
                           data-testid={`button-set-default-${method.last4}`}
                         >
@@ -660,7 +677,7 @@ export default function Account() {
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => deleteMutation.mutate(method.id)}
+                        onClick={() => deleteMutation.mutate(method.stripePaymentMethodId)}
                         disabled={deleteMutation.isPending}
                         data-testid={`button-delete-${method.last4}`}
                       >
