@@ -15,6 +15,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import DemoLockOverlay from "@/components/DemoLockOverlay";
 import { CreditCard, Plus, Trash2, Star, DollarSign, History, Shield, Lock } from "lucide-react";
+import PWAInputFix from "@/components/PWAInputFix";
 
 // Stripe setup
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLIC_KEY ? 
@@ -251,33 +252,17 @@ function DepositForm({ paymentMethods }: { paymentMethods: PaymentMethodType[] }
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <Label htmlFor="amount">Amount ($)</Label>
-        <Input
+        <input
           id="amount"
           type="text"
           inputMode="decimal"
           pattern="[0-9]*\.?[0-9]*"
           value={amount}
-          onChange={(e) => {
-            // Only allow numbers and decimal point
-            const value = e.target.value.replace(/[^0-9.]/g, '');
-            // Prevent multiple decimal points
-            const parts = value.split('.');
-            if (parts.length > 2) {
-              return; // Don't update if more than one decimal point
-            }
-            setAmount(value);
-          }}
-          onFocus={(e) => {
-            // Force keyboard to show on mobile
-            e.target.setAttribute('readonly', 'false');
-            e.target.click();
-          }}
+          onChange={(e) => setAmount(e.target.value)}
           placeholder="Enter amount (e.g., 10.00)"
           data-testid="input-deposit-amount"
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="off"
-          spellCheck={false}
         />
       </div>
       <div>
@@ -476,34 +461,17 @@ export default function Account() {
                 <Label htmlFor="amount">Amount (USD)</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                  <Input
+                  <input
                     id="amount"
                     type="text"
                     inputMode="decimal"
                     pattern="[0-9]*\.?[0-9]*"
                     placeholder="100.00"
                     value={testDepositAmount}
-                    onChange={(e) => {
-                      // Only allow numbers and decimal point
-                      const value = e.target.value.replace(/[^0-9.]/g, '');
-                      // Prevent multiple decimal points
-                      const parts = value.split('.');
-                      if (parts.length > 2) {
-                        return; // Don't update if more than one decimal point
-                      }
-                      setTestDepositAmount(value);
-                    }}
-                    onFocus={(e) => {
-                      // Force keyboard to show on mobile
-                      e.target.setAttribute('readonly', 'false');
-                      e.target.click();
-                    }}
-                    className="pl-8"
+                    onChange={(e) => setTestDepositAmount(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-8"
                     data-testid="input-deposit-amount"
                     autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck={false}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -549,6 +517,7 @@ export default function Account() {
 
   return (
     <Elements stripe={stripePromise}>
+      <PWAInputFix />
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Account Management</h1>
